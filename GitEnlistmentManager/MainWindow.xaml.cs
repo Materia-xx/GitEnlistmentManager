@@ -24,5 +24,18 @@ namespace GitEnlistmentManager
         {
             InitializeComponent();
         }
+
+        private void btnRunCommand_Click(object sender, RoutedEventArgs e)
+        {
+            txtCommandPrompt.FormatLinesWithoutExtraLineReturns();
+            txtCommandPrompt.AppendLine($">git.exe blah blah blah..", Brushes.White);
+
+            for (int i = 0;i<4;i++)
+            {
+                txtCommandPrompt.AppendLine($"Results #{i}...", Brushes.Gray);
+            }
+
+            txtCommandPrompt.ScrollToEnd();
+        }
     }
 }

@@ -7,6 +7,23 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        
+        <Button x:Name="btnRunCommand" Grid.Column="0" Grid.Row="0" Click="btnRunCommand_Click" >Run that command!</Button>
+
+        <GridSplitter Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" ResizeDirection="Rows" />
+        <RichTextBox x:Name="txtCommandPrompt" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Width="auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White"/>
 
     </Grid>
 </Window>
