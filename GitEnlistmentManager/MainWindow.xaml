@@ -4,26 +4,34 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
+        xmlns:dtos="clr-namespace:GitEnlistmentManager.DTOs"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="150"/>
-            <RowDefinition Height="150"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" MinWidth="200"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition MinWidth="200"/>
         </Grid.ColumnDefinitions>
-        
-        
-        <Button x:Name="btnRunCommand" Grid.Column="0" Grid.Row="0" Click="btnRunCommand_Click" >Run that command!</Button>
 
-        <GridSplitter Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" ResizeDirection="Rows" />
-        <RichTextBox x:Name="txtCommandPrompt" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Width="auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White"/>
+        <!--<Button x:Name="btnRunCommand" Grid.Column="0" Grid.Row="0" Click="btnRunCommand_Click" >Run that command!</Button>-->
+        <TreeView x:Name="treeRepos" Grid.Column="0" ItemsSource="{Binding}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">
+                    <TextBlock Text="{Binding Path=Name}" />
+                </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type dtos:Bucket}" ItemsSource="{Binding Enlistments}">
+                    <TextBlock Text="{Binding Path=Name}" />
+                </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type dtos:Enlistment}">
+                    <TextBlock Text="{Binding Path=Name}" />
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+
+
+        <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  ResizeDirection="Columns" />
+        <RichTextBox x:Name="txtCommandPrompt" Grid.Column="2" Grid.RowSpan="4" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White" MinWidth="200"/>
 
     </Grid>
 </Window>
