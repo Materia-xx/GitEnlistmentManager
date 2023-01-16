@@ -1,20 +1,19 @@
 ﻿using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.Extensions;
 using System.Windows;
 
 namespace GitEnlistmentManager
 {
     /// <summary>
-    /// Interaction logic for BucketSettings.xaml
+    /// Interaction logic for EnlistmentSettings.xaml
     /// </summary>
-    public partial class BucketSettings : Window
+    public partial class EnlistmentSettings : Window
     {
-        private readonly Bucket bucket;
+        private readonly Enlistment enlistment;
 
-        public BucketSettings(Bucket bucket)
+        public EnlistmentSettings(Enlistment enlistment)
         {
             InitializeComponent();
-            this.bucket = bucket;
+            this.enlistment = enlistment;
             this.DtoToForm();
         }
 
@@ -23,26 +22,24 @@ namespace GitEnlistmentManager
             // Transfer data from form to DTO
             FormToDto();
 
-            // Force directory for the bucket to be created
-            if (this.bucket.GetDirectoryInfo() != null)
-            {
-                this.Close();
-            }
+            // Close the form, the main UI will create the enlistment
+            // so that the commands can be viewed in the UI.
+            this.Close();
         }
 
         private void FormToDto()
         {
-            this.bucket.Name = this.txtBucketName.Text;
+            this.enlistment.Name = this.txtEnlistmentName.Text;
         }
 
         private void DtoToForm()
         {
-            this.txtBucketName.Text = this.bucket.Name;
+            this.txtEnlistmentName.Text = this.enlistment.Name;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            this.txtBucketName.Focus();
+            this.txtEnlistmentName.Focus();
         }
     }
 }

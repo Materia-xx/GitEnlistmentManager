@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using System.IO;
 using System.Windows;
 
 namespace GitEnlistmentManager
@@ -23,9 +24,22 @@ namespace GitEnlistmentManager
             // Transfer data from form to DTO
             FormToDto();
 
+            if (!Path.Exists(this.gem.Metadata.GitExePath))
+            {
+                MessageBox.Show($"Git path not found: {this.gem.Metadata.GitExePath}");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(this.gem.Metadata.ReposFolder))
+            {
+                MessageBox.Show($"Please specify the repos folder");
+                return;
+            }
+
             // Write the metadata.json.
             if (this.gem.WriteMetadata())
             {
+                this.DialogResult = true;
                 this.Close();
             }
         }
@@ -33,11 +47,18 @@ namespace GitEnlistmentManager
         private void FormToDto()
         {
             this.gem.Metadata.ReposFolder = this.txtReposFolder.Text;
+            this.gem.Metadata.GitExePath = this.txtGitExePath.Text;
         }
 
         private void DtoToForm()
         {
             this.txtReposFolder.Text = this.gem.Metadata.ReposFolder;
+            this.txtGitExePath.Text = this.gem.Metadata.GitExePath;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.txtReposFolder.Focus();
         }
     }
 }

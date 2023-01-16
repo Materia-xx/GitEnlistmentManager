@@ -14,7 +14,6 @@
             <ColumnDefinition MinWidth="200"/>
         </Grid.ColumnDefinitions>
 
-        <!--<Button x:Name="btnRunCommand" Grid.Column="0" Grid.Row="0" Click="btnRunCommand_Click" >Run that command!</Button>-->
         <TreeView x:Name="treeRepos" Grid.Column="0" ItemsSource="{Binding}">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">

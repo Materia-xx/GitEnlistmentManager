@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,31 +9,47 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-// Make it so create new repo only appears when right clicking a blank spot
+// Z, A: Make it so create new repo only appears when right clicking a blank spot
 
-// Split out data that can be serialized in the DTO classes. This will make it easier to read/write their data to disk.
+// Z, A: Split out data that can be serialized in the DTO classes. This will make it easier to read/write their data to disk.
 
-// Make it so creating a new repo displays a form that allows you to type in the repo information.
+// Z, A: Make it so creating a new repo displays a form that allows you to type in the repo information.
 
-// Make it so you can edit an existing repo information with the same repo settings form.
+// Z, A: Make it so you can edit an existing repo information with the same repo settings form.
 
-// Don't allow renames of the repo folder, this would mess up the parent repo mapping for 2nd, 3rd etc level enlistments. Instead users will need to create a new repo folder for now.
+// Z, A: Don't allow renames of the repo folder, this would mess up the parent repo mapping for 2nd, 3rd etc level enlistments. Instead users will need to create a new repo folder for now.
 
-// Make a dialog that lets you edit the top level GEM data, such as the folder where all repos are stored
-// Make it so Gem data is stored in localappdata for this app
+// Z, A: Make a dialog that lets you edit the top level GEM data, such as the folder where all repos are stored
+// Z, A: Make it so Gem data is stored in appdata for this app
 
-// Make sure that users are not allowed to create or edit any repos until they have first
-// set the Gem metadata repos folder
+// Z, A: Make sure that users are not allowed to create or edit any repos until they have first
+// Z, A: set the Gem metadata repos folder
 
-// Add a right click menu to edit the main Gem settings
+// Z, A: Add a right click menu to edit the main Gem settings
 
-// Add links to every child Dto so it can trace back up to its parent when needed.
-// make sure all links are loaded during load and when adding children.
+// Z, A: Add links to every child Dto so it can trace back up to its parent when needed.
+// Z, A: make sure all links are loaded during load and when adding children.
 
-// Show a dialog to add a new bucket and create the bucket folder
+// Z, A: Show a dialog to add a new bucket and create the bucket folder
 
-// TODO: show a dialog to create a new enlistment. This should run the clone commands to set up the enlistment.
-// TODO: the program should name the folders so they appear in file explorer the same way the inherit .. maybe.
+// Z, A: Update RunCommand so you can pass in the working folder
+
+// Z, A: Update the RunCommand so it returns a true/false indicating if the command was successful
+
+// Z, A: Update the RunCommand so it also shows things written to the error channel
+
+// Z, A: Show a dialog to create a new enlistment. This should run the clone commands to set up the enlistment.
+
+// Z, A: Add an option to the main Gem config to specify the path to git.exe
+// Z, A: then update enlistment extensions or anywhere else that has the path hardcoded.
+
+// Z, A: Wrap the exe being called in RunCommand in quotes, or atleast display it that way so that a copy/pasted command will still run properly.
+
+// Z, A: Update the new enlistment command to take into account being a child of another enlistment in the same bucket.
+
+// TODO: Implement "Injecting" an enlistment. 
+
+// TODO: Clear the "cmd screen" when creating a new enlistment.
 
 
 // TODO: Create named snippets, a snippet would be a set of commands that run to accomplish a specific purpose
@@ -41,6 +58,8 @@ using System.Windows.Media;
 // TODO: The snippets should be saved in an appdata folder so users could modify them if needed.
 
 // TODO: make it so the treeview remembers the open folders when reloading the UI
+
+// TODO: add the ability to run extra commands specific to a given repo.. these commands would only run if you were using that repo.
 
 // TODO: Make it so you can have different repo types GitHub vs TFS, each type would have
 // TODO: different settings for the PR url format to use
@@ -67,15 +86,26 @@ namespace GitEnlistmentManager
         public MainWindow()
         {
             InitializeComponent();
-            this.ReloadTreeview();
+            if(!this.ReloadTreeview())
+            {
+                this.Close();
+            }
+
             treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
         }
 
-        private void ReloadTreeview()
+        private bool ReloadTreeview()
         {
             treeRepos.ItemsSource = null;
-            this.gem = GetGem();
+            var gem = GetGem();
+            if (gem == null) 
+            {
+                return false;
+            }
+
+            this.gem = gem;
             treeRepos.ItemsSource = gem.Repos;
+            return true;
         }
 
         private static TreeViewItem? VisualUpwardSearch(DependencyObject? source)
@@ -195,22 +225,28 @@ namespace GitEnlistmentManager
                         menu.Items.Add(menuAddNewBucket);
                     }
                 }
-                if (selectedItem is Bucket)
+
+                if (selectedItem is Bucket bucket)
                 {
                     var menuAddNewEnlistment = new MenuItem() // TODO: all enlistment options should only be there if all the settings needed to create an enlistment are set up properly
                     {
                         Header = "Add New Enlistment"
                     };
+                    menuAddNewEnlistment.Click += async (s, e) =>
+                    {
+                        var enlistment = new Enlistment(bucket);
+                        var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
+                        enlistmentSettingsEditor.ShowDialog();
+                        // After the editor closes, create the enlistment
+                        await enlistment.CreateEnlistment(parentEnlistment: null, mainWindow: this).ConfigureAwait(true);
+                        // Reload the UI so we pick up any changes made
+                        this.ReloadTreeview();
+                    };
                     menu.Items.Add(menuAddNewEnlistment);
                 }
+
                 if (selectedItem is Enlistment)
                 {
-                    var menuEditEnlistmentSettings = new MenuItem()
-                    {
-                        Header = "Edit Enlistment Settings"
-                    };
-                    menu.Items.Add(menuEditEnlistmentSettings);
-
                     var menuAddNewEnlistmentAbove = new MenuItem()
                     {
                         Header = "Add New Enlistment Above"
@@ -222,7 +258,7 @@ namespace GitEnlistmentManager
             }
         }
 
-        private Gem GetGem()
+        private Gem? GetGem()
         {
             var gem = new Gem();
 
@@ -231,7 +267,11 @@ namespace GitEnlistmentManager
             while (!gem.ReadMetadata() || string.IsNullOrWhiteSpace(gem.Metadata.ReposFolder))
             {
                 var gemSettingsEditor = new GemSettings(gem);
-                gemSettingsEditor.ShowDialog();
+                var result = gemSettingsEditor.ShowDialog();
+                if (result != null && !result.Value)
+                {
+                    return null;
+                }
             }
 
             var gemFolder = new DirectoryInfo(gem.Metadata.ReposFolder);
@@ -269,43 +309,64 @@ namespace GitEnlistmentManager
             return gem;
         }
 
-
-
-        //private async void btnRunCommand_Click(object sender, RoutedEventArgs e)
-        //{
-        //    await RunCommand(
-        //        programPath: "C:\\Program Files\\Git\\cmd\\git.exe",
-        //        arguments: "--help"
-        //        ).ConfigureAwait(true);
-        //    txtCommandPrompt.ScrollToEnd();
-        //}
-
-
-        private async Task RunCommand(string programPath, string arguments)
+        public async Task<bool> RunCommand(string programPath, string arguments, string? workingFolder = null)
         {
             await txtCommandPrompt.FormatLinesWithoutExtraLineReturns().ConfigureAwait(false);
-            await txtCommandPrompt.AppendLine($">{programPath} {arguments}", Brushes.White).ConfigureAwait(false);
+            await txtCommandPrompt.AppendLine($"{Environment.NewLine}>\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
 
-            using (Process process = new Process())
+            using Process process = new();
+            process.StartInfo = new()
             {
-                process.StartInfo.FileName = programPath;
-                process.StartInfo.Arguments = arguments;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.CreateNoWindow = true;
+                FileName = programPath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WorkingDirectory = workingFolder
+            };
 
-                process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
-                process.Start();
-                process.BeginOutputReadLine();
-                process.WaitForExit();
+            process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
+            process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync().ConfigureAwait(false);
+            process.Refresh();
+
+            var exitCode = -1;
+            if (process.HasExited)
+            {
+                exitCode = process.ExitCode;
             }
+            process.Close();
+
+            // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
+            return exitCode == 0;
         }
 
         private async void RunCommand_Output(object sender, DataReceivedEventArgs e)
         {
             if (e.Data != null)
             {
-                await txtCommandPrompt.AppendLine(e.Data, Brushes.Gray).ConfigureAwait(false);
+                await txtCommandPrompt.AppendLine(e.Data, Brushes.LightGray).ConfigureAwait(false);
+                await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+                {
+                    txtCommandPrompt.ScrollToEnd();
+                });
+            }
+        }
+
+        private async void RunCommand_Error(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data != null)
+            {
+                await txtCommandPrompt.AppendLine(e.Data, Brushes.DarkGray).ConfigureAwait(false);
+                await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+                {
+                    txtCommandPrompt.ScrollToEnd();
+                });
             }
         }
     }

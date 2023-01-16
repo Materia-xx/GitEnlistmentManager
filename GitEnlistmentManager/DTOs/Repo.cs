@@ -13,6 +13,5 @@ namespace GitEnlistmentManager.DTOs
         {
             this.Gem = gem;
         }
-
     }
 }

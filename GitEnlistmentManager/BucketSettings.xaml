@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="BucketSettings" Height="150" Width="600">
+        Title="BucketSettings" Height="150" Width="600" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5"/>

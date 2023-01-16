@@ -44,5 +44,10 @@ namespace GitEnlistmentManager
             this.txtCloneUrl.Text = this.repoSettings.Metadata.CloneUrl;
             this.txtBranchFrom.Text = this.repoSettings.Metadata.BranchFrom;
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.txtName.Focus();
+        }
     }
 }

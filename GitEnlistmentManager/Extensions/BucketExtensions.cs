@@ -23,7 +23,7 @@ namespace GitEnlistmentManager.Extensions
             }
 
             var bucketDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, bucket.Name));
-            if (!bucketDirectory.Exists) { }
+            if (!bucketDirectory.Exists)
             {
                 try
                 {
