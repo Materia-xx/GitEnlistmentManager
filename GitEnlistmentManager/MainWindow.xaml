@@ -30,7 +30,7 @@
 
 
         <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  ResizeDirection="Columns" />
-        <RichTextBox x:Name="txtCommandPrompt" Grid.Column="2" Grid.RowSpan="4" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White" MinWidth="200"/>
+        <RichTextBox x:Name="txtCommandPrompt" Grid.Column="2" Grid.RowSpan="4" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White" MinWidth="200" Block.LineHeight="1"/>
 
     </Grid>
 </Window>

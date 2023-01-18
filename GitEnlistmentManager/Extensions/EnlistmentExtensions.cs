@@ -43,13 +43,90 @@ namespace GitEnlistmentManager.Extensions
             return enlistmentDirectory;
         }
 
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, Enlistment? parentEnlistment, MainWindow mainWindow)
+        public static int GetNumberPrefix(this Enlistment enlistment)
+        {
+            if (enlistment.Name != null)
+            {
+                var enlistmentNameParts = enlistment.Name.Split(dotCharArray);
+                if (int.TryParse(enlistmentNameParts[0], out int enlistmentNumberPrefix))
+                {
+                    return enlistmentNumberPrefix;
+                }
+            }
+            return -1;
+        }
+
+        public static string GetFullGitBranch(this Enlistment enlistment)
+        {
+            return $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Name}/{enlistment.Name}";
+        }
+
+        public static async Task<bool> SetBranchOriginUrl(this Enlistment enlistment, MainWindow mainWindow, string originUrl)
+        {
+            var enlistmentDirectory = enlistment?.GetDirectoryInfo();
+            if (enlistmentDirectory == null || enlistment == null)
+            {
+                return false;
+            }
+
+            // This will set the "url" that the enlistment pulls from.
+            if (!await mainWindow.RunCommand(
+                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                arguments: $@"remote set-url origin {originUrl}",
+                workingFolder: enlistmentDirectory.FullName
+                ).ConfigureAwait(true))
+            {
+                return false;
+            }
+
+            // Git pull so this workspace becomes aware of the branch in the parent repo
+            if (!await mainWindow.RunCommand(
+                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                arguments: $@"pull",
+                workingFolder: enlistmentDirectory.FullName
+                ).ConfigureAwait(true))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static async Task<bool> SetPullFromBranch(this Enlistment enlistment, MainWindow mainWindow, string? pullFromBranch)
+        {
+            var enlistmentDirectory = enlistment?.GetDirectoryInfo();
+            if (enlistmentDirectory == null || enlistment == null || pullFromBranch == null)
+            {
+                return false;
+            }
+
+            if (!await mainWindow.RunCommand(
+                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                arguments: $@"branch --set-upstream-to=origin/{pullFromBranch} {enlistment.GetFullGitBranch()}",
+                workingFolder: enlistmentDirectory.FullName
+                ).ConfigureAwait(true))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? referenceEnlistment = null)
         {
             if (string.IsNullOrWhiteSpace(enlistment.Name))
             {
                 MessageBox.Show("Enlistment name must be set.");
                 return false;
             }
+
+            if (string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.BranchPrefix))
+            {
+                MessageBox.Show("Branch prefix must be set in the repo settings before creating an enlistment.");
+                return false;
+            }
+
+            // TODO: if enlistment name already has a number prefix, then fail
 
             var bucketDirectory = enlistment.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
@@ -58,71 +135,91 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            // Look at existing exlistments to figure out the numbering prefix of this folder
-            var highestNumberPrefix = 0; // Default starting prefix if no others found
-            var lastEnlistmentName = string.Empty;
-            foreach (var existingEnlistmentDirectory in bucketDirectory.GetDirectories().OrderBy(d => d.Name))
+            // If PlaceAbove is set, then referenceEnlistment should be set to the enlistment that we're placing a new enlistment above.
+            if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove && referenceEnlistment == null)
             {
-                lastEnlistmentName = existingEnlistmentDirectory.Name;
-                var directoryNameParts = existingEnlistmentDirectory.Name.Split(dotCharArray);
-                // All directories created should have a prefix that is just a number
-                if (directoryNameParts.Length > 1)
-                {
-                    if (int.TryParse(directoryNameParts[0], out int enlistmentNumberPrefix))
+                MessageBox.Show("Reference enlistment must be specified when using PlaceAbove mode");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.UserName) || string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.UserEmail))
+            {
+                MessageBox.Show("User name and email must be set in the repo settings before creating an enlistment.");
+                return false;
+            }
+
+            await mainWindow.ClearCommandWindow().ConfigureAwait(false);
+
+            Enlistment? parentEnlistment = null;
+            int newNumberPrefix = -1;
+            switch (enlistmentPlacement)
+            {
+                case EnlistmentPlacement.PlaceAtEnd:
+                    // If we found any enlistments already present in the bucket, then set the parent enlistment to the last one.
+                    // Otherwise it will remain null and the handler below will treat this as a top level enlistment connected to the remote repo
+                    if (enlistment.Bucket.Enlistments.Count > 0)
                     {
-                        if (enlistmentNumberPrefix > highestNumberPrefix)
+                        var lastEnlistmentNumberPrefix = enlistment.Bucket.Enlistments.Max(e => e.GetNumberPrefix());
+                        parentEnlistment = enlistment.Bucket.Enlistments.FirstOrDefault(e => e.GetNumberPrefix() == lastEnlistmentNumberPrefix);
+                        var separationAmount = 2000; // How far apart to place new enlistments // TODO: move this to GEM settings
+                        if (parentEnlistment != null)
                         {
-                            highestNumberPrefix = enlistmentNumberPrefix;
+                            newNumberPrefix = parentEnlistment.GetNumberPrefix() + separationAmount;
                         }
                     }
-                }
+                    break;
+                case EnlistmentPlacement.PlaceAbove:
+                    foreach (var examineEnlistment in enlistment.Bucket.Enlistments)
+                    {
+                        if (referenceEnlistment != null && examineEnlistment.Name == referenceEnlistment.Name)
+                        {
+                            var parentEnlistmentNumberPrefix = parentEnlistment == null ? 0 : parentEnlistment.GetNumberPrefix();
+                            var childEnlimentNumberPrefix = examineEnlistment.GetNumberPrefix();
+                            newNumberPrefix = parentEnlistmentNumberPrefix + (childEnlimentNumberPrefix - parentEnlistmentNumberPrefix) / 2;
+                            if (parentEnlistmentNumberPrefix == newNumberPrefix || childEnlimentNumberPrefix == newNumberPrefix)
+                            {
+                                MessageBox.Show("Unable to determine an appropriate numbering prefix for the new enlistment.");
+                                return false;
+                            }
+                            break;
+                        }
+                        parentEnlistment = examineEnlistment;
+                    }
+                    break;
+                default:
+                    MessageBox.Show("Enlistment placement mode not handled");
+                    return false;
             }
 
-            // If the parent enlistmetnt was passed in then just keep that choice, but if not then
-            // make the last enlistment the new parent enlistment
-            if (parentEnlistment == null && !string.IsNullOrWhiteSpace(lastEnlistmentName))
+            // Default number prefix if not otherwise specified
+            if (newNumberPrefix == -1)
             {
-                parentEnlistment = enlistment.Bucket.Enlistments.Single(e => e.Name != null && e.Name.Equals(lastEnlistmentName, StringComparison.OrdinalIgnoreCase));
+                newNumberPrefix = 10000;
             }
 
-            var separationAmount = 2000; // How far apart to place new enlistments
-            var newNumberPrefix = highestNumberPrefix == 0 ? 10000 : highestNumberPrefix + separationAmount;
+            // We pad numbers with 0s so they sort correctly in file explorer, numbers over 999999 won't work
             if (newNumberPrefix > 999999)
             {
                 MessageBox.Show("The program does not support enlistments with a prefix number over 999999.");
                 return false;
             }
 
-            // Instructions on how to inject an enlistment between 2 local repos
-            // NOTE: when injecting, we need to create a number that is between the parent and child repos
-            // 1. Create the enlistment
-            // 2. Hook up the pull arrow to the parent enlistment as we would normally, it's just that we choose what the parent enlistment is instead of just using the last one
-            //      There needs to be a way to tell the function that the main remote repo is the parent enlistment
-            // 3. Figure out the enlistment that is "after" the injected one and adjust its pull location to now be the injected enlistment.
-            // 4. Hook up the push of the injected enlistment in the same way as usual, nothing different here.
+            enlistment.Name = $"{newNumberPrefix:000000}.{enlistment.Name}";
+            var enlistmentDirectory = enlistment.GetDirectoryInfo();
+            if (enlistmentDirectory == null)
+            {
+                MessageBox.Show("Encountered an error getting the enlistment directory.");
+                return false;
+            }
 
-            // Note we don't call enlistment.GetDirectoryInfo here because we want the clone command to create the directory
-            var enlistmentDirectory = new DirectoryInfo(Path.Combine(bucketDirectory.FullName, $"{newNumberPrefix:000000}.{enlistment.Name}"));
+            var gitAutoCrlfOption = "--config core.autocrlf=false";
 
-            // TODO: load this from repo settings
-            var gitBranchPrefix = "user/materia";
-            var gitBranchFqn = $"{gitBranchPrefix}/{bucketDirectory.Name}/{enlistmentDirectory.Name}";
-            var parentEnlistmentBranchFqn = parentEnlistment == null ? null : $"{gitBranchPrefix}/{bucketDirectory.Name}/{parentEnlistment.Name}";
-
-            // If we know about a parent enlistment (a local repo/folder) then use that as the place we clone from. Otherwuse use the remote clone url.
+            // If we know about a parent enlistment (a local repo/folder) then use that as the place we clone from. Otherwise use the remote clone URL.
             var gitCloneSource = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl;
 
             // The intention is that a branch will never be changed to a different branch in these enlistments
             // So we set --depth 1 to save some time/space. But this only works when cloning from the remote repo and not a local parent folder.
             var gitShallowOption = gitCloneSource == enlistment.Bucket.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
-            var gitAutoCrlfOption = "--config core.autocrlf=false";
-
-            // If we are branching from a local repo/folder then use the branch there as the branch to pull from
-            // Otherwise use the branch from the remote repo
-            var gitBranchFrom = parentEnlistment != null ? parentEnlistmentBranchFqn : enlistment.Bucket.Repo.Metadata.BranchFrom;
-            var gitThisBranchFrom = gitBranchFrom;
-
-            var gitPullFrom = $"origin/{gitBranchFrom}";
 
             // Clone the enlistment
             // Note: Git on the commandline adds progress lines that are not included in redirected output.
@@ -139,9 +236,11 @@ namespace GitEnlistmentManager.Extensions
             }
 
             // Make sure this branch has knowledge of the branch we are branching from, otherwise it will error out
+            // If we are branching from a local repo/folder then use the branch there as the branch to pull from
+            // Otherwise use the branch from the remote repo
             if (!await mainWindow.RunCommand(
                 programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
-                arguments: $"checkout {gitThisBranchFrom}",
+                arguments: $"checkout {parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
             {
@@ -151,29 +250,21 @@ namespace GitEnlistmentManager.Extensions
             // Create the new branch that this folder will represent
             if (!await mainWindow.RunCommand(
                 programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
-                arguments: $@"checkout -b ""{gitBranchFqn}""",
+                arguments: $@"checkout -b ""{enlistment.GetFullGitBranch()}""",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
             {
                 return false;
             }
 
-            // This sets the branch 'git pull' will pull updates from
-            // Each enlistment will pull from its parent enlistment, and the top level enlistment will pull from the original repo
-            if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
-                arguments: $@"branch --set-upstream-to={gitPullFrom} {gitBranchFqn}",
-                workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
-            {
-                return false;
-            }
+            // This sets the *branch* that the enlistment will pull from
+            await enlistment.SetPullFromBranch(mainWindow, parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom).ConfigureAwait(false);
 
             // This will make it so 'git push' always pushes to a branch in the main repo
             // i.e. child branch e3 will not push to child branch e2, but rather to the original repo
             if (!await mainWindow.RunCommand(
                 programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
-                arguments: $@"remote set-url --push origin {gitCloneSource}",
+                arguments: $@"remote set-url --push origin {enlistment.Bucket.Repo.Metadata.CloneUrl}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
             {
@@ -189,6 +280,40 @@ namespace GitEnlistmentManager.Extensions
                 ).ConfigureAwait(true))
             {
                 return false;
+            }
+
+            // Set the user name
+            if (!await mainWindow.RunCommand(
+                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                arguments: $@"config --local user.name ""{enlistment.Bucket.Repo.Metadata.UserName}""",
+                workingFolder: enlistmentDirectory.FullName
+                ).ConfigureAwait(true))
+            {
+                return false;
+            }
+
+            // Set the user email
+            if (!await mainWindow.RunCommand(
+                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                arguments: $@"config --local user.email ""{enlistment.Bucket.Repo.Metadata.UserEmail}""",
+                workingFolder: enlistmentDirectory.FullName
+                ).ConfigureAwait(true))
+            {
+                return false;
+            }
+
+            // If we injected an enlistment then the child most enlistment needs to be re-parented for pulls to the newly injected enlistment
+            if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove)
+            {
+                var referenceEnlistmentDirectory = referenceEnlistment?.GetDirectoryInfo();
+                if (referenceEnlistment != null && referenceEnlistmentDirectory != null && enlistmentDirectory != null)
+                {
+                    // Set the *URL* that the reference enlistment will pull from
+                    await referenceEnlistment.SetBranchOriginUrl(mainWindow, enlistmentDirectory.FullName).ConfigureAwait(false);
+
+                    // This sets the *branch* that the reference enlistment will pull from
+                    await referenceEnlistment.SetPullFromBranch(mainWindow, enlistment.GetFullGitBranch()).ConfigureAwait(false);
+                }
             }
 
             return true;

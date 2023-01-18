@@ -5,8 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="Repo Settings" Height="180" Width="500" Loaded="Window_Loaded">
+        Title="Repo Settings" Height="260" Width="500" Loaded="Window_Loaded">
     <Grid>
+        <Grid.Resources>
+            <VisualBrush x:Key="BranchFromHint" Stretch="None" AlignmentX="Left" AlignmentY="Top" >
+                <VisualBrush.Transform>
+                    <TranslateTransform X="5" Y="7" />
+                </VisualBrush.Transform>
+                <VisualBrush.Visual>
+                    <Grid HorizontalAlignment="Left">
+                        <TextBlock FontFamily="SEGOEWP" FontSize="10" FontWeight="Normal" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic" Opacity="1" Text="master"/>
+                    </Grid>
+                </VisualBrush.Visual>
+            </VisualBrush>
+            <VisualBrush x:Key="BranchPrefixHint" Stretch="None" AlignmentX="Left" AlignmentY="Top" >
+                <VisualBrush.Transform>
+                    <TranslateTransform X="5" Y="7" />
+                </VisualBrush.Transform>
+                <VisualBrush.Visual>
+                    <Grid HorizontalAlignment="Left">
+                        <TextBlock FontFamily="SEGOEWP" FontSize="10" FontWeight="Normal" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic" Opacity="1" Text="user/username"/>
+                    </Grid>
+                </VisualBrush.Visual>
+            </VisualBrush>
+        </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="90"/>
@@ -14,6 +36,12 @@
             <ColumnDefinition Width="5"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
@@ -29,12 +57,39 @@
         <TextBlock Grid.Row="1" Grid.Column="1">Name</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="1">Clone URL</TextBlock>
         <TextBlock Grid.Row="5" Grid.Column="1">Branch From</TextBlock>
+        <TextBlock Grid.Row="7" Grid.Column="1">Branch Prefix</TextBlock>
+        <TextBlock Grid.Row="9" Grid.Column="1">User Name</TextBlock>
+        <TextBlock Grid.Row="11" Grid.Column="1">User Email</TextBlock>
 
         <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtName"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtCloneUrl"/>
-        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtBranchFrom"/>
+        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtBranchFrom">
+            <TextBox.Style>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=txtBranchFrom,Path=Text}" Value="" >
+                            <Setter Property="Background" Value="{StaticResource BranchFromHint}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtBranchPrefix">
+            <TextBox.Style>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=txtBranchPrefix,Path=Text}" Value="" >
+                            <Setter Property="Background" Value="{StaticResource BranchPrefixHint}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Grid.Row="9" Grid.Column="2" x:Name="txtUserName"/>
+        <TextBox Grid.Row="11" Grid.Column="2" x:Name="txtUserEmail"/>
 
-
-        <Button Grid.Row="8" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="14" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
     </Grid>
 </Window>

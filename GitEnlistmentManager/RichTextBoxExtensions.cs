@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -21,15 +20,11 @@ namespace GitEnlistmentManager
             });
         }
 
-        public async static Task FormatLinesWithoutExtraLineReturns(this RichTextBox box)
+        public async static Task Clear(this RichTextBox box)
         {
             await box.Dispatcher.BeginInvoke(() =>
             {
-                if (box.Document.Blocks.FirstBlock is Paragraph p)
-                {
-                    p.LineHeight = 10;
-                    p.Margin = new Thickness(0);
-                }
+                box.Document.Blocks.Clear();
             });
         }
     }

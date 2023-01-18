@@ -1,11 +1,11 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -47,15 +47,13 @@ using System.Windows.Media;
 
 // Z, A: Update the new enlistment command to take into account being a child of another enlistment in the same bucket.
 
-// TODO: Implement "Injecting" an enlistment. 
+// Z, A: Implement "Injecting" an enlistment. 
 
-// TODO: Clear the "cmd screen" when creating a new enlistment.
+// Z, A: Clear the "cmd screen" when creating a new enlistment.
 
-
-// TODO: Create named snippets, a snippet would be a set of commands that run to accomplish a specific purpose
-// TODO: Snippets should be set up at LCD for what the program needs.
-// TODO: Performing various actions in the program is really running the right set of snippets.
-// TODO: The snippets should be saved in an appdata folder so users could modify them if needed.
+// Z, A: add email and name to the repo settings and set the values for these when creating each enlistment
+// Z, A:   git config --local user.email "you@example.com"
+// Z, A:   git config --local user.name "Your Name"
 
 // TODO: make it so the treeview remembers the open folders when reloading the UI
 
@@ -238,18 +236,28 @@ namespace GitEnlistmentManager
                         var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
                         enlistmentSettingsEditor.ShowDialog();
                         // After the editor closes, create the enlistment
-                        await enlistment.CreateEnlistment(parentEnlistment: null, mainWindow: this).ConfigureAwait(true);
+                        await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
                         // Reload the UI so we pick up any changes made
                         this.ReloadTreeview();
                     };
                     menu.Items.Add(menuAddNewEnlistment);
                 }
 
-                if (selectedItem is Enlistment)
+                if (selectedItem is Enlistment enlistment)
                 {
                     var menuAddNewEnlistmentAbove = new MenuItem()
                     {
                         Header = "Add New Enlistment Above"
+                    };
+                    menuAddNewEnlistmentAbove.Click += async (s, e) =>
+                    {
+                        var newEnlistment = new Enlistment(enlistment.Bucket);
+                        var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment);
+                        enlistmentSettingsEditor.ShowDialog();
+                        // After the editor closes, create the enlistment
+                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, referenceEnlistment: enlistment).ConfigureAwait(true);
+                        // Reload the UI so we pick up any changes made
+                        this.ReloadTreeview();
                     };
                     menu.Items.Add(menuAddNewEnlistmentAbove);
                 }
@@ -309,10 +317,18 @@ namespace GitEnlistmentManager
             return gem;
         }
 
+        public async Task ClearCommandWindow()
+        {
+            await txtCommandPrompt.Clear().ConfigureAwait(false);
+        }
+
         public async Task<bool> RunCommand(string programPath, string arguments, string? workingFolder = null)
         {
-            await txtCommandPrompt.FormatLinesWithoutExtraLineReturns().ConfigureAwait(false);
-            await txtCommandPrompt.AppendLine($"{Environment.NewLine}>\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
+            if (workingFolder != null)
+            {
+                await txtCommandPrompt.AppendLine($"cd \"{workingFolder}\"", Brushes.White).ConfigureAwait(false);
+            }
+            await txtCommandPrompt.AppendLine($"\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
 
             using Process process = new();
             process.StartInfo = new()
@@ -342,6 +358,7 @@ namespace GitEnlistmentManager
             }
             process.Close();
 
+            await txtCommandPrompt.AppendLine(string.Empty, Brushes.White).ConfigureAwait(false);
             // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
             return exitCode == 0;
         }

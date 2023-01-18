@@ -36,6 +36,9 @@ namespace GitEnlistmentManager
             this.repoSettings.Name = this.txtName.Text;
             this.repoSettings.Metadata.CloneUrl = this.txtCloneUrl.Text;
             this.repoSettings.Metadata.BranchFrom = this.txtBranchFrom.Text;
+            this.repoSettings.Metadata.BranchPrefix = this.txtBranchPrefix.Text;
+            this.repoSettings.Metadata.UserName = this.txtUserName.Text;
+            this.repoSettings.Metadata.UserEmail = this.txtUserEmail.Text;
         }
 
         private void DtoToForm()
@@ -43,6 +46,9 @@ namespace GitEnlistmentManager
             this.txtName.Text = this.repoSettings.Name;
             this.txtCloneUrl.Text = this.repoSettings.Metadata.CloneUrl;
             this.txtBranchFrom.Text = this.repoSettings.Metadata.BranchFrom;
+            this.txtBranchPrefix.Text = this.repoSettings.Metadata.BranchPrefix;
+            this.txtUserName.Text = this.repoSettings.Metadata.UserName;
+            this.txtUserEmail.Text = this.repoSettings.Metadata.UserEmail;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
