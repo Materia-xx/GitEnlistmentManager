@@ -2,6 +2,7 @@
 using GitEnlistmentManager.Extensions;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,7 +44,7 @@ using System.Windows.Media;
 // Z, A: Add an option to the main Gem config to specify the path to git.exe
 // Z, A: then update enlistment extensions or anywhere else that has the path hardcoded.
 
-// Z, A: Wrap the exe being called in RunCommand in quotes, or atleast display it that way so that a copy/pasted command will still run properly.
+// Z, A: Wrap the exe being called in RunCommand in quotes, or at-least display it that way so that a copy/pasted command will still run properly.
 
 // Z, A: Update the new enlistment command to take into account being a child of another enlistment in the same bucket.
 
@@ -51,9 +52,25 @@ using System.Windows.Media;
 
 // Z, A: Clear the "cmd screen" when creating a new enlistment.
 
+// Z, A: design how setting default email and name will work, will it be required for each repo?
+// Z, A: if so it would be more things to add in the repo settings dialog
 // Z, A: add email and name to the repo settings and set the values for these when creating each enlistment
 // Z, A:   git config --local user.email "you@example.com"
 // Z, A:   git config --local user.name "Your Name"
+
+// Z  Split repo metadata.json or other metadata currently in the gem repos folder into a new location "gem metadata"
+// Z The initial Gem Config will ask for 2 paths. 1. where to store repos and 2. where to store metadata
+// Z This will allow the metadata to be copied to another computer and used there, but on the other computer it uses a different folder for repos.
+
+
+// TODO: Add a right click option to do a PR for an enlistment
+
+// TODO: most/all commands done through the tool should also be available as command line arguments
+// TODO: one example is that someone should be able to type "gem pr" when then are in a command prompt in an enlistment folder and the tool will know how to open a PR from there.
+
+
+// TODO: add a right click option to archive an enlistment
+
 
 // TODO: make it so the treeview remembers the open folders when reloading the UI
 
@@ -62,15 +79,11 @@ using System.Windows.Media;
 // TODO: Make it so you can have different repo types GitHub vs TFS, each type would have
 // TODO: different settings for the PR url format to use
 
-// TODO: design how setting default email and name will work, will it be required for each repo?
-// TODO: if so it would be more things to add in the repo settings dialog
-
-// TODO: Add a right click option to do a PR for an enlistment
-
-// TODO: add a right click option to archive an enlistment
+// TODO: split the gem metadata files apart from the gem folder so that they are in a completely different place.
+// TODO: Make it so you can specify where this folder is in the gem settings
+// TODO: the idea is that you should be able to back up the settings metadata files in onedrive or another git repo and then easily restore all repos onto another machine using GEM there.
 
 // TODO: support renaming a repo folder through the program. This will need to go through and re-parent enlistments that are bound to a file path.
-
 
 namespace GitEnlistmentManager
 {
@@ -102,7 +115,7 @@ namespace GitEnlistmentManager
             }
 
             this.gem = gem;
-            treeRepos.ItemsSource = gem.Repos;
+            treeRepos.ItemsSource = gem.MetadataFolders;
             return true;
         }
 
@@ -169,20 +182,6 @@ namespace GitEnlistmentManager
                     this.ReloadTreeview();
                 };
                 menu.Items.Add(menuEditGemSettings);
-
-
-                var menuAddNewRepo = new MenuItem
-                {
-                    Header = "Add New Repo"
-                };
-                menuAddNewRepo.Click += (s, e) =>
-                {
-                    var repoSettingsEditor = new RepoSettings(new Repo(this.gem), isNew: true);
-                    repoSettingsEditor.ShowDialog();
-                    // After the editor closes, reload the UI so we pick up any changes made
-                    this.ReloadTreeview();
-                };
-                menu.Items.Add(menuAddNewRepo);
             }
             else
             {
@@ -191,6 +190,23 @@ namespace GitEnlistmentManager
 
                 // Figure out what kind of treeviewItem we're clicking on (repo/bucket/enlistment) and create different menus for each type
                 var selectedItem = treeViewItem.DataContext;
+
+                if (selectedItem is MetadataFolder metadataFolder)
+                {
+                    var menuAddNewRepo = new MenuItem
+                    {
+                        Header = "Add New Repo"
+                    };
+                    menuAddNewRepo.Click += (s, e) =>
+                    {
+                        var repoSettingsEditor = new RepoSettings(new Repo(metadataFolder), isNew: true);
+                        repoSettingsEditor.ShowDialog();
+                        // After the editor closes, reload the UI so we pick up any changes made
+                        this.ReloadTreeview();
+                    };
+                    menu.Items.Add(menuAddNewRepo);
+                }
+
                 if (selectedItem is Repo repo)
                 {
                     var menuEditRepoSettings = new MenuItem()
@@ -282,35 +298,65 @@ namespace GitEnlistmentManager
                 }
             }
 
-            var gemFolder = new DirectoryInfo(gem.Metadata.ReposFolder);
-            //This gets the repos, buckets, and enlistments from the configured repos folder
-            foreach (var repoFolder in gemFolder.GetDirectories())
+            // For each Gem metadata folder we have, look through it for repo definitions
+            foreach (var metadataFolderPath in gem.Metadata.MetadataFolders)
             {
-                var repo = new Repo(gem)
+                var metadataFolderInfo = new DirectoryInfo(metadataFolderPath);
+                if (!metadataFolderInfo.Exists)
                 {
-                    Name = repoFolder.Name
+                    MessageBox.Show($"Metadata folder {metadataFolderInfo.FullName} was not found");
+                    continue;
+                }
+
+                var metadataFolder = new MetadataFolder(gem, metadataFolderPath)
+                {
+                    Name = metadataFolderInfo.Name
                 };
+                gem.MetadataFolders.Add(metadataFolder);
 
-                // Best attempt to load metadata, but if it fails then still add it to the UI so the user can re-create it.
-                // This call will messagebox about ones that are bad so there is also the option to just shut the program off
-                // and fix the json by hand too.
-                // If the metadata file doesn't exist at all, then we just create silently create up a new object.
-                repo.ReadMetadata();
-                gem.Repos.Add(repo);
-
-                foreach(var bucketFolder in repoFolder.GetDirectories())
+                // Loop through all the repo registrations that are present here
+                var repoRegistrations = metadataFolderInfo.GetFiles("*.repojson", SearchOption.TopDirectoryOnly);
+                foreach (var repoRegistration in repoRegistrations)
                 {
-                    var bucket = new Bucket(repo);
-                    bucket.Name = bucketFolder.Name;
-                    repo.Buckets.Add(bucket);
-                    
-                    foreach(var enlistmentFolder in bucketFolder.GetDirectories())
+                    var repoName = Path.GetFileNameWithoutExtension(repoRegistration.Name);
+                    var repo = new Repo(metadataFolder)
                     {
-                        var enlistment = new Enlistment(bucket)
+                        Name = Path.GetFileNameWithoutExtension(repoRegistration.Name)
+                    };
+
+                    // Best attempt to load repo metadata, but if it fails then still add it to the UI so the user can re-create it.
+                    repo.ReadMetadata(repoRegistration.FullName);
+                    metadataFolder.Repos.Add(repo);
+                }
+            }
+
+            var gemFolder = new DirectoryInfo(gem.Metadata.ReposFolder);
+            foreach (var metadataFolder in gem.MetadataFolders)
+            {
+                foreach (var repo in metadataFolder.Repos)
+                {
+                    var repoFolder = repo.GetDirectoryInfo();
+                    if (repoFolder == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var bucketFolder in repoFolder.GetDirectories())
+                    {
+                        var bucket = new Bucket(repo)
                         {
-                            Name = enlistmentFolder.Name
+                            Name = bucketFolder.Name
                         };
-                        bucket.Enlistments.Add(enlistment);
+                        repo.Buckets.Add(bucket);
+
+                        foreach (var enlistmentFolder in bucketFolder.GetDirectories())
+                        {
+                            var enlistment = new Enlistment(bucket)
+                            {
+                                Name = enlistmentFolder.Name
+                            };
+                            bucket.Enlistments.Add(enlistment);
+                        }
                     }
                 }
             }

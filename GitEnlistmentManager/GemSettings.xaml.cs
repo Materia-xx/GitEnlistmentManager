@@ -1,6 +1,8 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace GitEnlistmentManager
@@ -48,12 +50,25 @@ namespace GitEnlistmentManager
         {
             this.gem.Metadata.ReposFolder = this.txtReposFolder.Text;
             this.gem.Metadata.GitExePath = this.txtGitExePath.Text;
+
+            var metadataFolders = this.txtMetadataFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            this.gem.Metadata.MetadataFolders.Clear();
+            foreach (var metadataFolder in metadataFolders)
+            {
+                if (!Directory.Exists(metadataFolder))
+                {
+                    MessageBox.Show($"{metadataFolder} doesn't exist, skipping.");
+                    continue;
+                }
+                this.gem.Metadata.MetadataFolders.Add(metadataFolder);
+            }
         }
 
         private void DtoToForm()
         {
             this.txtReposFolder.Text = this.gem.Metadata.ReposFolder;
             this.txtGitExePath.Text = this.gem.Metadata.GitExePath;
+            this.txtMetadataFolders.Text = string.Join(Environment.NewLine, this.gem.Metadata.MetadataFolders);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

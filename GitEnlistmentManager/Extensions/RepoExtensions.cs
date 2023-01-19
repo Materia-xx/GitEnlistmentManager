@@ -8,8 +8,6 @@ namespace GitEnlistmentManager.Extensions
 {
     public static class RepoExtensions
     {
-        private const string repoMetadataFilename = "repoMetadata.json";
-
         public static DirectoryInfo? GetDirectoryInfo(this Repo repo)
         {
             if (string.IsNullOrWhiteSpace(repo.Name))
@@ -18,14 +16,20 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(repo.Gem.Metadata.ReposFolder))
+            if (string.IsNullOrWhiteSpace(repo.MetadataFolder.Name))
+            {
+                MessageBox.Show("Metadata folder must have a name");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(repo.MetadataFolder.Gem.Metadata.ReposFolder))
             {
                 MessageBox.Show("Gem metadata does not have the ReposFolder set correctly");
                 return null;
             }
 
             // Create the repos folder if it doesn't exist yet.
-            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.Gem.Metadata.ReposFolder, repo.Name));
+            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.MetadataFolder.Gem.Metadata.ReposFolder, repo.MetadataFolder.Name, repo.Name));
             if (!targetRepoFolder.Exists)
             {
                 try
@@ -43,16 +47,12 @@ namespace GitEnlistmentManager.Extensions
 
         public static bool WriteMetadata(this Repo repo)
         {
-            var targetRepoFolder = repo.GetDirectoryInfo();
-            if (targetRepoFolder == null)
-            {
-                return false;
-            }
+            var targetMetadataFolder = new DirectoryInfo(repo.MetadataFolder.MetadataFolderPath);
 
             // Write the metadata for the repo folder
             try
             {
-                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoFolder.FullName, repoMetadataFilename));
+                var repoMetadataFile = new FileInfo(Path.Combine(targetMetadataFolder.FullName, $"{repo.Name}.repojson"));
                 var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, Formatting.Indented);
                 File.WriteAllText(repoMetadataFile.FullName, repoMetadataJson);
             }
@@ -64,33 +64,18 @@ namespace GitEnlistmentManager.Extensions
             return true;
         }
 
-        public static bool ReadMetadata(this Repo repo)
-        {
-            var targetRepoFolder = repo.GetDirectoryInfo();
-            if (targetRepoFolder == null)
-            {
-                return false;
-            }
-
-            // Read the metadata for the repo folder
+        public static bool ReadMetadata(this Repo repo, string metadataFilePath)
+        { 
             try
             {
-                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoFolder.FullName, repoMetadataFilename));
-                if (!repoMetadataFile.Exists)
+                var repoMetadataJson = File.ReadAllText(metadataFilePath);
+                var repoMetadata = JsonConvert.DeserializeObject<RepoMetadata>(repoMetadataJson);
+                if (repoMetadata == null)
                 {
-                    repo.Metadata = new();
+                    MessageBox.Show($"Unable to deserialize Repo metadata from {metadataFilePath}");
+                    return false;
                 }
-                else
-                {
-                    var repoMetadataJson = File.ReadAllText(repoMetadataFile.FullName);
-                    var repoMetadata = JsonConvert.DeserializeObject<RepoMetadata>(repoMetadataJson);
-                    if (repoMetadata == null)
-                    {
-                        MessageBox.Show($"Unable to deserialize Repo metadata from {repoMetadataFile.FullName}");
-                        return false;
-                    }
-                    repo.Metadata = repoMetadata;
-                }
+                repo.Metadata = repoMetadata;
             }
             catch (Exception ex)
             {

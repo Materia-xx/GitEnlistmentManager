@@ -58,7 +58,7 @@ namespace GitEnlistmentManager.Extensions
 
         public static string GetFullGitBranch(this Enlistment enlistment)
         {
-            return $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Name}/{enlistment.Name}";
+            return $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Repo.MetadataFolder.Name}/{enlistment.Bucket.Repo.Name}/{enlistment.Bucket.Name}/{enlistment.Name}";
         }
 
         public static async Task<bool> SetBranchOriginUrl(this Enlistment enlistment, MainWindow mainWindow, string originUrl)
@@ -71,7 +71,7 @@ namespace GitEnlistmentManager.Extensions
 
             // This will set the "url" that the enlistment pulls from.
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"remote set-url origin {originUrl}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -81,7 +81,7 @@ namespace GitEnlistmentManager.Extensions
 
             // Git pull so this workspace becomes aware of the branch in the parent repo
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"pull",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -101,7 +101,7 @@ namespace GitEnlistmentManager.Extensions
             }
 
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"branch --set-upstream-to=origin/{pullFromBranch} {enlistment.GetFullGitBranch()}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -227,7 +227,7 @@ namespace GitEnlistmentManager.Extensions
             //       command terminal it spams many lines instead of keeping the progress on one line.
             //       I've left the option out for that reason.
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $"clone {gitShallowOption} {gitAutoCrlfOption} {gitCloneSource} \"{enlistmentDirectory.FullName}\"",
                 workingFolder: bucketDirectory.FullName
                 ).ConfigureAwait(true))
@@ -239,7 +239,7 @@ namespace GitEnlistmentManager.Extensions
             // If we are branching from a local repo/folder then use the branch there as the branch to pull from
             // Otherwise use the branch from the remote repo
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $"checkout {parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -249,7 +249,7 @@ namespace GitEnlistmentManager.Extensions
 
             // Create the new branch that this folder will represent
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"checkout -b ""{enlistment.GetFullGitBranch()}""",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -263,7 +263,7 @@ namespace GitEnlistmentManager.Extensions
             // This will make it so 'git push' always pushes to a branch in the main repo
             // i.e. child branch e3 will not push to child branch e2, but rather to the original repo
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"remote set-url --push origin {enlistment.Bucket.Repo.Metadata.CloneUrl}",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -274,7 +274,7 @@ namespace GitEnlistmentManager.Extensions
             // This is the branch that 'git push' will publish to
             // It is set to publish a branch with the same name on the remote
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"config push.default current",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -284,7 +284,7 @@ namespace GitEnlistmentManager.Extensions
 
             // Set the user name
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"config --local user.name ""{enlistment.Bucket.Repo.Metadata.UserName}""",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))
@@ -294,7 +294,7 @@ namespace GitEnlistmentManager.Extensions
 
             // Set the user email
             if (!await mainWindow.RunCommand(
-                programPath: enlistment.Bucket.Repo.Gem.Metadata.GitExePath,
+                programPath: enlistment.Bucket.Repo.MetadataFolder.Gem.Metadata.GitExePath,
                 arguments: $@"config --local user.email ""{enlistment.Bucket.Repo.Metadata.UserEmail}""",
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(true))

@@ -4,14 +4,14 @@ namespace GitEnlistmentManager.DTOs
 {
     public class Repo
     {
-        public Gem Gem { get; }
+        public MetadataFolder MetadataFolder { get; }
         public string? Name { get; set; }
         public RepoMetadata Metadata { get; set; } = new RepoMetadata();
         public List<Bucket> Buckets { get; } = new List<Bucket>();
 
-        public Repo(Gem gem)
+        public Repo(MetadataFolder metadataFolder)
         {
-            this.Gem = gem;
+            this.MetadataFolder = metadataFolder;
         }
     }
 }

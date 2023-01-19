@@ -6,6 +6,6 @@ namespace GitEnlistmentManager.DTOs
     {
         public GemMetadata Metadata { get; set; } = new GemMetadata();
 
-        public List<Repo> Repos { get; } = new List<Repo>();
+        public List<MetadataFolder> MetadataFolders { get; } = new List<MetadataFolder>();
     }
 }
