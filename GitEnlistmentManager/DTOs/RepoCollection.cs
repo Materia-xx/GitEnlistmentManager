@@ -2,18 +2,18 @@
 
 namespace GitEnlistmentManager.DTOs
 {
-    public class MetadataFolder
+    public class RepoCollection
     {
         public Gem Gem { get; }
         public string? Name { get; set; }
 
-        public string MetadataFolderPath { get; }
+        public string RepoCollectionFolderPath { get; }
         public List<Repo> Repos { get; } = new List<Repo>();
 
-        public MetadataFolder(Gem gem, string metadataFolderPath)
+        public RepoCollection(Gem gem, string repoCollectionFolderPath)
         {
             this.Gem = gem;
-            MetadataFolderPath = metadataFolderPath;
+            RepoCollectionFolderPath = repoCollectionFolderPath;
         }
     }
 }

@@ -28,11 +28,11 @@
 
         <TextBlock Grid.Row="1" Grid.Column="1">Repos Folder</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="1">Git Exe Path</TextBlock>
-        <TextBlock Grid.Row="5" Grid.Column="1">Metadata Folders</TextBlock>
+        <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap">Repo Collection Definition Folders</TextBlock>
 
         <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtReposFolder"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtGitExePath"/>
-        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtMetadataFolders" AcceptsReturn="True" />
+        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtRepoCollectionDefinitionFolders" AcceptsReturn="True" />
 
         <Button Grid.Row="8" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
 

@@ -26,20 +26,20 @@ namespace GitEnlistmentManager
             // Transfer data from form to DTO
             FormToDto();
 
-            if (!Path.Exists(this.gem.Metadata.GitExePath))
+            if (!Path.Exists(this.gem.LocalAppData.GitExePath))
             {
-                MessageBox.Show($"Git path not found: {this.gem.Metadata.GitExePath}");
+                MessageBox.Show($"Git path not found: {this.gem.LocalAppData.GitExePath}");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(this.gem.Metadata.ReposFolder))
+            if (string.IsNullOrWhiteSpace(this.gem.LocalAppData.ReposFolder))
             {
                 MessageBox.Show($"Please specify the repos folder");
                 return;
             }
 
             // Write the metadata.json.
-            if (this.gem.WriteMetadata())
+            if (this.gem.WriteLocalAppData())
             {
                 this.DialogResult = true;
                 this.Close();
@@ -48,27 +48,27 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.gem.Metadata.ReposFolder = this.txtReposFolder.Text;
-            this.gem.Metadata.GitExePath = this.txtGitExePath.Text;
+            this.gem.LocalAppData.ReposFolder = this.txtReposFolder.Text;
+            this.gem.LocalAppData.GitExePath = this.txtGitExePath.Text;
 
-            var metadataFolders = this.txtMetadataFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            this.gem.Metadata.MetadataFolders.Clear();
-            foreach (var metadataFolder in metadataFolders)
+            var repoCollectionDefinitionFolders = this.txtRepoCollectionDefinitionFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            this.gem.LocalAppData.RepoCollectionDefinitionFolders.Clear();
+            foreach (var repoCollectionDefinitionFolder in repoCollectionDefinitionFolders)
             {
-                if (!Directory.Exists(metadataFolder))
+                if (!Directory.Exists(repoCollectionDefinitionFolder))
                 {
-                    MessageBox.Show($"{metadataFolder} doesn't exist, skipping.");
+                    MessageBox.Show($"{repoCollectionDefinitionFolder} doesn't exist, skipping.");
                     continue;
                 }
-                this.gem.Metadata.MetadataFolders.Add(metadataFolder);
+                this.gem.LocalAppData.RepoCollectionDefinitionFolders.Add(repoCollectionDefinitionFolder);
             }
         }
 
         private void DtoToForm()
         {
-            this.txtReposFolder.Text = this.gem.Metadata.ReposFolder;
-            this.txtGitExePath.Text = this.gem.Metadata.GitExePath;
-            this.txtMetadataFolders.Text = string.Join(Environment.NewLine, this.gem.Metadata.MetadataFolders);
+            this.txtReposFolder.Text = this.gem.LocalAppData.ReposFolder;
+            this.txtGitExePath.Text = this.gem.LocalAppData.GitExePath;
+            this.txtRepoCollectionDefinitionFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionFolders);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

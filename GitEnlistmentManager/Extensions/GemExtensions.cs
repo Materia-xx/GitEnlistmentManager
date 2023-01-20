@@ -8,7 +8,7 @@ namespace GitEnlistmentManager.Extensions
 {
     public static class GemExtensions
     {
-        private const string gemMetadataFilename = "gemMetadata.json";
+        private const string gemLocalAppDataFilename = "GemSettings.json";
 
         public static DirectoryInfo GetAppDataFolder(this Gem _)
         {
@@ -22,53 +22,52 @@ namespace GitEnlistmentManager.Extensions
             return gemAppDataFolder;
         }
 
-        public static bool WriteMetadata(this Gem gem)
+        public static bool WriteLocalAppData(this Gem gem)
         {
             var gemAppDataFolder = gem.GetAppDataFolder();
 
             // Write the metadata
             try
             {
-                var gemMetadataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemMetadataFilename));
-                var gemMetadataJson = JsonConvert.SerializeObject(gem.Metadata, Formatting.Indented);
-                File.WriteAllText(gemMetadataFile.FullName, gemMetadataJson);
+                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemLocalAppDataFilename));
+                var gemLocalAppDataJson = JsonConvert.SerializeObject(gem.LocalAppData, Formatting.Indented);
+                File.WriteAllText(gemLocalAppDataFile.FullName, gemLocalAppDataJson);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error writing Gem metadata: {ex.Message}");
+                MessageBox.Show($"Error writing Gem local application data: {ex.Message}");
                 return false;
             }
             return true;
         }
 
-        public static bool ReadMetadata(this Gem gem)
+        public static bool ReadLocalAppData(this Gem gem)
         {
             var gemAppDataFolder = gem.GetAppDataFolder();
 
-            // Read the metadata for the repo folder
             try
             {
-                var gemMetadataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemMetadataFilename));
-                if (!gemMetadataFile.Exists)
+                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemLocalAppDataFilename));
+                if (!gemLocalAppDataFile.Exists)
                 {
-                    // If the metadata doesn't exist then don't default it. The user needs to update the settings
+                    // If the local app data doesn't exist then don't default it. The user needs to update the settings.
                     return false;
                 }
                 else
                 {
-                    var gemMetadataJson = File.ReadAllText(gemMetadataFile.FullName);
-                    var gemMetadata = JsonConvert.DeserializeObject<GemMetadata>(gemMetadataJson);
-                    if (gemMetadata == null)
+                    var gemLocalAppDataJson = File.ReadAllText(gemLocalAppDataFile.FullName);
+                    var gemLocalAppData = JsonConvert.DeserializeObject<GemLocalAppData>(gemLocalAppDataJson);
+                    if (gemLocalAppData == null)
                     {
-                        MessageBox.Show($"Unable to deserialize Gem metadata from {gemMetadataFile.FullName}");
+                        MessageBox.Show($"Unable to deserialize Gem local application data from {gemLocalAppDataFile.FullName}");
                         return false;
                     }
-                    gem.Metadata = gemMetadata;
+                    gem.LocalAppData = gemLocalAppData;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading Gem metadata: {ex.Message}");
+                MessageBox.Show($"Error reading Gem local application data: {ex.Message}");
                 return false;
             }
             return true;

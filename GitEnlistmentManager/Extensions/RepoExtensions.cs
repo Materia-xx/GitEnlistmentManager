@@ -16,20 +16,20 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(repo.MetadataFolder.Name))
+            if (string.IsNullOrWhiteSpace(repo.RepoCollection.Name))
             {
                 MessageBox.Show("Metadata folder must have a name");
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(repo.MetadataFolder.Gem.Metadata.ReposFolder))
+            if (string.IsNullOrWhiteSpace(repo.RepoCollection.Gem.LocalAppData.ReposFolder))
             {
                 MessageBox.Show("Gem metadata does not have the ReposFolder set correctly");
                 return null;
             }
 
             // Create the repos folder if it doesn't exist yet.
-            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.MetadataFolder.Gem.Metadata.ReposFolder, repo.MetadataFolder.Name, repo.Name));
+            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.Name, repo.Name));
             if (!targetRepoFolder.Exists)
             {
                 try
@@ -47,12 +47,12 @@ namespace GitEnlistmentManager.Extensions
 
         public static bool WriteMetadata(this Repo repo)
         {
-            var targetMetadataFolder = new DirectoryInfo(repo.MetadataFolder.MetadataFolderPath);
+            var targetRepoCollectionFolder = new DirectoryInfo(repo.RepoCollection.RepoCollectionFolderPath);
 
             // Write the metadata for the repo folder
             try
             {
-                var repoMetadataFile = new FileInfo(Path.Combine(targetMetadataFolder.FullName, $"{repo.Name}.repojson"));
+                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionFolder.FullName, $"{repo.Name}.repojson"));
                 var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, Formatting.Indented);
                 File.WriteAllText(repoMetadataFile.FullName, repoMetadataJson);
             }

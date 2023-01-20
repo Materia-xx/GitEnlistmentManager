@@ -16,7 +16,7 @@
 
         <TreeView x:Name="treeRepos" Grid.Column="0" ItemsSource="{Binding}">
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type dtos:MetadataFolder}" ItemsSource="{Binding Repos}">
+                <HierarchicalDataTemplate DataType="{x:Type dtos:RepoCollection}" ItemsSource="{Binding Repos}">
                     <TextBlock Text="{Binding Path=Name}" />
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">

@@ -1,6 +1,8 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace GitEnlistmentManager
 {
@@ -15,12 +17,22 @@ namespace GitEnlistmentManager
         {
             InitializeComponent();
             this.repoSettings = repo;
+
+            // Load choices for combo boxes
+            cboGitHostingPlatformName.Items.Clear();
+            foreach (var platform in GitHostingPlatforms.Instance.Platforms)
+            {
+                cboGitHostingPlatformName.Items.Add(platform.Name);
+            }
+
             this.DtoToForm();
             this.txtName.IsEnabled = isNew;
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
+            // TODO: validate that the right fields are filled in.
+
             // Transfer data from form to DTO
             FormToDto();
 
@@ -39,6 +51,7 @@ namespace GitEnlistmentManager
             this.repoSettings.Metadata.BranchPrefix = this.txtBranchPrefix.Text;
             this.repoSettings.Metadata.UserName = this.txtUserName.Text;
             this.repoSettings.Metadata.UserEmail = this.txtUserEmail.Text;
+            this.repoSettings.Metadata.GitHostingPlatformName = this.cboGitHostingPlatformName.SelectedValue.ToString();
         }
 
         private void DtoToForm()
@@ -49,6 +62,7 @@ namespace GitEnlistmentManager
             this.txtBranchPrefix.Text = this.repoSettings.Metadata.BranchPrefix;
             this.txtUserName.Text = this.repoSettings.Metadata.UserName;
             this.txtUserEmail.Text = this.repoSettings.Metadata.UserEmail;
+            this.cboGitHostingPlatformName.SelectedValue = this.repoSettings.Metadata.GitHostingPlatformName;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

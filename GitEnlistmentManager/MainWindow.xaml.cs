@@ -58,15 +58,19 @@ using System.Windows.Media;
 // Z, A:   git config --local user.email "you@example.com"
 // Z, A:   git config --local user.name "Your Name"
 
-// Z  Split repo metadata.json or other metadata currently in the gem repos folder into a new location "gem metadata"
-// Z The initial Gem Config will ask for 2 paths. 1. where to store repos and 2. where to store metadata
-// Z This will allow the metadata to be copied to another computer and used there, but on the other computer it uses a different folder for repos.
+// Z, A: Split repo metadata.json or other metadata currently in the gem repos folder into a new location "gem metadata"
+// Z, A: The initial Gem Config will ask for 2 paths. 1. where to store repos and 2. where to store metadata
+// Z, A: This will allow the metadata to be copied to another computer and used there, but on the other computer it uses a different folder for repos.
 
+// Z, A: Add a right click option to do a PR for an enlistment
+// Z, A: Make it so you can have different repo types GitHub vs TFS, each type would have different settings for the PR url format to use
 
-// TODO: Add a right click option to do a PR for an enlistment
+// TODO: move remaining tasks to azdo and track from there
 
 // TODO: most/all commands done through the tool should also be available as command line arguments
 // TODO: one example is that someone should be able to type "gem pr" when then are in a command prompt in an enlistment folder and the tool will know how to open a PR from there.
+
+// TODO: many of the dialogs still try to act on the inputs even if the user choses to close them instead of pressing the save button
 
 
 // TODO: add a right click option to archive an enlistment
@@ -76,12 +80,6 @@ using System.Windows.Media;
 
 // TODO: add the ability to run extra commands specific to a given repo.. these commands would only run if you were using that repo.
 
-// TODO: Make it so you can have different repo types GitHub vs TFS, each type would have
-// TODO: different settings for the PR url format to use
-
-// TODO: split the gem metadata files apart from the gem folder so that they are in a completely different place.
-// TODO: Make it so you can specify where this folder is in the gem settings
-// TODO: the idea is that you should be able to back up the settings metadata files in onedrive or another git repo and then easily restore all repos onto another machine using GEM there.
 
 // TODO: support renaming a repo folder through the program. This will need to go through and re-parent enlistments that are bound to a file path.
 
@@ -115,7 +113,7 @@ namespace GitEnlistmentManager
             }
 
             this.gem = gem;
-            treeRepos.ItemsSource = gem.MetadataFolders;
+            treeRepos.ItemsSource = gem.RepoCollections;
             return true;
         }
 
@@ -191,7 +189,7 @@ namespace GitEnlistmentManager
                 // Figure out what kind of treeviewItem we're clicking on (repo/bucket/enlistment) and create different menus for each type
                 var selectedItem = treeViewItem.DataContext;
 
-                if (selectedItem is MetadataFolder metadataFolder)
+                if (selectedItem is RepoCollection repoCollection)
                 {
                     var menuAddNewRepo = new MenuItem
                     {
@@ -199,7 +197,7 @@ namespace GitEnlistmentManager
                     };
                     menuAddNewRepo.Click += (s, e) =>
                     {
-                        var repoSettingsEditor = new RepoSettings(new Repo(metadataFolder), isNew: true);
+                        var repoSettingsEditor = new RepoSettings(new Repo(repoCollection), isNew: true);
                         repoSettingsEditor.ShowDialog();
                         // After the editor closes, reload the UI so we pick up any changes made
                         this.ReloadTreeview();
@@ -276,6 +274,16 @@ namespace GitEnlistmentManager
                         this.ReloadTreeview();
                     };
                     menu.Items.Add(menuAddNewEnlistmentAbove);
+
+                    var menuPullRequest = new MenuItem()
+                    {
+                        Header = "Pull Request"
+                    };
+                    menuPullRequest.Click += (s, e) =>
+                    {
+                        enlistment.PullRequest();
+                    };
+                    menu.Items.Add(menuPullRequest);
                 }
 
                 e.Handled = true;
@@ -288,7 +296,7 @@ namespace GitEnlistmentManager
 
             // If the Gem settings are not yet set, these need to be set first before
             // doing anything else
-            while (!gem.ReadMetadata() || string.IsNullOrWhiteSpace(gem.Metadata.ReposFolder))
+            while (!gem.ReadLocalAppData() || string.IsNullOrWhiteSpace(gem.LocalAppData.ReposFolder))
             {
                 var gemSettingsEditor = new GemSettings(gem);
                 var result = gemSettingsEditor.ShowDialog();
@@ -299,41 +307,40 @@ namespace GitEnlistmentManager
             }
 
             // For each Gem metadata folder we have, look through it for repo definitions
-            foreach (var metadataFolderPath in gem.Metadata.MetadataFolders)
+            foreach (var repoCollectionDefinitionFolder in gem.LocalAppData.RepoCollectionDefinitionFolders)
             {
-                var metadataFolderInfo = new DirectoryInfo(metadataFolderPath);
-                if (!metadataFolderInfo.Exists)
+                var repoCollectionDefinitionInfo = new DirectoryInfo(repoCollectionDefinitionFolder);
+                if (!repoCollectionDefinitionInfo.Exists)
                 {
-                    MessageBox.Show($"Metadata folder {metadataFolderInfo.FullName} was not found");
+                    MessageBox.Show($"Repo collection definition folder {repoCollectionDefinitionInfo.FullName} was not found");
                     continue;
                 }
 
-                var metadataFolder = new MetadataFolder(gem, metadataFolderPath)
+                var repoCollection = new RepoCollection(gem, repoCollectionDefinitionFolder)
                 {
-                    Name = metadataFolderInfo.Name
+                    Name = repoCollectionDefinitionInfo.Name
                 };
-                gem.MetadataFolders.Add(metadataFolder);
+                gem.RepoCollections.Add(repoCollection);
 
                 // Loop through all the repo registrations that are present here
-                var repoRegistrations = metadataFolderInfo.GetFiles("*.repojson", SearchOption.TopDirectoryOnly);
+                var repoRegistrations = repoCollectionDefinitionInfo.GetFiles("*.repojson", SearchOption.TopDirectoryOnly);
                 foreach (var repoRegistration in repoRegistrations)
                 {
-                    var repoName = Path.GetFileNameWithoutExtension(repoRegistration.Name);
-                    var repo = new Repo(metadataFolder)
+                    var repo = new Repo(repoCollection)
                     {
                         Name = Path.GetFileNameWithoutExtension(repoRegistration.Name)
                     };
 
                     // Best attempt to load repo metadata, but if it fails then still add it to the UI so the user can re-create it.
                     repo.ReadMetadata(repoRegistration.FullName);
-                    metadataFolder.Repos.Add(repo);
+                    repoCollection.Repos.Add(repo);
                 }
             }
 
-            var gemFolder = new DirectoryInfo(gem.Metadata.ReposFolder);
-            foreach (var metadataFolder in gem.MetadataFolders)
+            var gemFolder = new DirectoryInfo(gem.LocalAppData.ReposFolder);
+            foreach (var repoCollection in gem.RepoCollections)
             {
-                foreach (var repo in metadataFolder.Repos)
+                foreach (var repo in repoCollection.Repos)
                 {
                     var repoFolder = repo.GetDirectoryInfo();
                     if (repoFolder == null)

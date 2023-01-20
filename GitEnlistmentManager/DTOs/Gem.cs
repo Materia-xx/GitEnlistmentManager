@@ -4,8 +4,8 @@ namespace GitEnlistmentManager.DTOs
 {
     public class Gem
     {
-        public GemMetadata Metadata { get; set; } = new GemMetadata();
+        public GemLocalAppData LocalAppData { get; set; } = new GemLocalAppData();
 
-        public List<MetadataFolder> MetadataFolders { get; } = new List<MetadataFolder>();
+        public List<RepoCollection> RepoCollections { get; } = new List<RepoCollection>();
     }
 }
