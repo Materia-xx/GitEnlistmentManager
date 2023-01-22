@@ -19,7 +19,9 @@
             <RowDefinition Height="5"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
-            <RowDefinition Height="75"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="25"/>
@@ -29,12 +31,14 @@
         <TextBlock Grid.Row="1" Grid.Column="1">Repos Folder</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="1">Git Exe Path</TextBlock>
         <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap">Repo Collection Definition Folders</TextBlock>
+        <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap">Command Set Folders</TextBlock>
 
         <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtReposFolder"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtGitExePath"/>
         <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtRepoCollectionDefinitionFolders" AcceptsReturn="True" />
+        <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtCommandSetFolders" AcceptsReturn="True" />
 
-        <Button Grid.Row="8" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="10" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
 
     </Grid>
 </Window>

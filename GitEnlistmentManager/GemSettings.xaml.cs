@@ -62,6 +62,18 @@ namespace GitEnlistmentManager
                 }
                 this.gem.LocalAppData.RepoCollectionDefinitionFolders.Add(repoCollectionDefinitionFolder);
             }
+
+            var commandSetFolders = this.txtCommandSetFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            this.gem.LocalAppData.CommandSetFolders.Clear();
+            foreach (var commandSetFolder in commandSetFolders)
+            {
+                if (!Directory.Exists(commandSetFolder))
+                {
+                    MessageBox.Show($"{commandSetFolder} doesn't exist, skipping.");
+                    continue;
+                }
+                this.gem.LocalAppData.CommandSetFolders.Add(commandSetFolder);
+            }
         }
 
         private void DtoToForm()
@@ -69,6 +81,7 @@ namespace GitEnlistmentManager
             this.txtReposFolder.Text = this.gem.LocalAppData.ReposFolder;
             this.txtGitExePath.Text = this.gem.LocalAppData.GitExePath;
             this.txtRepoCollectionDefinitionFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionFolders);
+            this.txtCommandSetFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetFolders);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

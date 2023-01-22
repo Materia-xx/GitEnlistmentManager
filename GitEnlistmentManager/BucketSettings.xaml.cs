@@ -10,15 +10,17 @@ namespace GitEnlistmentManager
     public partial class BucketSettings : Window
     {
         private readonly Bucket bucket;
+        private readonly MainWindow mainWindow;
 
-        public BucketSettings(Bucket bucket)
+        public BucketSettings(Bucket bucket, MainWindow mainWindow)
         {
             InitializeComponent();
             this.bucket = bucket;
+            this.mainWindow = mainWindow;
             this.DtoToForm();
         }
 
-        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        private async void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             // Transfer data from form to DTO
             FormToDto();
@@ -26,6 +28,9 @@ namespace GitEnlistmentManager
             // Force directory for the bucket to be created
             if (this.bucket.GetDirectoryInfo() != null)
             {
+                // Run any "AfterBucketCreate" command sets 
+                var afterBucketCreateCommandSets = this.bucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, this.bucket.Repo.RepoCollection, this.bucket.Repo, this.bucket);
+                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, this.bucket.GetTokens(), this.bucket.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
                 this.Close();
             }
         }

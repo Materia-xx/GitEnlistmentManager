@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 
@@ -37,6 +38,24 @@ namespace GitEnlistmentManager.Extensions
             }
 
             return bucketDirectory;
+        }
+
+        public static Dictionary<string, string> GetTokens(this Bucket bucket)
+        {
+            var tokens = bucket.Repo.GetTokens();
+
+            if (bucket.Name != null)
+            {
+                tokens["BucketName"] = bucket.Name;
+            }
+
+            var bucketDirectory = bucket.GetDirectoryInfo();
+            if (bucketDirectory != null)
+            {
+                tokens["BucketDirectory"] = bucketDirectory.FullName;
+            }
+
+            return tokens;
         }
     }
 }
