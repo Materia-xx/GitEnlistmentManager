@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,14 +25,19 @@ namespace GitEnlistmentManager
         public MainWindow()
         {
             InitializeComponent();
-            if(!this.ReloadTreeview())
+            this.gemServer = new GemServer(this.ProcessCSCommand);
+            this.Loaded += MainWindow_Loaded;
+            treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!await this.ReloadTreeview().ConfigureAwait(false))
             {
                 this.Close();
             }
 
-            this.gemServer = new GemServer(this.ProcessCSCommand);
             this.gemServer.Start();
-            treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
         }
 
         protected override void OnClosed(EventArgs e)
@@ -41,14 +45,20 @@ namespace GitEnlistmentManager
             this.gemServer?.Stop();
         }
 
-        private bool ReloadTreeview()
+        private async Task<bool> ReloadTreeview()
         {
-            treeRepos.ItemsSource = null;
+            await Application.Current.Dispatcher.BeginInvoke(() =>
+            {
+                treeRepos.ItemsSource = null;
+            });
             if (!this.gem.ReloadSettings())
             {
                 return false;
             }
-            treeRepos.ItemsSource = gem.RepoCollections;
+            await Application.Current.Dispatcher.BeginInvoke(() =>
+            {
+                treeRepos.ItemsSource = gem.RepoCollections;
+            });
             return true;
         }
 
@@ -104,10 +114,13 @@ namespace GitEnlistmentManager
                         enlistment = bucket.Enlistments.FirstOrDefault(e => e.Name != null && e.Name.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
                     }
 
-                    var placement = enlistment != null ? CommandSetPlacement.Enlistment :
-                        bucket != null ? CommandSetPlacement.Bucket :
-                        repo != null ? CommandSetPlacement.Repo :
-                        repoCollection != null ? CommandSetPlacement.RepoCollection : CommandSetPlacement.RepoCollection;
+                    var nodeContext = new GemNodeContext()
+                    {
+                        RepoCollection = repoCollection,
+                        Repo = repo,
+                        Bucket = bucket,
+                        Enlistment = enlistment
+                    };
 
                     // We always have to have a repo collection
                     if (repoCollection == null)
@@ -116,7 +129,7 @@ namespace GitEnlistmentManager
                     }
 
                     // All command sets that are available for this placement
-                    var commandSets = gem.GetCommandSets(placement, repoCollection, repo, bucket, enlistment);
+                    var commandSets = gem.GetCommandSets(nodeContext.GetPlacement(), repoCollection, repo, bucket, enlistment);
 
                     // Grab the last one that matches the verb being specified
                     var commandSet = commandSets.LastOrDefault(cs => cs.Verb != null && cs.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase));
@@ -130,8 +143,7 @@ namespace GitEnlistmentManager
                     {
                         await this.RunCommandSet(
                             commandSet: commandSet,
-                            tokens: enlistment?.GetTokens() ?? bucket?.GetTokens() ?? repo?.GetTokens() ?? repoCollection.GetTokens(),
-                            workingFolder: enlistment?.GetDirectoryInfo()?.FullName ?? bucket?.GetDirectoryInfo()?.FullName ?? repo?.GetDirectoryInfo()?.FullName ?? repoCollection.RepoCollectionFolderPath
+                            nodeContext: nodeContext
                             ).ConfigureAwait(false);
                     }
                     break;
@@ -193,12 +205,12 @@ namespace GitEnlistmentManager
                 {
                     Header = "Edit Gem Settings"
                 };
-                menuEditGemSettings.Click += (s, e) =>
+                menuEditGemSettings.Click += async (s, e) =>
                 {
                     var gemSettingsEditor = new GemSettings(this.gem);
                     gemSettingsEditor.ShowDialog();
                     // After the editor closes, reload the UI so we pick up any changes made
-                    this.ReloadTreeview();
+                    await this.ReloadTreeview().ConfigureAwait(false);
                 };
                 menu.Items.Add(menuEditGemSettings);
             }
@@ -216,12 +228,12 @@ namespace GitEnlistmentManager
                     {
                         Header = "Add New Repo"
                     };
-                    menuAddNewRepo.Click += (s, e) =>
+                    menuAddNewRepo.Click += async (s, e) =>
                     {
                         var repoSettingsEditor = new RepoSettings(new Repo(repoCollection), isNew: true);
                         repoSettingsEditor.ShowDialog();
                         // After the editor closes, reload the UI so we pick up any changes made
-                        this.ReloadTreeview();
+                        await this.ReloadTreeview().ConfigureAwait(false);
                     };
                     menu.Items.Add(menuAddNewRepo);
 
@@ -236,7 +248,7 @@ namespace GitEnlistmentManager
                         menuRepoCommandSet.Click += async (s, e) =>
                         {
                             await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(repoCollectionCommandSet, repoCollection.GetTokens(), repoCollection.RepoCollectionFolderPath).ConfigureAwait(false);
+                            await this.RunCommandSet(repoCollectionCommandSet, GemNodeContext.GetNodeContext(repoCollection: repoCollection)).ConfigureAwait(false);
                         };
                         menu.Items.Add(menuRepoCommandSet);
                     }
@@ -250,12 +262,12 @@ namespace GitEnlistmentManager
                         {
                             Header = "Edit Repo Settings"
                         };
-                        menuEditRepoSettings.Click += (s, e) =>
+                        menuEditRepoSettings.Click += async (s, e) =>
                         {
                             var repoSettingsEditor = new RepoSettings(repo, isNew: false);
                             repoSettingsEditor.ShowDialog();
                             // After the editor closes, reload the UI so we pick up any changes made
-                            this.ReloadTreeview();
+                            await this.ReloadTreeview().ConfigureAwait(false);
                         };
                         menu.Items.Add(menuEditRepoSettings);
 
@@ -263,13 +275,13 @@ namespace GitEnlistmentManager
                         {
                             Header = "Add New Bucket"
                         };
-                        menuAddNewBucket.Click += (s, e) =>
+                        menuAddNewBucket.Click += async (s, e) =>
                         {
                             var bucketSettingsEditor = new BucketSettings(new Bucket(repo), this);
                             bucketSettingsEditor.ShowDialog();
 
                             // After the editor closes, reload the UI so we pick up any changes made
-                            this.ReloadTreeview();
+                            await this.ReloadTreeview().ConfigureAwait(false);
                         };
                         menu.Items.Add(menuAddNewBucket);
 
@@ -284,7 +296,7 @@ namespace GitEnlistmentManager
                             menuRepoCommandSet.Click += async (s, e) =>
                             {
                                 await this.ClearCommandWindow().ConfigureAwait(false);
-                                await this.RunCommandSet(repoCommandSet, repo.GetTokens(), repo.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
+                                await this.RunCommandSet(repoCommandSet, GemNodeContext.GetNodeContext(repo: repo)).ConfigureAwait(false);
                             };
                             menu.Items.Add(menuRepoCommandSet);
                         }
@@ -293,23 +305,6 @@ namespace GitEnlistmentManager
 
                 if (selectedItem is Bucket bucket)
                 {
-                    // TODO: delete this when create enlistment is working as a command set
-                    //var menuAddNewEnlistment = new MenuItem() // TODO: all enlistment options should only be there if all the settings needed to create an enlistment are set up properly
-                    //{
-                    //    Header = "Add New Enlistment"
-                    //};
-                    //menuAddNewEnlistment.Click += async (s, e) =>
-                    //{
-                    //    var enlistment = new Enlistment(bucket);
-                    //    var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                    //    enlistmentSettingsEditor.ShowDialog();
-                    //    // After the editor closes, create the enlistment
-                    //    await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
-                    //    // Reload the UI so we pick up any changes made
-                    //    this.ReloadTreeview();
-                    //};
-                    //menu.Items.Add(menuAddNewEnlistment);
-
                     // Attach "Bucket" type command sets to the menu
                     var bucketCommandSets = gem.GetCommandSets(CommandSetPlacement.Bucket, bucket.Repo.RepoCollection, bucket.Repo, bucket);
                     foreach (var bucketCommandSet in bucketCommandSets)
@@ -321,7 +316,7 @@ namespace GitEnlistmentManager
                         menuBucketCommandSet.Click += async (s, e) =>
                         {
                             await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(bucketCommandSet, bucket.GetTokens(), bucket.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
+                            await this.RunCommandSet(bucketCommandSet, GemNodeContext.GetNodeContext(bucket: bucket)).ConfigureAwait(false);
                         };
                         menu.Items.Add(menuBucketCommandSet);
                     }
@@ -339,9 +334,9 @@ namespace GitEnlistmentManager
                         var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment);
                         enlistmentSettingsEditor.ShowDialog();
                         // After the editor closes, create the enlistment
-                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, referenceEnlistment: enlistment).ConfigureAwait(true);
+                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, referenceEnlistment: enlistment).ConfigureAwait(false);
                         // Reload the UI so we pick up any changes made
-                        this.ReloadTreeview();
+                        await this.ReloadTreeview().ConfigureAwait(false);
                     };
                     menu.Items.Add(menuAddNewEnlistmentAbove);
 
@@ -356,7 +351,7 @@ namespace GitEnlistmentManager
                         menuEnlistmentCommandSet.Click += async (s, e) =>
                         {
                             await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(enlistmentCommandSet, enlistment.GetTokens(), enlistment.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
+                            await this.RunCommandSet(enlistmentCommandSet, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
                         };
                         menu.Items.Add(menuEnlistmentCommandSet);
                     }
@@ -371,14 +366,13 @@ namespace GitEnlistmentManager
             await txtCommandPrompt.Clear().ConfigureAwait(false);
         }
 
-        public async Task<bool> RunCommandSets(List<CommandSet> commandSets, Dictionary<string, string> tokens, string? workingFolder = null)
+        public async Task<bool> RunCommandSets(List<CommandSet> commandSets, GemNodeContext nodeContext)
         {
             foreach (var commandSet in commandSets)
             {
                 if (!await this.RunCommandSet(
                     commandSet: commandSet,
-                    tokens: tokens,
-                    workingFolder: workingFolder
+                    nodeContext: nodeContext
                     ).ConfigureAwait(false))
                 {
                     return false;
@@ -387,7 +381,7 @@ namespace GitEnlistmentManager
             return true;
         }
 
-        public async Task<bool> RunCommandSet(CommandSet commandSet, Dictionary<string, string> tokens, string? workingFolder = null)
+        public async Task<bool> RunCommandSet(CommandSet commandSet, GemNodeContext nodeContext)
         {
             foreach (var command in commandSet.Commands)
             {
@@ -396,23 +390,29 @@ namespace GitEnlistmentManager
                     if (!await this.RunProgram(
                         programPath: runProgramCommand.Program,
                         arguments: runProgramCommand.Arguments,
-                        tokens: tokens,
-                        workingFolder: workingFolder
-                        ))
+                        tokens: nodeContext.GetTokens(),
+                        workingFolder: nodeContext.GetWorkingFolder()
+                        ).ConfigureAwait(false))
                     {
                         return false;
                     }
                 }
                 if (command is CreateEnlistmentCommand createEnlistmentCommand)
                 {
-                    // TODO: implement this
-                    //var enlistment = new Enlistment(bucket);
-                    //var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                    //enlistmentSettingsEditor.ShowDialog();
-                    //// After the editor closes, create the enlistment
-                    //await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
-                    //// Reload the UI so we pick up any changes made
-                    //this.ReloadTreeview();
+                    if (nodeContext.Bucket != null)
+                    {
+                        var enlistment = new Enlistment(nodeContext.Bucket);
+                        await Application.Current.Dispatcher.BeginInvoke(() =>
+                        {
+                            var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
+                            enlistmentSettingsEditor.ShowDialog();
+                        });
+
+                        // After the editor closes, create the enlistment
+                        await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(false);
+                        // Reload the UI so we pick up any changes made
+                        await this.ReloadTreeview().ConfigureAwait(false);
+                    }
                 }
             }
             return true;

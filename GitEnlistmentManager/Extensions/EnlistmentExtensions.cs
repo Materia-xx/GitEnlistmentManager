@@ -94,7 +94,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"remote set-url origin {originUrl}",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -105,7 +105,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"pull",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -126,7 +126,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"branch --set-upstream-to=origin/{pullFromBranch} {enlistment.GetFullGitBranch()}",
                 tokens: enlistment.GetTokens(),
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -255,7 +255,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $"clone {gitShallowOption} {gitAutoCrlfOption} {gitCloneSource} \"{enlistmentDirectory.FullName}\"",
                 tokens: enlistmentTokens,
                 workingFolder: bucketDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -268,7 +268,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $"checkout {parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom}",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -279,7 +279,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"checkout -b ""{enlistment.GetFullGitBranch()}""",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -294,7 +294,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"remote set-url --push origin {enlistment.Bucket.Repo.Metadata.CloneUrl}",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -306,7 +306,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"config push.default current",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -317,7 +317,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"config --local user.name ""{enlistment.Bucket.Repo.Metadata.UserName}""",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -328,7 +328,7 @@ namespace GitEnlistmentManager.Extensions
                 arguments: $@"config --local user.email ""{enlistment.Bucket.Repo.Metadata.UserEmail}""",
                 tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -354,7 +354,7 @@ namespace GitEnlistmentManager.Extensions
                 repo: enlistment.Bucket.Repo,
                 bucket: enlistment.Bucket,
                 enlistment: enlistment);
-            return await mainWindow.RunCommandSets(afterCloneCommandSets, enlistment.GetTokens(), enlistment.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
+            return await mainWindow.RunCommandSets(afterCloneCommandSets, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
         }
 
         public static Dictionary<string, string> GetTokens(this Enlistment enlistment)

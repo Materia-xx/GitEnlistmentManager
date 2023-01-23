@@ -30,7 +30,7 @@ namespace GitEnlistmentManager
             {
                 // Run any "AfterBucketCreate" command sets 
                 var afterBucketCreateCommandSets = this.bucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, this.bucket.Repo.RepoCollection, this.bucket.Repo, this.bucket);
-                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, this.bucket.GetTokens(), this.bucket.GetDirectoryInfo()?.FullName).ConfigureAwait(false);
+                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: this.bucket)).ConfigureAwait(false);
                 this.Close();
             }
         }
