@@ -31,7 +31,11 @@ namespace GitEnlistmentManager
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: validate that the right fields are filled in.
+            if (this.cboGitHostingPlatformName.SelectedValue == null)
+            {
+                MessageBox.Show("Please select a Git Hosting Platform");
+                return;
+            }
 
             // Transfer data from form to DTO
             FormToDto();

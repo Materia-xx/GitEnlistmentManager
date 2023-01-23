@@ -1,6 +1,8 @@
 ﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 
@@ -45,6 +47,46 @@ namespace GitEnlistmentManager.Extensions
             return targetRepoFolder;
         }
 
+        public static Dictionary<string, string> GetTokens(this Repo repo)
+        {
+            var tokens = repo.RepoCollection.GetTokens();
+            if (repo.Name != null)
+            {
+                tokens["RepoName"] = repo.Name;
+            }
+            if (repo.Metadata.BranchFrom != null)
+            {
+                tokens["RepoBranchFrom"] = repo.Metadata.BranchFrom;
+            }
+            if (repo.Metadata.BranchPrefix != null)
+            {
+                tokens["RepoBranchPrefix"] = repo.Metadata.BranchPrefix;
+            }
+            if (repo.Metadata.CloneUrl != null)
+            {
+                tokens["RepoCloneUrl"] = repo.Metadata.CloneUrl;
+            }
+            if (repo.Metadata.GitHostingPlatformName != null)
+            {
+                tokens["RepoGitHostingPlatformName"] = repo.Metadata.GitHostingPlatformName;
+            }
+            if (repo.Metadata.UserEmail != null)
+            {
+                tokens["RepoUserEmail"] = repo.Metadata.UserEmail;
+            }
+            if (repo.Metadata.UserName != null)
+            {
+                tokens["RepoUserName"] = repo.Metadata.UserName;
+            }
+            var repoDirectory = repo.GetDirectoryInfo();
+            if (repoDirectory != null)
+            {
+                tokens["RepoDirectory"] = repoDirectory.FullName;
+            }
+
+            return tokens;
+        }
+
         public static bool WriteMetadata(this Repo repo)
         {
             var targetRepoCollectionFolder = new DirectoryInfo(repo.RepoCollection.RepoCollectionFolderPath);
@@ -53,7 +95,7 @@ namespace GitEnlistmentManager.Extensions
             try
             {
                 var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionFolder.FullName, $"{repo.Name}.repojson"));
-                var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, Formatting.Indented);
+                var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, GemJsonSerializer.Settings);
                 File.WriteAllText(repoMetadataFile.FullName, repoMetadataJson);
             }
             catch (Exception ex)
@@ -69,7 +111,7 @@ namespace GitEnlistmentManager.Extensions
             try
             {
                 var repoMetadataJson = File.ReadAllText(metadataFilePath);
-                var repoMetadata = JsonConvert.DeserializeObject<RepoMetadata>(repoMetadataJson);
+                var repoMetadata = JsonConvert.DeserializeObject<RepoMetadata>(repoMetadataJson, GemJsonSerializer.Settings);
                 if (repoMetadata == null)
                 {
                     MessageBox.Show($"Unable to deserialize Repo metadata from {metadataFilePath}");

@@ -1,8 +1,10 @@
 ﻿using GitEnlistmentManager.DTOs;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -84,22 +86,26 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            // This will set the "url" that the enlistment pulls from.
-            if (!await mainWindow.RunCommand(
+            var enlistmentTokens = enlistment.GetTokens();
+
+            // This will set the "URL" that the enlistment pulls from.
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"remote set-url origin {originUrl}",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
 
             // Git pull so this workspace becomes aware of the branch in the parent repo
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"pull",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -115,11 +121,12 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"branch --set-upstream-to=origin/{pullFromBranch} {enlistment.GetFullGitBranch()}",
+                tokens: enlistment.GetTokens(),
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -236,16 +243,19 @@ namespace GitEnlistmentManager.Extensions
             // So we set --depth 1 to save some time/space. But this only works when cloning from the remote repo and not a local parent folder.
             var gitShallowOption = gitCloneSource == enlistment.Bucket.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
 
+            var enlistmentTokens = enlistment.GetTokens();
+
             // Clone the enlistment
             // Note: Git on the commandline adds progress lines that are not included in redirected output.
             //       It is possible to add --progress to see them, but because this program is not a true
             //       command terminal it spams many lines instead of keeping the progress on one line.
             //       I've left the option out for that reason.
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"clone {gitShallowOption} {gitAutoCrlfOption} {gitCloneSource} \"{enlistmentDirectory.FullName}\"",
+                tokens: enlistmentTokens,
                 workingFolder: bucketDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -253,21 +263,23 @@ namespace GitEnlistmentManager.Extensions
             // Make sure this branch has knowledge of the branch we are branching from, otherwise it will error out
             // If we are branching from a local repo/folder then use the branch there as the branch to pull from
             // Otherwise use the branch from the remote repo
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"checkout {parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom}",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
 
             // Create the new branch that this folder will represent
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"checkout -b ""{enlistment.GetFullGitBranch()}""",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -277,42 +289,46 @@ namespace GitEnlistmentManager.Extensions
 
             // This will make it so 'git push' always pushes to a branch in the main repo
             // i.e. child branch e3 will not push to child branch e2, but rather to the original repo
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"remote set-url --push origin {enlistment.Bucket.Repo.Metadata.CloneUrl}",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
 
             // This is the branch that 'git push' will publish to
             // It is set to publish a branch with the same name on the remote
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config push.default current",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
 
             // Set the user name
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config --local user.name ""{enlistment.Bucket.Repo.Metadata.UserName}""",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
 
             // Set the user email
-            if (!await mainWindow.RunCommand(
+            if (!await mainWindow.RunProgram(
                 programPath: enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config --local user.email ""{enlistment.Bucket.Repo.Metadata.UserEmail}""",
+                tokens: enlistmentTokens,
                 workingFolder: enlistmentDirectory.FullName
-                ).ConfigureAwait(true))
+                ).ConfigureAwait(false))
             {
                 return false;
             }
@@ -331,33 +347,46 @@ namespace GitEnlistmentManager.Extensions
                 }
             }
 
-            return true;
+            // Run any "After Clone" command sets attached to this enlistment
+            var afterCloneCommandSets = enlistment.Bucket.Repo.RepoCollection.Gem.GetCommandSets(
+                placement: CommandSetPlacement.AfterEnlistmentClone,
+                repoCollection: enlistment.Bucket.Repo.RepoCollection,
+                repo: enlistment.Bucket.Repo,
+                bucket: enlistment.Bucket,
+                enlistment: enlistment);
+            return await mainWindow.RunCommandSets(afterCloneCommandSets, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
         }
 
-        public static void PullRequest(this Enlistment enlistment)
+        public static Dictionary<string, string> GetTokens(this Enlistment enlistment)
+        {
+            var tokens = enlistment.Bucket.GetTokens();
+
+            if (enlistment.Name != null)
+            {
+                tokens["EnlistmentName"] = enlistment.Name;
+            }
+
+            tokens["EnlistmentBranch"] = enlistment.GetFullGitBranch();
+
+            var enlistmentDirectory = enlistment.GetDirectoryInfo();
+            if (enlistmentDirectory != null)
+            {
+                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName;
+            }
+
+            var pullRequestUrl = enlistment.GetPullRequestUrl();
+            if (pullRequestUrl != null)
+            {
+                tokens["EnlistmentPullRequestUrl"] = pullRequestUrl;
+            }
+
+            return tokens;
+        }
+
+        public static string? GetPullRequestUrl(this Enlistment enlistment)
         {
             var hostingPlatform = GitHostingPlatforms.Instance.Platforms.FirstOrDefault(p => p.Name == enlistment.Bucket.Repo.Metadata.GitHostingPlatformName);
-            var pullRequestUrl = hostingPlatform?.CalculatePullRequestUrl(enlistment);
-            if (!string.IsNullOrWhiteSpace(pullRequestUrl))
-            {
-                MessageBox.Show("Unable to determine a pull request url");
-            }
-            else
-            {
-                try
-                {
-                    ProcessStartInfo psi = new()
-                    {
-                        FileName = pullRequestUrl,
-                        UseShellExecute = true
-                    };
-                    Process.Start(psi);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
+            return hostingPlatform?.CalculatePullRequestUrl(enlistment);
         }
     }
 }
