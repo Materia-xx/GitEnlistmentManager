@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.DTOs.CommandSetFilters;
 using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
@@ -105,7 +106,7 @@ namespace GitEnlistmentManager.Extensions
                         CommandSetPath = Path.Combine(gem.LocalAppData.CommandSetFolders[0], "gemstatus.cmdjson"),
                     };
                     exampleCommandSet.Commands.Add(
-                        new Command()
+                        new RunProgramCommand()
                         {
                             Program = "{GitExePath}",
                             Arguments = "status"
@@ -131,7 +132,7 @@ namespace GitEnlistmentManager.Extensions
                         CommandSetPath = Path.Combine(gem.LocalAppData.CommandSetFolders[0], "gempr.cmdjson"),
                     };
                     prCommandSet.Commands.Add(
-                        new Command()
+                        new RunProgramCommand()
                         {
                             Program = "{EnlistmentPullRequestUrl}"
                         }
@@ -139,6 +140,22 @@ namespace GitEnlistmentManager.Extensions
                     if (!File.Exists(prCommandSet.CommandSetPath))
                     {
                         CommandSet.WriteCommandSet(prCommandSet);
+                    }
+                }
+                {
+                    var createEnlistmentCommandSet = new CommandSet()
+                    {
+                        Placement = CommandSetPlacement.Bucket,
+                        RightClickText = "Create New Enlistment",
+                        Verb = "ce",
+                        CommandSetPath = Path.Combine(gem.LocalAppData.CommandSetFolders[0], "gemce.cmdjson"),
+                    };
+                    createEnlistmentCommandSet.Commands.Add(
+                        new CreateEnlistmentCommand()
+                    );
+                    if (!File.Exists(createEnlistmentCommandSet.CommandSetPath))
+                    {
+                        CommandSet.WriteCommandSet(createEnlistmentCommandSet);
                     }
                 }
             }

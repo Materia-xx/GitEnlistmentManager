@@ -1,10 +1,12 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,13 +32,8 @@ namespace GitEnlistmentManager
             }
 
             this.gemServer = new GemServer(this.ProcessCSCommand);
+            this.gemServer.Start();
             treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
-        }
-
-        protected override async void OnActivated(EventArgs e)
-        {
-            await this.gemServer.Start().ConfigureAwait(false);
-            base.OnActivated(e);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -78,7 +75,7 @@ namespace GitEnlistmentManager
 
                     // The first parameter has to be the verb of the command set to run
 
-                    var verb = command.CommandArgs[0];
+                    var verb = command.CommandArgs[0].ToString();
 
                     // Figure out the context of where the command being run from.
                     // It has to be running from within the repos folder.
@@ -122,7 +119,7 @@ namespace GitEnlistmentManager
                     var commandSets = gem.GetCommandSets(placement, repoCollection, repo, bucket, enlistment);
 
                     // Grab the last one that matches the verb being specified
-                    var commandSet = commandSets.LastOrDefault(cmdSet => cmdSet.Verb != null && cmdSet.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase));
+                    var commandSet = commandSets.LastOrDefault(cs => cs.Verb != null && cs.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase));
 
                     // If no command set with that verb was found then write out something in the UI
                     if (commandSet == null)
@@ -140,7 +137,6 @@ namespace GitEnlistmentManager
                     break;
             }
         }
-
 
         private static TreeViewItem? VisualUpwardSearch(DependencyObject? source)
         {
@@ -297,21 +293,22 @@ namespace GitEnlistmentManager
 
                 if (selectedItem is Bucket bucket)
                 {
-                    var menuAddNewEnlistment = new MenuItem() // TODO: all enlistment options should only be there if all the settings needed to create an enlistment are set up properly
-                    {
-                        Header = "Add New Enlistment"
-                    };
-                    menuAddNewEnlistment.Click += async (s, e) =>
-                    {
-                        var enlistment = new Enlistment(bucket);
-                        var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                        enlistmentSettingsEditor.ShowDialog();
-                        // After the editor closes, create the enlistment
-                        await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
-                        // Reload the UI so we pick up any changes made
-                        this.ReloadTreeview();
-                    };
-                    menu.Items.Add(menuAddNewEnlistment);
+                    // TODO: delete this when create enlistment is working as a command set
+                    //var menuAddNewEnlistment = new MenuItem() // TODO: all enlistment options should only be there if all the settings needed to create an enlistment are set up properly
+                    //{
+                    //    Header = "Add New Enlistment"
+                    //};
+                    //menuAddNewEnlistment.Click += async (s, e) =>
+                    //{
+                    //    var enlistment = new Enlistment(bucket);
+                    //    var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
+                    //    enlistmentSettingsEditor.ShowDialog();
+                    //    // After the editor closes, create the enlistment
+                    //    await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
+                    //    // Reload the UI so we pick up any changes made
+                    //    this.ReloadTreeview();
+                    //};
+                    //menu.Items.Add(menuAddNewEnlistment);
 
                     // Attach "Bucket" type command sets to the menu
                     var bucketCommandSets = gem.GetCommandSets(CommandSetPlacement.Bucket, bucket.Repo.RepoCollection, bucket.Repo, bucket);
@@ -394,20 +391,34 @@ namespace GitEnlistmentManager
         {
             foreach (var command in commandSet.Commands)
             {
-                if (!await this.RunCommand(
-                    programPath: command.Program,
-                    arguments: command.Arguments,
-                    tokens: tokens,
-                    workingFolder: workingFolder
-                    ))
+                if (command is RunProgramCommand runProgramCommand)
                 {
-                    return false;
+                    if (!await this.RunProgram(
+                        programPath: runProgramCommand.Program,
+                        arguments: runProgramCommand.Arguments,
+                        tokens: tokens,
+                        workingFolder: workingFolder
+                        ))
+                    {
+                        return false;
+                    }
+                }
+                if (command is CreateEnlistmentCommand createEnlistmentCommand)
+                {
+                    // TODO: implement this
+                    //var enlistment = new Enlistment(bucket);
+                    //var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
+                    //enlistmentSettingsEditor.ShowDialog();
+                    //// After the editor closes, create the enlistment
+                    //await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(true);
+                    //// Reload the UI so we pick up any changes made
+                    //this.ReloadTreeview();
                 }
             }
             return true;
         }
 
-        public async Task<bool> RunCommand(string? programPath, string? arguments, Dictionary<string, string> tokens, string? workingFolder = null)
+        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string> tokens, string? workingFolder = null)
         {
             foreach (var token in tokens)
             {

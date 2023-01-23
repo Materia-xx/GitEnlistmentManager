@@ -1,4 +1,5 @@
-﻿using GitEnlistmentManager.DTOs.CommandSetFilters;
+﻿using GitEnlistmentManager.DTOs.Commands;
+using GitEnlistmentManager.DTOs.CommandSetFilters;
 using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using System;
@@ -20,7 +21,7 @@ namespace GitEnlistmentManager.DTOs
         [JsonIgnore]
         public string? CommandSetPath { get; set; }
 
-        public List<Command> Commands { get; } = new();
+        public List<ICommand> Commands { get; } = new();
 
         public List<ICommandSetFilter> Filters { get; set; } = new();
 

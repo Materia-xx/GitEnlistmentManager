@@ -1,6 +1,6 @@
-﻿namespace GitEnlistmentManager.DTOs
+﻿namespace GitEnlistmentManager.DTOs.Commands
 {
-    public class Command
+    public class RunProgramCommand : ICommand
     {
         public string? Program { get; set; }
 

@@ -31,15 +31,14 @@ namespace GitEnlistmentManager.ClientServer
         /// <summary>
         /// Start the server
         /// </summary>
-        public async Task Start()
+        public void Start()
         {
             // Start the underlying TcpListener
             Listener.Start();
 
             // Create a thread for the server to listen on
-            //Thread t = new Thread(new ThreadStart(StartListener));
-            //t.Start();
-            await StartListener().ConfigureAwait(false);
+            Thread t = new Thread(new ThreadStart(StartListener));
+            t.Start();
         }
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace GitEnlistmentManager.ClientServer
             Listener.Stop();
         }
 
-        public async Task StartListener()
+        public void StartListener()
         {
             try
             {
@@ -66,12 +65,11 @@ namespace GitEnlistmentManager.ClientServer
                     TcpClient client = Listener.AcceptTcpClient();
 
                     // Remoting Client Connected from IP Address:{client.Client.RemoteEndPoint}
-                    //Thread t = new Thread(new ParameterizedThreadStart(HandleClient)); // TODO: remove the threading layer if this async works
-                    await HandleClient(client).ConfigureAwait(false);
-
+                    Thread t = new Thread(new ParameterizedThreadStart(HandleClient));
+                    
                     // Add a thread to handle this command
-                    //m_ThreadDictionary.Add(t, new CancellationTokenSource());
-                    //t.Start(client);
+                    m_ThreadDictionary.Add(t, new CancellationTokenSource());
+                    t.Start(client);
                 }
             }
             catch (SocketException e)
@@ -80,7 +78,7 @@ namespace GitEnlistmentManager.ClientServer
             }
         }
 
-        public async Task HandleClient(object? obj)
+        public void HandleClient(object? obj)
         {
             if (obj is not TcpClient client)
             {
@@ -99,7 +97,7 @@ namespace GitEnlistmentManager.ClientServer
                     string hex = BitConverter.ToString(bytes);
                     remoteCommand = Encoding.ASCII.GetString(bytes, 0, i);
                     Debug.WriteLine("{1}: Received: {0}", remoteCommand, Environment.CurrentManagedThreadId);
-                    await ProcessCommand(remoteCommand).ConfigureAwait(false);
+                    ProcessCommand(remoteCommand).Wait();
                 }
 
                 m_ThreadDictionary[Thread.CurrentThread].Dispose();
