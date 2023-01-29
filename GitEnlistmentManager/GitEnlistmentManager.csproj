@@ -9,6 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\bucket.png" />
+    <None Remove="Images\enlistment.png" />
+    <None Remove="Images\Gem.png" />
+    <None Remove="Images\Repo.png" />
+    <None Remove="Images\RepoCollection.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Images\bucket.png" />
+    <EmbeddedResource Include="Images\enlistment.png" />
+    <EmbeddedResource Include="Images\gem.png" />
+    <EmbeddedResource Include="Images\repocollection.png" />
+    <EmbeddedResource Include="Images\repo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 

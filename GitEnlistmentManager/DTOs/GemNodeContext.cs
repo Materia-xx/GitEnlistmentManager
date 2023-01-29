@@ -1,11 +1,6 @@
 ﻿using GitEnlistmentManager.Extensions;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace GitEnlistmentManager.DTOs
 {
@@ -24,9 +19,40 @@ namespace GitEnlistmentManager.DTOs
             return Enlistment?.GetDirectoryInfo()?.FullName ?? Bucket?.GetDirectoryInfo()?.FullName ?? Repo?.GetDirectoryInfo()?.FullName ?? RepoCollection?.RepoCollectionFolderPath;
         }
 
-        public Dictionary<string, string> GetTokens()
+        public GemNodeContext Clone()
         {
-            return Enlistment?.GetTokens() ?? Bucket?.GetTokens() ?? Repo?.GetTokens() ?? RepoCollection?.GetTokens() ?? new Dictionary<string, string>();
+            return new GemNodeContext()
+            {
+                RepoCollection = this.RepoCollection,
+                Repo= this.Repo,
+                Bucket = this.Bucket,
+                Enlistment = this.Enlistment
+            };
+        }
+
+        public async Task<Dictionary<string, string>> GetTokens()
+        {
+            if (this.Enlistment != null)
+            {
+                return await this.Enlistment.GetTokens().ConfigureAwait(false);
+            }
+
+            if (this.Bucket != null)
+            {
+                return this.Bucket.GetTokens();
+            }
+
+            if (this.Repo != null)
+            {
+                return this.Repo.GetTokens();
+            }
+
+            if (this.RepoCollection != null)
+            {
+                return this.RepoCollection.GetTokens();
+            }
+
+            return new Dictionary<string, string>();
         }
 
         public CommandSetPlacement GetPlacement()

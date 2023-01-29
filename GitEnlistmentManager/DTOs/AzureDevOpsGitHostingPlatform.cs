@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.Extensions;
+using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs
 {
@@ -6,7 +7,7 @@ namespace GitEnlistmentManager.DTOs
     {
         public override string? Name { get; } = "AzureDevOps";
 
-        public override string? CalculatePullRequestUrl(Enlistment enlistment)
+        public override async Task<string?> CalculatePullRequestUrl(Enlistment enlistment)
         {
             // This is the final pull request URL, but you can leave out the Repository Ids and it will default them to the current repo
             // "https://dev.azure.com/(((OrgName)))/(((ProjectName)))/_git/(((RepoName)))/pullrequestcreate?sourceRef=(((ChildBranch)))&targetRef=(((ParentBranch)))&sourceRepositoryId=(((SourceRepoId)))&targetRepositoryId=(((TargetRepoId)))"
@@ -17,12 +18,15 @@ namespace GitEnlistmentManager.DTOs
 
 
                 // Child branch
-                pullRequestUrl = pullRequestUrl.Replace("(((ChildBranch)))", enlistment.GetFullGitBranch());
+                pullRequestUrl = pullRequestUrl.Replace("(((ChildBranch)))", (await enlistment.GetFullGitBranch().ConfigureAwait(false)));
 
                 // Parent branch
                 var parentEnlistment = enlistment.GetParentEnlistment();
-                var parentBranch = parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
-                pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
+                if (parentEnlistment != null)
+                {
+                    var parentBranch = (await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
+                    pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
+                }
             }
 
             return pullRequestUrl;

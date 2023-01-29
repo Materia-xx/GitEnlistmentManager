@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.Extensions;
+using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs
 {
@@ -6,7 +7,7 @@ namespace GitEnlistmentManager.DTOs
     {
         public override string? Name { get; } = "GitHub";
 
-        public override string? CalculatePullRequestUrl(Enlistment enlistment)
+        public override async Task<string?> CalculatePullRequestUrl(Enlistment enlistment)
         {
             // "https://github.com/Materia-xx/GitEnlistmentManager/compare/main...user/materia/b1000.init",;
             // "https://github.com/Materia-xx/GitEnlistmentManager.git",
@@ -17,12 +18,15 @@ namespace GitEnlistmentManager.DTOs
                 pullRequestUrl += "/compare/(((ParentBranch)))...(((ChildBranch)))";
 
                 // Child branch
-                pullRequestUrl = pullRequestUrl.Replace("(((ChildBranch)))", enlistment.GetFullGitBranch());
+                pullRequestUrl = pullRequestUrl.Replace("(((ChildBranch)))", (await enlistment.GetFullGitBranch().ConfigureAwait(false)));
 
                 // Parent branch
                 var parentEnlistment = enlistment.GetParentEnlistment();
-                var parentBranch = parentEnlistment?.GetFullGitBranch() ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
-                pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
+                if (parentEnlistment != null)
+                {
+                    var parentBranch = (await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
+                    pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
+                }
             }
 
             return pullRequestUrl;

@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,7 @@ namespace GitEnlistmentManager
         public RepoSettings(Repo repo, bool isNew)
         {
             InitializeComponent();
+            this.Icon = Icons.GemIcon;
             this.repoSettings = repo;
 
             // Load choices for combo boxes

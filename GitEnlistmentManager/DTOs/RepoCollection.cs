@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using GitEnlistmentManager.Globals;
+using System.Collections.Generic;
 
 namespace GitEnlistmentManager.DTOs
 {
-    public class RepoCollection
+    public class RepoCollection : GemTreeViewItem
     {
         public Gem Gem { get; }
         public string? Name { get; set; }
@@ -14,6 +15,7 @@ namespace GitEnlistmentManager.DTOs
         {
             this.Gem = gem;
             RepoCollectionFolderPath = repoCollectionFolderPath;
+            this.Icon = Icons.GetBitMapImage(@"repocollection.png");
         }
     }
 }

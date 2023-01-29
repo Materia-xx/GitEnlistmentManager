@@ -6,7 +6,7 @@
         Repo,
         Bucket,
         Enlistment,
-        AfterEnlistmentClone,
+        AfterEnlistmentCreate,
         AfterBucketCreate
     }
 }
