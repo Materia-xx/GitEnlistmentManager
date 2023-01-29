@@ -186,6 +186,7 @@ namespace GitEnlistmentManager.Extensions
                     prCommandSet.Commands.Add(
                         new RunProgramCommand()
                         {
+                            OpenNewWindow = true,
                             Program = "{EnlistmentPullRequestUrl}"
                         }
                     );

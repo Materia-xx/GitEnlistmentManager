@@ -22,11 +22,9 @@ namespace GitEnlistmentManager.DTOs
 
                 // Parent branch
                 var parentEnlistment = enlistment.GetParentEnlistment();
-                if (parentEnlistment != null)
-                {
-                    var parentBranch = (await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
-                    pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
-                }
+
+                var parentBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom;
+                pullRequestUrl = pullRequestUrl.Replace("(((ParentBranch)))", parentBranch);
             }
 
             return pullRequestUrl;

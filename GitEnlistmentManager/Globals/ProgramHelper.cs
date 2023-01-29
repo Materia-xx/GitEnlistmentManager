@@ -7,6 +7,7 @@ namespace GitEnlistmentManager.Globals
 {
     public static class ProgramHelper
     {
+        // TODO: is it possible to just redirect calls to the main runprogram in mainwindow.cs to here too?
         public static async Task<bool> RunProgram(
             string? programPath,
             string? arguments,

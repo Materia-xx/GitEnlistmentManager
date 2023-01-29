@@ -477,7 +477,7 @@ Command Sets
             }
             await txtCommandPrompt.AppendLine($"\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
 
-            bool useShellExecute = false;
+            bool useShellExecute = false; // TODO: pass this in as a parameter from the command, it might not always be http, but something else the shell still needs to handle
             // We need shell execute to open urls
             if (programPath != null && programPath.StartsWith("http"))
             {
