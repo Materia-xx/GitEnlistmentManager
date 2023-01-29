@@ -1,5 +1,7 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
+using System;
 using System.Windows;
 
 namespace GitEnlistmentManager
@@ -15,24 +17,23 @@ namespace GitEnlistmentManager
         public BucketSettings(Bucket bucket, MainWindow mainWindow)
         {
             InitializeComponent();
+            this.Icon = Icons.GemIcon;
             this.bucket = bucket;
             this.mainWindow = mainWindow;
             this.DtoToForm();
         }
 
-        private async void ButtonSave_Click(object sender, RoutedEventArgs e)
+        private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
+            if (this.txtBucketName.Text.Equals("archive", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("The archive bucket is reserved for archiving only");
+                return;
+            }
+
             // Transfer data from form to DTO
             FormToDto();
-
-            // Force directory for the bucket to be created
-            if (this.bucket.GetDirectoryInfo() != null)
-            {
-                // Run any "AfterBucketCreate" command sets 
-                var afterBucketCreateCommandSets = this.bucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, this.bucket.Repo.RepoCollection, this.bucket.Repo, this.bucket);
-                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: this.bucket)).ConfigureAwait(false);
-                this.Close();
-            }
+            this.Close();
         }
 
         private void FormToDto()

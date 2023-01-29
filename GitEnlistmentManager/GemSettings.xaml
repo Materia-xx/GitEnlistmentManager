@@ -5,15 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="GemSettings" Height="250" Width="600" Loaded="Window_Loaded">
+        Title="GemSettings" Height="320" Width="600" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="110"/>
+            <ColumnDefinition Width="130"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="5"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
@@ -30,15 +34,19 @@
 
         <TextBlock Grid.Row="1" Grid.Column="1">Repos Folder</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="1">Git Exe Path</TextBlock>
-        <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap">Repo Collection Definition Folders</TextBlock>
-        <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap">Command Set Folders</TextBlock>
+        <TextBlock Grid.Row="5" Grid.Column="1">Archive Slots</TextBlock>
+        <TextBlock Grid.Row="7" Grid.Column="1">Enlistment Increment</TextBlock>
+        <TextBlock Grid.Row="9" Grid.Column="1" TextWrapping="Wrap">Repo Collection Definition Folders</TextBlock>
+        <TextBlock Grid.Row="11" Grid.Column="1" TextWrapping="Wrap">Command Set Folders</TextBlock>
 
         <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtReposFolder"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtGitExePath"/>
-        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtRepoCollectionDefinitionFolders" AcceptsReturn="True" />
-        <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtCommandSetFolders" AcceptsReturn="True" />
+        <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtArchiveSlots"/>
+        <TextBox Grid.Row="7" Grid.Column="2" x:Name="txtEnlistmentIncrement"/>
+        <TextBox Grid.Row="9" Grid.Column="2" x:Name="txtRepoCollectionDefinitionFolders" AcceptsReturn="True" />
+        <TextBox Grid.Row="11" Grid.Column="2" x:Name="txtCommandSetFolders" AcceptsReturn="True" />
 
-        <Button Grid.Row="10" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="14" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
 
     </Grid>
 </Window>

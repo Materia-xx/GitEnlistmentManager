@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace GitEnlistmentManager
         public GemSettings(Gem gem)
         {
             InitializeComponent();
+            this.Icon = Icons.GemIcon;
             this.gem = gem;
             this.DtoToForm();
         }
@@ -24,7 +26,10 @@ namespace GitEnlistmentManager
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             // Transfer data from form to DTO
-            FormToDto();
+            if (!FormToDto())
+            {
+                return;
+            }
 
             if (!Path.Exists(this.gem.LocalAppData.GitExePath))
             {
@@ -46,10 +51,30 @@ namespace GitEnlistmentManager
             }
         }
 
-        private void FormToDto()
+        private bool FormToDto()
         {
             this.gem.LocalAppData.ReposFolder = this.txtReposFolder.Text;
             this.gem.LocalAppData.GitExePath = this.txtGitExePath.Text;
+
+            if (int.TryParse(this.txtArchiveSlots.Text, out int resultArchiveSlots))
+            {
+                this.gem.LocalAppData.ArchiveSlots = resultArchiveSlots;
+            }
+            else
+            {
+                MessageBox.Show("Unable to convert the number of archive slots into a number!");
+                return false;
+            }
+
+            if (int.TryParse(this.txtEnlistmentIncrement.Text, out int resultEnlistmentIncrement))
+            {
+                this.gem.LocalAppData.EnlistmentIncrement = resultEnlistmentIncrement;
+            }
+            else
+            {
+                MessageBox.Show("Unable to convert the enlistment increment amount into a number!");
+                return false;
+            }
 
             var repoCollectionDefinitionFolders = this.txtRepoCollectionDefinitionFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             this.gem.LocalAppData.RepoCollectionDefinitionFolders.Clear();
@@ -74,12 +99,16 @@ namespace GitEnlistmentManager
                 }
                 this.gem.LocalAppData.CommandSetFolders.Add(commandSetFolder);
             }
+            return true;
         }
 
         private void DtoToForm()
         {
             this.txtReposFolder.Text = this.gem.LocalAppData.ReposFolder;
             this.txtGitExePath.Text = this.gem.LocalAppData.GitExePath;
+            this.txtArchiveSlots.Text = this.gem.LocalAppData.ArchiveSlots.ToString();
+            this.txtEnlistmentIncrement.Text = this.gem.LocalAppData.EnlistmentIncrement.ToString();
+
             this.txtRepoCollectionDefinitionFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionFolders);
             this.txtCommandSetFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetFolders);
         }

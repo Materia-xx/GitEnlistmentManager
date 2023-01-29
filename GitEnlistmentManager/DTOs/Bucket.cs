@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using GitEnlistmentManager.Globals;
+using System.Collections.Generic;
 
 namespace GitEnlistmentManager.DTOs
 {
-    public class Bucket
+    public class Bucket : GemTreeViewItem
     {
         public Repo Repo { get; }
 
@@ -12,6 +13,7 @@ namespace GitEnlistmentManager.DTOs
         public Bucket(Repo repo)
         {
             this.Repo = repo;
+            this.Icon = Icons.GetBitMapImage(@"bucket.png");
         }
     }
 }

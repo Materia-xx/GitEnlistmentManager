@@ -2,10 +2,15 @@
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,6 +30,7 @@ namespace GitEnlistmentManager
         public MainWindow()
         {
             InitializeComponent();
+            this.Icon = Icons.GemIcon;
             this.gemServer = new GemServer(this.ProcessCSCommand);
             this.Loaded += MainWindow_Loaded;
             treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
@@ -70,6 +76,24 @@ namespace GitEnlistmentManager
                     // There has to be at least 1 argument coming in
                     if (command.CommandArgs == null || command.CommandArgs.Length == 0)
                     {
+                        return;
+                    }
+
+                    var remainingArgsStack = new Stack<string>();
+                    for (int i = command.CommandArgs.Length -1; i >= 0; i--)
+                    {
+                        var commandArg = command.CommandArgs[i].ToString();
+                        if (commandArg != null)
+                        {
+                            remainingArgsStack.Push(commandArg);
+                        }
+                    }
+
+                    // If the user is asking for help
+                    var firstArgument = remainingArgsStack.Pop();
+                    if (firstArgument != null && firstArgument.Equals("--help", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await this.ShowHelp().ConfigureAwait(false);
                         return;
                     }
 
@@ -129,7 +153,7 @@ namespace GitEnlistmentManager
                     }
 
                     // All command sets that are available for this placement
-                    var commandSets = gem.GetCommandSets(nodeContext.GetPlacement(), repoCollection, repo, bucket, enlistment);
+                    var commandSets = gem.GetCommandSets(nodeContext.GetPlacement(), CommandSetMode.CommandPrompt, repoCollection, repo, bucket, enlistment);
 
                     // Grab the last one that matches the verb being specified
                     var commandSet = commandSets.LastOrDefault(cs => cs.Verb != null && cs.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase));
@@ -137,10 +161,14 @@ namespace GitEnlistmentManager
                     // If no command set with that verb was found then write out something in the UI
                     if (commandSet == null)
                     {
-                        // TODO: write out error
+                        await this.AppendCommandLine($"No commands with verb '{verb}' were found.", Brushes.LightSalmon).ConfigureAwait(false);
                     }
                     else
                     {
+                        foreach (var commandSetCommand in commandSet.Commands)
+                        {
+                            commandSetCommand.ParseArgs(nodeContext, remainingArgsStack);
+                        }
                         await this.RunCommandSet(
                             commandSet: commandSet,
                             nodeContext: nodeContext
@@ -148,6 +176,24 @@ namespace GitEnlistmentManager
                     }
                     break;
             }
+        }
+
+        private async Task ShowHelp()
+        {
+            var helpText = @"GEM - Git Enlistment Manager
+
+Command Sets
+  Command sets can include tokens in the form of {token}. The program and arguments are the only 2 fields that allow token replacement.
+  The tokens that are available depend on where the command set is being run from. To get a list of currently available tokens use
+  the lt (list tokens) default command set. e.g. ""gem lt"" within a specific gem directory.
+            ";
+
+            await this.ClearCommandWindow().ConfigureAwait(false);
+            await txtCommandPrompt.AppendLine(helpText, Brushes.AliceBlue).ConfigureAwait(false);
+            await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+            {
+                txtCommandPrompt.ScrollToEnd();
+            });
         }
 
         private static TreeViewItem? VisualUpwardSearch(DependencyObject? source)
@@ -189,7 +235,7 @@ namespace GitEnlistmentManager
 
         private void TreeRepos_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Clear the selected item first when rightclicking. If the user is clicking on a node then
+            // Clear the selected item first when right-clicking. If the user is clicking on a node then
             // it will re-select it.
             ClearTreeViewSelection(treeRepos);
 
@@ -238,7 +284,7 @@ namespace GitEnlistmentManager
                     menu.Items.Add(menuAddNewRepo);
 
                     // Attach "RepoCollection" type command sets to the menu
-                    var repoCollectionCommandSets = gem.GetCommandSets(CommandSetPlacement.RepoCollection, repoCollection);
+                    var repoCollectionCommandSets = gem.GetCommandSets(CommandSetPlacement.RepoCollection, CommandSetMode.UserInterface, repoCollection);
                     foreach (var repoCollectionCommandSet in repoCollectionCommandSets)
                     {
                         var menuRepoCommandSet = new MenuItem()
@@ -271,22 +317,8 @@ namespace GitEnlistmentManager
                         };
                         menu.Items.Add(menuEditRepoSettings);
 
-                        var menuAddNewBucket = new MenuItem()
-                        {
-                            Header = "Add New Bucket"
-                        };
-                        menuAddNewBucket.Click += async (s, e) =>
-                        {
-                            var bucketSettingsEditor = new BucketSettings(new Bucket(repo), this);
-                            bucketSettingsEditor.ShowDialog();
-
-                            // After the editor closes, reload the UI so we pick up any changes made
-                            await this.ReloadTreeview().ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuAddNewBucket);
-
                         // Attach "Repo" type command sets to the menu
-                        var repoCommandSets = gem.GetCommandSets(CommandSetPlacement.Repo, repo.RepoCollection, repo);
+                        var repoCommandSets = gem.GetCommandSets(CommandSetPlacement.Repo, CommandSetMode.UserInterface, repo.RepoCollection, repo);
                         foreach (var repoCommandSet in repoCommandSets)
                         {
                             var menuRepoCommandSet = new MenuItem()
@@ -306,7 +338,7 @@ namespace GitEnlistmentManager
                 if (selectedItem is Bucket bucket)
                 {
                     // Attach "Bucket" type command sets to the menu
-                    var bucketCommandSets = gem.GetCommandSets(CommandSetPlacement.Bucket, bucket.Repo.RepoCollection, bucket.Repo, bucket);
+                    var bucketCommandSets = gem.GetCommandSets(CommandSetPlacement.Bucket, CommandSetMode.UserInterface, bucket.Repo.RepoCollection, bucket.Repo, bucket);
                     foreach (var bucketCommandSet in bucketCommandSets)
                     {
                         var menuBucketCommandSet = new MenuItem()
@@ -332,33 +364,108 @@ namespace GitEnlistmentManager
                     {
                         var newEnlistment = new Enlistment(enlistment.Bucket);
                         var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment);
+
                         enlistmentSettingsEditor.ShowDialog();
                         // After the editor closes, create the enlistment
-                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, referenceEnlistment: enlistment).ConfigureAwait(false);
+                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, childEnlistment: enlistment).ConfigureAwait(false);
                         // Reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
+                        this.ReloadTreeview();
                     };
                     menu.Items.Add(menuAddNewEnlistmentAbove);
 
-                    // Attach "Enlistment" type command sets to the menu
-                    var enlistmentCommandSets = gem.GetCommandSets(CommandSetPlacement.Enlistment, enlistment.Bucket.Repo.RepoCollection, enlistment.Bucket.Repo, enlistment.Bucket, enlistment);
-                    foreach (var enlistmentCommandSet in enlistmentCommandSets)
+                    var menuPullRequest = new MenuItem()
                     {
-                        var menuEnlistmentCommandSet = new MenuItem()
-                        {
-                            Header = enlistmentCommandSet.RightClickText
-                        };
-                        menuEnlistmentCommandSet.Click += async (s, e) =>
-                        {
-                            await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(enlistmentCommandSet, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuEnlistmentCommandSet);
-                    }
+                        Header = "Pull Request"
+                    };
+                    menuPullRequest.Click += (s, e) =>
+                    {
+                        enlistment.PullRequest();
+                    };
+                    menu.Items.Add(menuPullRequest);
                 }
 
                 e.Handled = true;
             }
+        }
+
+        private Gem? GetGem()
+        {
+            var gem = new Gem();
+
+            // If the Gem settings are not yet set, these need to be set first before
+            // doing anything else
+            while (!gem.ReadLocalAppData() || string.IsNullOrWhiteSpace(gem.LocalAppData.ReposFolder))
+            {
+                var gemSettingsEditor = new GemSettings(gem);
+                var result = gemSettingsEditor.ShowDialog();
+                if (result != null && !result.Value)
+                {
+                    return null;
+                }
+            }
+
+            // For each Gem metadata folder we have, look through it for repo definitions
+            foreach (var repoCollectionDefinitionFolder in gem.LocalAppData.RepoCollectionDefinitionFolders)
+            {
+                var repoCollectionDefinitionInfo = new DirectoryInfo(repoCollectionDefinitionFolder);
+                if (!repoCollectionDefinitionInfo.Exists)
+                {
+                    MessageBox.Show($"Repo collection definition folder {repoCollectionDefinitionInfo.FullName} was not found");
+                    continue;
+                }
+
+                var repoCollection = new RepoCollection(gem, repoCollectionDefinitionFolder)
+                {
+                    Name = repoCollectionDefinitionInfo.Name
+                };
+                gem.RepoCollections.Add(repoCollection);
+
+                // Loop through all the repo registrations that are present here
+                var repoRegistrations = repoCollectionDefinitionInfo.GetFiles("*.repojson", SearchOption.TopDirectoryOnly);
+                foreach (var repoRegistration in repoRegistrations)
+                {
+                    var repo = new Repo(repoCollection)
+                    {
+                        Name = Path.GetFileNameWithoutExtension(repoRegistration.Name)
+                    };
+
+                    // Best attempt to load repo metadata, but if it fails then still add it to the UI so the user can re-create it.
+                    repo.ReadMetadata(repoRegistration.FullName);
+                    repoCollection.Repos.Add(repo);
+                }
+            }
+
+            var gemFolder = new DirectoryInfo(gem.LocalAppData.ReposFolder);
+            foreach (var repoCollection in gem.RepoCollections)
+            {
+                foreach (var repo in repoCollection.Repos)
+                {
+                    var repoFolder = repo.GetDirectoryInfo();
+                    if (repoFolder == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var bucketFolder in repoFolder.GetDirectories())
+                    {
+                        var bucket = new Bucket(repo)
+                        {
+                            Name = bucketFolder.Name
+                        };
+                        repo.Buckets.Add(bucket);
+
+                        foreach (var enlistmentFolder in bucketFolder.GetDirectories())
+                        {
+                            var enlistment = new Enlistment(bucket)
+                            {
+                                Name = enlistmentFolder.Name
+                            };
+                            bucket.Enlistments.Add(enlistment);
+                        }
+                    }
+                }
+            }
+            return gem;
         }
 
         public async Task ClearCommandWindow()
@@ -366,104 +473,32 @@ namespace GitEnlistmentManager
             await txtCommandPrompt.Clear().ConfigureAwait(false);
         }
 
-        public async Task<bool> RunCommandSets(List<CommandSet> commandSets, GemNodeContext nodeContext)
+        public async Task<bool> RunCommand(string programPath, string arguments, string? workingFolder = null)
         {
-            foreach (var commandSet in commandSets)
-            {
-                if (!await this.RunCommandSet(
-                    commandSet: commandSet,
-                    nodeContext: nodeContext
-                    ).ConfigureAwait(false))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public async Task<bool> RunCommandSet(CommandSet commandSet, GemNodeContext nodeContext)
-        {
-            foreach (var command in commandSet.Commands)
-            {
-                if (command is RunProgramCommand runProgramCommand)
-                {
-                    if (!await this.RunProgram(
-                        programPath: runProgramCommand.Program,
-                        arguments: runProgramCommand.Arguments,
-                        tokens: nodeContext.GetTokens(),
-                        workingFolder: nodeContext.GetWorkingFolder()
-                        ).ConfigureAwait(false))
-                    {
-                        return false;
-                    }
-                }
-                if (command is CreateEnlistmentCommand createEnlistmentCommand)
-                {
-                    if (nodeContext.Bucket != null)
-                    {
-                        var enlistment = new Enlistment(nodeContext.Bucket);
-                        await Application.Current.Dispatcher.BeginInvoke(() =>
-                        {
-                            var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                            enlistmentSettingsEditor.ShowDialog();
-                        });
-
-                        // After the editor closes, create the enlistment
-                        await enlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(false);
-                        // Reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
-                    }
-                }
-            }
-            return true;
-        }
-
-        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string> tokens, string? workingFolder = null)
-        {
-            foreach (var token in tokens)
-            {
-                programPath = programPath?.Replace($"{{{token.Key}}}", token.Value);
-                arguments = arguments?.Replace($"{{{token.Key}}}", token.Value);
-            }
-
             if (workingFolder != null)
             {
-                // I have no idea why this line needs an extra Environment.NewLine added but the others don't
-                await txtCommandPrompt.AppendLine($"cd \"{workingFolder}\"{Environment.NewLine}", Brushes.White).ConfigureAwait(false);
+                await txtCommandPrompt.AppendLine($"cd \"{workingFolder}\"", Brushes.White).ConfigureAwait(false);
             }
             await txtCommandPrompt.AppendLine($"\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
-
-            bool useShellExecute = false;
-            // We need shell execute to open urls
-            if (programPath != null && programPath.StartsWith("http"))
-            {
-                useShellExecute = true;
-            }
 
             using Process process = new();
             process.StartInfo = new()
             {
                 FileName = programPath,
                 Arguments = arguments,
-                UseShellExecute = useShellExecute,
+                UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = !useShellExecute,
-                RedirectStandardError = !useShellExecute,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 CreateNoWindow = true,
                 WorkingDirectory = workingFolder
             };
 
-            if (!useShellExecute)
-            {
-                process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
-                process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
-            }
+            process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
+            process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
             process.Start();
-            if (!useShellExecute)
-            {
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             await process.WaitForExitAsync().ConfigureAwait(false);
             process.Refresh();
 
