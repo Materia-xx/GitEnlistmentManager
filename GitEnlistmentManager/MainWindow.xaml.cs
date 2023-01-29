@@ -497,26 +497,40 @@ Command Sets
                 WorkingDirectory = workingFolder
             };
 
-            // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
-            var gemExe = Assembly.GetExecutingAssembly().FullName;
-            string? gemExeDirectory = null;
-            if (gemExe != null)
+            if (!useShellExecute)
             {
-                gemExeDirectory = new FileInfo(gemExe)?.Directory?.FullName;
+                // UseShellExecute must be false in order to capture data
+                process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
+                process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
+
+                // UseShellExecute must be false in order to use environment variables
+                // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
+                var gemExe = Assembly.GetExecutingAssembly().FullName;
+                string? gemExeDirectory = null;
+                if (gemExe != null)
+                {
+                    gemExeDirectory = new FileInfo(gemExe)?.Directory?.FullName;
+                }
+                process.StartInfo.Environment["Path"] = $"{Environment.GetEnvironmentVariable("Path")};{gemExeDirectory}";
             }
-            process.StartInfo.Environment["Path"] = $"{Environment.GetEnvironmentVariable("Path")};{gemExeDirectory}";
+
+            try
+            {
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return false;
+            }
 
             if (!useShellExecute)
             {
-                process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
-                process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
-            }
-            process.Start();
-            if (!useShellExecute)
-            {
+                // UseShellExecute must be false in order to capture data
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
             }
+
             await process.WaitForExitAsync().ConfigureAwait(false);
             process.Refresh();
 
