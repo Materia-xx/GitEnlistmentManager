@@ -1,4 +1,6 @@
-﻿namespace GitEnlistmentManager.DTOs
+﻿using System.Threading.Tasks;
+
+namespace GitEnlistmentManager.DTOs
 {
     public abstract class GitHostingPlatform
     {
@@ -7,6 +9,6 @@
         /// </summary>
         public abstract string? Name { get; }
 
-        public abstract string? CalculatePullRequestUrl(Enlistment enlistment);
+        public abstract Task<string?> CalculatePullRequestUrl(Enlistment enlistment);
     }
 }

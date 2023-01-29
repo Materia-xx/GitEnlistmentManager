@@ -15,22 +15,33 @@
         </Grid.ColumnDefinitions>
 
         <TreeView x:Name="treeRepos" Grid.Column="0" ItemsSource="{Binding}">
-            <TreeView.Resources>
+             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:RepoCollection}" ItemsSource="{Binding Repos}">
-                    <TextBlock Text="{Binding Path=Name}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">
-                    <TextBlock Text="{Binding Path=Name}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Bucket}" ItemsSource="{Binding Enlistments}">
-                    <TextBlock Text="{Binding Path=Name}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Enlistment}">
-                    <TextBlock Text="{Binding Path=Name}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>
-
 
         <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  ResizeDirection="Columns" />
         <RichTextBox x:Name="txtCommandPrompt" Grid.Column="2" Grid.RowSpan="4" VerticalScrollBarVisibility="Visible" IsReadOnly="True" Background="Black" Foreground="White" MinWidth="200" Block.LineHeight="1"/>
