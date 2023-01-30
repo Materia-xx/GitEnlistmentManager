@@ -8,7 +8,6 @@ namespace GitEnlistmentManager.DTOs
     public class Enlistment : GemTreeViewItem
     {
         public Bucket Bucket { get; }
-        public string? Name { get; set; }
 
         private string? branch;
         public async Task<string?> GetFullGitBranch()

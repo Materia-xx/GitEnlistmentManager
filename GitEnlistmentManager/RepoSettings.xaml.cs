@@ -51,7 +51,7 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.repoSettings.Name = this.txtName.Text;
+            this.repoSettings.GemName = this.txtName.Text;
             this.repoSettings.Metadata.CloneUrl = this.txtCloneUrl.Text;
             this.repoSettings.Metadata.BranchFrom = this.txtBranchFrom.Text;
             this.repoSettings.Metadata.BranchPrefix = this.txtBranchPrefix.Text;
@@ -62,7 +62,7 @@ namespace GitEnlistmentManager
 
         private void DtoToForm()
         {
-            this.txtName.Text = this.repoSettings.Name;
+            this.txtName.Text = this.repoSettings.GemName;
             this.txtCloneUrl.Text = this.repoSettings.Metadata.CloneUrl;
             this.txtBranchFrom.Text = this.repoSettings.Metadata.BranchFrom;
             this.txtBranchPrefix.Text = this.repoSettings.Metadata.BranchPrefix;

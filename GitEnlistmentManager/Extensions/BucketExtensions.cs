@@ -17,13 +17,13 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(bucket.Name))
+            if (string.IsNullOrWhiteSpace(bucket.GemName))
             {
                 MessageBox.Show("Bucket name must be set.");
                 return null;
             }
 
-            var bucketDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, bucket.Name));
+            var bucketDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, bucket.GemName));
             if (!bucketDirectory.Exists)
             {
                 try
@@ -44,9 +44,9 @@ namespace GitEnlistmentManager.Extensions
         {
             var tokens = bucket.Repo.GetTokens();
 
-            if (bucket.Name != null)
+            if (bucket.GemName != null)
             {
-                tokens["BucketName"] = bucket.Name;
+                tokens["BucketName"] = bucket.GemName;
             }
 
             var bucketDirectory = bucket.GetDirectoryInfo();

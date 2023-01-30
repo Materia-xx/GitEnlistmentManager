@@ -9,9 +9,9 @@ namespace GitEnlistmentManager.Extensions
         {
             var tokens = repoCollection.Gem.GetTokens();
             tokens["RepoCollectionFolderPath"] = repoCollection.RepoCollectionFolderPath;
-            if (repoCollection.Name != null)
+            if (repoCollection.GemName != null)
             {
-                tokens["RepoCollectionName"] = repoCollection.Name;
+                tokens["RepoCollectionName"] = repoCollection.GemName;
             }
             return tokens;
         }

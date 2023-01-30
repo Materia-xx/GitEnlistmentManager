@@ -1,11 +1,8 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -53,7 +50,7 @@ namespace GitEnlistmentManager
 
         private async Task<bool> ReloadTreeview()
         {
-            await Application.Current.Dispatcher.BeginInvoke(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 treeRepos.ItemsSource = null;
             });
@@ -61,10 +58,11 @@ namespace GitEnlistmentManager
             {
                 return false;
             }
-            await Application.Current.Dispatcher.BeginInvoke(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 treeRepos.ItemsSource = gem.RepoCollections;
             });
+
             return true;
         }
 
@@ -123,19 +121,19 @@ namespace GitEnlistmentManager
 
                     if (workingDirParts.Length > 0 && !string.IsNullOrWhiteSpace(workingDirParts[0]))
                     {
-                        repoCollection = gem.RepoCollections.FirstOrDefault(rc => rc.Name != null && rc.Name.Equals(workingDirParts[0], StringComparison.OrdinalIgnoreCase));
+                        repoCollection = gem.RepoCollections.FirstOrDefault(rc => rc.GemName != null && rc.GemName.Equals(workingDirParts[0], StringComparison.OrdinalIgnoreCase));
                     }
                     if (repoCollection != null && workingDirParts.Length > 1 && !string.IsNullOrWhiteSpace(workingDirParts[1]))
                     {
-                        repo = repoCollection.Repos.FirstOrDefault(r => r.Name != null && r.Name.Equals(workingDirParts[1], StringComparison.OrdinalIgnoreCase));
+                        repo = repoCollection.Repos.FirstOrDefault(r => r.GemName != null && r.GemName.Equals(workingDirParts[1], StringComparison.OrdinalIgnoreCase));
                     }
                     if (repo != null && workingDirParts.Length > 2 && !string.IsNullOrWhiteSpace(workingDirParts[2]))
                     {
-                        bucket = repo.Buckets.FirstOrDefault(b => b.Name != null && b.Name.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
+                        bucket = repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
                     }
                     if (bucket != null && workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
                     {
-                        enlistment = bucket.Enlistments.FirstOrDefault(e => e.Name != null && e.Name.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
+                        enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
                     }
 
                     var nodeContext = new GemNodeContext()

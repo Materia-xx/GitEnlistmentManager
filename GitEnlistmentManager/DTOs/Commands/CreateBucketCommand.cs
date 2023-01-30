@@ -26,9 +26,9 @@ namespace GitEnlistmentManager.DTOs.Commands
             if (nodeContext.Repo != null)
             {
                 this.ResultBucket = new Bucket(nodeContext.Repo);
-                this.ResultBucket.Name = this.BucketName;
+                this.ResultBucket.GemName = this.BucketName;
 
-                if (string.IsNullOrEmpty(this.ResultBucket.Name))
+                if (string.IsNullOrEmpty(this.ResultBucket.GemName))
                 {
                     await Application.Current.Dispatcher.BeginInvoke(() =>
                     {

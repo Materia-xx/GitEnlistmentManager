@@ -38,12 +38,12 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.bucket.Name = this.txtBucketName.Text;
+            this.bucket.GemName = this.txtBucketName.Text;
         }
 
         private void DtoToForm()
         {
-            this.txtBucketName.Text = this.bucket.Name;
+            this.txtBucketName.Text = this.bucket.GemName;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GitEnlistmentManager.Extensions
@@ -14,6 +15,104 @@ namespace GitEnlistmentManager.Extensions
     public static class GemExtensions
     {
         private const string gemLocalAppDataFilename = "GemSettings.json";
+
+        /// <summary>
+        /// Creates a clone of the repoCollections, but just the GemName, IsSelected and IsExpanded properties
+        /// </summary>
+        /// <param name="gem"></param>
+        /// <returns></returns>
+        private static List<RepoCollection> CloneRepoCollectionsMeta(this Gem gem)
+        {
+            var clone = new List<RepoCollection>();
+            foreach (var rcBase in gem.RepoCollections)
+            {
+                var rcClone = new RepoCollection(gem, rcBase.RepoCollectionFolderPath)
+                {
+                    GemName = rcBase.GemName,
+                    IsExpanded = rcBase.IsExpanded,
+                    IsSelected = rcBase.IsSelected
+                };
+                clone.Add(rcClone);
+                foreach (var rBase in rcBase.Repos)
+                {
+                    var rClone = new Repo(rcClone)
+                    {
+                        GemName = rBase.GemName,
+                        IsExpanded = rBase.IsExpanded,
+                        IsSelected = rBase.IsSelected
+                    };
+                    rcClone.Repos.Add(rClone);
+                    foreach (var bBase in rBase.Buckets)
+                    {
+                        var bClone = new Bucket(rClone)
+                        {
+                            GemName = bBase.GemName,
+                            IsExpanded = bBase.IsExpanded,
+                            IsSelected = bBase.IsSelected
+                        };
+                        rClone.Buckets.Add(bClone);
+                        foreach (var eBase in bBase.Enlistments)
+                        {
+                            var eClone = new Enlistment(bClone)
+                            {
+                                GemName = eBase.GemName,
+                                IsExpanded = eBase.IsExpanded,
+                                IsSelected = eBase.IsSelected
+                            };
+                            bClone.Enlistments.Add(eClone);
+                        }
+                    }
+                }
+            }
+            return clone;
+        }
+
+        private static void ApplyRepoCollectionsMetaClone(this Gem gem, List<RepoCollection> clone)
+        {
+            foreach (var rcBase in gem.RepoCollections)
+            {
+                var rcClone = clone.FirstOrDefault(rcClone => rcClone.GemName == rcBase.GemName);
+                if (rcClone == null)
+                {
+                    continue;
+                }
+                rcBase.IsExpanded = rcClone.IsExpanded;
+                rcBase.IsSelected= rcClone.IsSelected;
+
+                foreach (var rBase in rcBase.Repos)
+                {
+                    var rClone = rcClone.Repos.FirstOrDefault(rClone => rClone.GemName == rBase.GemName);
+                    if (rClone == null)
+                    {
+                        continue;
+                    }
+                    rBase.IsExpanded = rClone.IsExpanded;
+                    rBase.IsSelected = rClone.IsSelected;
+
+                    foreach (var bBase in rBase.Buckets)
+                    {
+                        var bClone = rClone.Buckets.FirstOrDefault(bClone => bClone.GemName == bBase.GemName);
+                        if (bClone == null)
+                        {
+                            continue;
+                        }
+                        bBase.IsExpanded = bClone.IsExpanded;
+                        bBase.IsSelected = bClone.IsSelected;
+
+                        foreach (var eBase in bBase.Enlistments)
+                        {
+                            var eClone = bClone.Enlistments.FirstOrDefault(eClone => eClone.GemName == eBase.GemName);
+                            if (eClone == null)
+                            {
+                                continue;
+                            }
+                            eBase.IsExpanded = eClone.IsExpanded;
+                            eBase.IsSelected = eClone.IsSelected;
+                        }
+                    }
+                }
+            }
+        }
 
         public static bool ReloadSettings(this Gem gem)
         {
@@ -29,6 +128,8 @@ namespace GitEnlistmentManager.Extensions
                 }
             }
 
+            // Remember the state of IsExpanded, IsSelected before reloading
+            var repoMetaClone = gem.CloneRepoCollectionsMeta();
             // For each Gem repo collection folder we have, look through it for repo definitions
             gem.RepoCollections.Clear();
             foreach (var repoCollectionDefinitionFolder in gem.LocalAppData.RepoCollectionDefinitionFolders)
@@ -42,7 +143,7 @@ namespace GitEnlistmentManager.Extensions
 
                 var repoCollection = new RepoCollection(gem, repoCollectionDefinitionFolder)
                 {
-                    Name = repoCollectionDefinitionInfo.Name
+                    GemName = repoCollectionDefinitionInfo.Name
                 };
                 gem.RepoCollections.Add(repoCollection);
 
@@ -52,7 +153,7 @@ namespace GitEnlistmentManager.Extensions
                 {
                     var repo = new Repo(repoCollection)
                     {
-                        Name = Path.GetFileNameWithoutExtension(repoRegistration.Name)
+                        GemName = Path.GetFileNameWithoutExtension(repoRegistration.Name)
                     };
 
                     // Best attempt to load repo metadata, but if it fails then still add it to the UI so the user can re-create it.
@@ -82,7 +183,7 @@ namespace GitEnlistmentManager.Extensions
 
                         var bucket = new Bucket(repo)
                         {
-                            Name = bucketFolder.Name
+                            GemName = bucketFolder.Name
                         };
                         repo.Buckets.Add(bucket);
 
@@ -90,13 +191,15 @@ namespace GitEnlistmentManager.Extensions
                         {
                             var enlistment = new Enlistment(bucket)
                             {
-                                Name = enlistmentFolder.Name
+                                GemName = enlistmentFolder.Name
                             };
                             bucket.Enlistments.Add(enlistment);
                         }
                     }
                 }
             }
+            // Restore the state of IsExpanded, IsSelected to how it was before the reload
+            gem.ApplyRepoCollectionsMetaClone(repoMetaClone);
 
             WriteDefaultCommandSets(gem);
 
