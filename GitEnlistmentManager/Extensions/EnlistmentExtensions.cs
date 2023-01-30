@@ -23,13 +23,13 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(enlistment.Name))
+            if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
                 MessageBox.Show("Enlistment name must be set.");
                 return null;
             }
 
-            var enlistmentDirectory = new DirectoryInfo(Path.Combine(bucketDirectory.FullName, enlistment.Name));
+            var enlistmentDirectory = new DirectoryInfo(Path.Combine(bucketDirectory.FullName, enlistment.GemName));
             if (!enlistmentDirectory.Exists)
             {
                 try
@@ -48,9 +48,9 @@ namespace GitEnlistmentManager.Extensions
 
         public static int GetNumberPrefix(this Enlistment enlistment)
         {
-            if (enlistment.Name != null)
+            if (enlistment.GemName != null)
             {
-                var enlistmentNameParts = enlistment.Name.Split(dotCharArray);
+                var enlistmentNameParts = enlistment.GemName.Split(dotCharArray);
                 if (enlistmentNameParts.Length > 1)
                 {
                     if (int.TryParse(enlistmentNameParts[0], out int enlistmentNumberPrefix))
@@ -67,7 +67,7 @@ namespace GitEnlistmentManager.Extensions
             Enlistment? parentEnlistment = null;
             foreach (var examineEnlistment in enlistment.Bucket.Enlistments)
             {
-                if (examineEnlistment.Name == enlistment.Name)
+                if (examineEnlistment.GemName == enlistment.GemName)
                 {
                     break;
                 }
@@ -80,7 +80,7 @@ namespace GitEnlistmentManager.Extensions
         {
             for (int i = 0; i < enlistment.Bucket.Enlistments.Count -1; i++)
             {
-                if (enlistment.Bucket.Enlistments[i].Name == enlistment.Name)
+                if (enlistment.Bucket.Enlistments[i].GemName == enlistment.GemName)
                 {
                     return enlistment.Bucket.Enlistments[i + 1];
                 }
@@ -90,7 +90,7 @@ namespace GitEnlistmentManager.Extensions
 
         public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null)
         {
-            if (string.IsNullOrWhiteSpace(enlistment.Name))
+            if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
                 MessageBox.Show("Enlistment name must be set.");
                 return false;
@@ -188,7 +188,7 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            enlistment.Name = $"{newNumberPrefix:000000}.{enlistment.Name}";
+            enlistment.GemName = $"{newNumberPrefix:000000}.{enlistment.GemName}";
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
@@ -212,7 +212,7 @@ namespace GitEnlistmentManager.Extensions
             // Create the branch that this enlistment will be working in
             createEnlistmentCommandSet.Commands.Add(new GitCreateBranch()
             {
-                Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Repo.RepoCollection.Name}/{enlistment.Bucket.Repo.Name}/{enlistment.Bucket.Name}/{enlistment.Name}",
+                Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Repo.RepoCollection.GemName}/{enlistment.Bucket.Repo.GemName}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
@@ -245,9 +245,9 @@ namespace GitEnlistmentManager.Extensions
         {
             var tokens = enlistment.Bucket.GetTokens();
 
-            if (enlistment.Name != null)
+            if (enlistment.GemName != null)
             {
-                tokens["EnlistmentName"] = enlistment.Name;
+                tokens["EnlistmentName"] = enlistment.GemName;
             }
 
             tokens["EnlistmentBranch"] = await enlistment.GetFullGitBranch().ConfigureAwait(false) ?? string.Empty;

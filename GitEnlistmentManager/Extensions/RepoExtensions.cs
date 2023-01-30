@@ -12,13 +12,13 @@ namespace GitEnlistmentManager.Extensions
     {
         public static DirectoryInfo? GetDirectoryInfo(this Repo repo)
         {
-            if (string.IsNullOrWhiteSpace(repo.Name))
+            if (string.IsNullOrWhiteSpace(repo.GemName))
             {
                 MessageBox.Show("Repo must have a name");
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(repo.RepoCollection.Name))
+            if (string.IsNullOrWhiteSpace(repo.RepoCollection.GemName))
             {
                 MessageBox.Show("Metadata folder must have a name");
                 return null;
@@ -31,7 +31,7 @@ namespace GitEnlistmentManager.Extensions
             }
 
             // Create the repos folder if it doesn't exist yet.
-            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.Name, repo.Name));
+            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.GemName, repo.GemName));
             if (!targetRepoFolder.Exists)
             {
                 try
@@ -50,9 +50,9 @@ namespace GitEnlistmentManager.Extensions
         public static Dictionary<string, string> GetTokens(this Repo repo)
         {
             var tokens = repo.RepoCollection.GetTokens();
-            if (repo.Name != null)
+            if (repo.GemName != null)
             {
-                tokens["RepoName"] = repo.Name;
+                tokens["RepoName"] = repo.GemName;
             }
             if (repo.Metadata.BranchFrom != null)
             {
@@ -94,7 +94,7 @@ namespace GitEnlistmentManager.Extensions
             // Write the metadata for the repo folder
             try
             {
-                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionFolder.FullName, $"{repo.Name}.repojson"));
+                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionFolder.FullName, $"{repo.GemName}.repojson"));
                 var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, GemJsonSerializer.Settings);
                 File.WriteAllText(repoMetadataFile.FullName, repoMetadataJson);
             }

@@ -21,7 +21,7 @@ namespace GitEnlistmentManager.DTOs.Commands
             }
 
             var enlistmentName = arguments.Peek();
-            var enlistment = nodeContext.Bucket.Enlistments.FirstOrDefault(e => e.Name == enlistmentName);
+            var enlistment = nodeContext.Bucket.Enlistments.FirstOrDefault(e => e.GemName == enlistmentName);
             if (enlistment != null)
             {
                 nodeContext.Enlistment = enlistment;

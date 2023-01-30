@@ -31,12 +31,12 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.enlistment.Name = this.txtEnlistmentName.Text;
+            this.enlistment.GemName = this.txtEnlistmentName.Text;
         }
 
         private void DtoToForm()
         {
-            this.txtEnlistmentName.Text = this.enlistment.Name;
+            this.txtEnlistmentName.Text = this.enlistment.GemName;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

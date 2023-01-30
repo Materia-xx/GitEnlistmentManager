@@ -1,5 +1,4 @@
-﻿using GitEnlistmentManager.Globals;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace GitEnlistmentManager.DTOs
 {
@@ -7,6 +6,11 @@ namespace GitEnlistmentManager.DTOs
     {
         public ImageSource? Icon { get; set; }
 
-        public bool IsExpanded { get; set; }
+        public string? GemName { get; set; }
+
+        public bool IsExpanded {  get; set; }
+
+        public bool IsSelected {  get; set; }
+
     }
 }

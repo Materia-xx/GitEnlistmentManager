@@ -6,7 +6,6 @@ namespace GitEnlistmentManager.DTOs
     public class Repo : GemTreeViewItem
     {
         public RepoCollection RepoCollection { get; }
-        public string? Name { get; set; }
         public RepoMetadata Metadata { get; set; } = new RepoMetadata();
         public List<Bucket> Buckets { get; } = new List<Bucket>();
 

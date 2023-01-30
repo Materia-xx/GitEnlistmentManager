@@ -98,7 +98,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 var bucketName = branchParts[1];
 
                 // Look for an existing bucket with this name
-                var bucket = nodeContext.Repo.Buckets.FirstOrDefault(b => b.Name != null && b.Name.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
+                var bucket = nodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
 
                 // Enlistment re-creation is only supported when we're re-creating everything in the bucket.
                 // It won't fill in the gaps if some things already exist and others don't
@@ -141,7 +141,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 // This should be enough for the commands to get the right folder to clone to.
                 var enlistment = new Enlistment(bucket)
                 {
-                    Name = enlistmentName
+                    GemName = enlistmentName
                 };
                 bucket.Enlistments.Add(enlistment);
 

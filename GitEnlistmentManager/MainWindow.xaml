@@ -15,29 +15,42 @@
         </Grid.ColumnDefinitions>
 
         <TreeView x:Name="treeRepos" Grid.Column="0" ItemsSource="{Binding}">
-             <TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+
+            <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:RepoCollection}" ItemsSource="{Binding Repos}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
+                    <!--<HierarchicalDataTemplate.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                        </Style>
+                    </HierarchicalDataTemplate.ItemContainerStyle>-->
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Bucket}" ItemsSource="{Binding Enlistments}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Enlistment}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
