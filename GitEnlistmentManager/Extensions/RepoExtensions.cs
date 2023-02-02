@@ -12,9 +12,9 @@ namespace GitEnlistmentManager.Extensions
     {
         public static DirectoryInfo? GetDirectoryInfo(this Repo repo)
         {
-            if (string.IsNullOrWhiteSpace(repo.GemName))
+            if (string.IsNullOrWhiteSpace(repo.Metadata.ShortName))
             {
-                MessageBox.Show("Repo must have a name");
+                MessageBox.Show("Repo must have a short name");
                 return null;
             }
 
@@ -31,7 +31,7 @@ namespace GitEnlistmentManager.Extensions
             }
 
             // Create the repos folder if it doesn't exist yet.
-            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.GemName, repo.GemName));
+            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.GemName, repo.Metadata.ShortName));
             if (!targetRepoFolder.Exists)
             {
                 try
@@ -53,6 +53,10 @@ namespace GitEnlistmentManager.Extensions
             if (repo.GemName != null)
             {
                 tokens["RepoName"] = repo.GemName;
+            }
+            if (repo.Metadata.ShortName != null)
+            {
+                tokens["RepoShortName"] = repo.Metadata.ShortName;
             }
             if (repo.Metadata.BranchFrom != null)
             {

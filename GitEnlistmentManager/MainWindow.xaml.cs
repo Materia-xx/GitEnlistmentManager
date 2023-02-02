@@ -1,8 +1,11 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -124,7 +127,7 @@ namespace GitEnlistmentManager
                     }
                     if (repoCollection != null && workingDirParts.Length > 1 && !string.IsNullOrWhiteSpace(workingDirParts[1]))
                     {
-                        repo = repoCollection.Repos.FirstOrDefault(r => r.GemName != null && r.GemName.Equals(workingDirParts[1], StringComparison.OrdinalIgnoreCase));
+                        repo = repoCollection.Repos.FirstOrDefault(r => r.Metadata.ShortName != null && r.Metadata.ShortName.Equals(workingDirParts[1], StringComparison.OrdinalIgnoreCase));
                     }
                     if (repo != null && workingDirParts.Length > 2 && !string.IsNullOrWhiteSpace(workingDirParts[2]))
                     {
@@ -443,6 +446,7 @@ Command Sets
                 {
                     programPath = programPath?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
                     arguments = arguments?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
+                    workingFolder = workingFolder?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
                 }
             }
 
