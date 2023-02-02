@@ -6,20 +6,23 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AssemblyName>GEM</AssemblyName>
+    <ApplicationIcon>Images\GEM.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Images\bucket.png" />
     <None Remove="Images\enlistment.png" />
-    <None Remove="Images\Gem.png" />
     <None Remove="Images\Repo.png" />
     <None Remove="Images\RepoCollection.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Images\GEM.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Images\bucket.png" />
     <EmbeddedResource Include="Images\enlistment.png" />
-    <EmbeddedResource Include="Images\gem.png" />
     <EmbeddedResource Include="Images\repocollection.png" />
     <EmbeddedResource Include="Images\repo.png" />
   </ItemGroup>

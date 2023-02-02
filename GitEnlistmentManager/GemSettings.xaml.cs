@@ -18,7 +18,6 @@ namespace GitEnlistmentManager
         public GemSettings(Gem gem)
         {
             InitializeComponent();
-            this.Icon = Icons.GemIcon;
             this.gem = gem;
             this.DtoToForm();
         }

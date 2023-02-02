@@ -14,7 +14,6 @@ namespace GitEnlistmentManager
         public EnlistmentSettings(Enlistment enlistment)
         {
             InitializeComponent();
-            this.Icon = Icons.GemIcon;
             this.enlistment = enlistment;
             this.DtoToForm();
         }

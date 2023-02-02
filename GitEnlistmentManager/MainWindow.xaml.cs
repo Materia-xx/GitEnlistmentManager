@@ -27,7 +27,6 @@ namespace GitEnlistmentManager
         public MainWindow()
         {
             InitializeComponent();
-            this.Icon = Icons.GemIcon;
             this.gemServer = new GemServer(this.ProcessCSCommand);
             this.Loaded += MainWindow_Loaded;
             treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
