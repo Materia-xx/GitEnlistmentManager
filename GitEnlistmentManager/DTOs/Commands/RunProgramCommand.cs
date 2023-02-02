@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System;
 using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.Commands
@@ -12,6 +11,8 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public string? Arguments { get; set; }
 
+        public string? WorkingFolder { get; set; }
+
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }
@@ -23,7 +24,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 arguments: this.Arguments,
                 tokens: await nodeContext.GetTokens().ConfigureAwait(false),
                 openNewWindow: this.OpenNewWindow,
-                workingFolder: nodeContext.GetWorkingFolder()
+                workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
                 ).ConfigureAwait(false);
         }
     }

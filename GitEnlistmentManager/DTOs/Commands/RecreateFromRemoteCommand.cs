@@ -84,9 +84,9 @@ namespace GitEnlistmentManager.DTOs.Commands
                 // The command really only re-creates enlistments created by this program
                 // These will always have 7+ segments. "user/materia" is counted as 1 because the user has control of this in the repo settings.
                 //
-                //  1     2       3            4           5           6         7
-                // refs/heads/user/Materia/Starspark/BookmarkManager/testing/010000.one
-                if (branchParts.Count < 7)
+                //  1     2       3           4       5     
+                // refs/heads/user/Materia/testing/010000.one
+                if (branchParts.Count < 5)
                 {
                     await mainWindow.AppendCommandLine($"Skipping re-creation of branch '{branch}' because it does not appear to have been created by this program.", Brushes.Salmon).ConfigureAwait(false);
                     continue;

@@ -212,7 +212,7 @@ namespace GitEnlistmentManager.Extensions
             // Create the branch that this enlistment will be working in
             createEnlistmentCommandSet.Commands.Add(new GitCreateBranch()
             {
-                Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.Repo.RepoCollection.GemName}/{enlistment.Bucket.Repo.GemName}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
+                Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
