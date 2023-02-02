@@ -188,7 +188,7 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            enlistment.Name = $"{newNumberPrefix:000000}.{enlistment.Name}";
+            enlistment.GemName = $"{newNumberPrefix:000000}.{enlistment.GemName}";
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
