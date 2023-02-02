@@ -17,7 +17,6 @@ namespace GitEnlistmentManager
         public RepoSettings(Repo repo, bool isNew)
         {
             InitializeComponent();
-            this.Icon = Icons.GemIcon;
             this.repoSettings = repo;
 
             // Load choices for combo boxes
