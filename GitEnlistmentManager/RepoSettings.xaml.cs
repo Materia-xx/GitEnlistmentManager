@@ -39,6 +39,15 @@ namespace GitEnlistmentManager
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(this.txtShortName.Text))
+            {
+                MessageBox.Show("Short name must have a value");
+                return;
+            }
+
+            // TODO: add validation for other fields too
+
+
             // Transfer data from form to DTO
             FormToDto();
 
@@ -52,6 +61,7 @@ namespace GitEnlistmentManager
         private void FormToDto()
         {
             this.repoSettings.GemName = this.txtName.Text;
+            this.repoSettings.Metadata.ShortName = this.txtShortName.Text;
             this.repoSettings.Metadata.CloneUrl = this.txtCloneUrl.Text;
             this.repoSettings.Metadata.BranchFrom = this.txtBranchFrom.Text;
             this.repoSettings.Metadata.BranchPrefix = this.txtBranchPrefix.Text;
@@ -63,6 +73,7 @@ namespace GitEnlistmentManager
         private void DtoToForm()
         {
             this.txtName.Text = this.repoSettings.GemName;
+            this.txtShortName.Text = this.repoSettings.Metadata.ShortName;
             this.txtCloneUrl.Text = this.repoSettings.Metadata.CloneUrl;
             this.txtBranchFrom.Text = this.repoSettings.Metadata.BranchFrom;
             this.txtBranchPrefix.Text = this.repoSettings.Metadata.BranchPrefix;

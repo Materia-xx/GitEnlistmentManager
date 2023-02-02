@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GitEnlistmentManager"
         xmlns:dtos="clr-namespace:GitEnlistmentManager.DTOs"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="GEM" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="200"/>
@@ -28,12 +28,6 @@
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
                         <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
-                    <!--<HierarchicalDataTemplate.ItemContainerStyle>
-                        <Style TargetType="{x:Type TreeViewItem}">
-                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                        </Style>
-                    </HierarchicalDataTemplate.ItemContainerStyle>-->
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">
                     <StackPanel Orientation="Horizontal">
