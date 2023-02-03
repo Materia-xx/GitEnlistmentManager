@@ -17,7 +17,6 @@ namespace GitEnlistmentManager
         public BucketSettings(Bucket bucket, MainWindow mainWindow)
         {
             InitializeComponent();
-            this.Icon = Icons.GemIcon;
             this.bucket = bucket;
             this.mainWindow = mainWindow;
             this.DtoToForm();

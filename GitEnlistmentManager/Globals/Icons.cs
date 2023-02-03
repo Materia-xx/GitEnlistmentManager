@@ -8,7 +8,6 @@ namespace GitEnlistmentManager.Globals
     {
         private static Dictionary<string, BitmapImage> ImageCache = new Dictionary<string, BitmapImage>();
 
-        public static BitmapImage? GemIcon => GetBitMapImage("gem.png");
 
         public static BitmapImage? GetBitMapImage(string imagePath)
         {
