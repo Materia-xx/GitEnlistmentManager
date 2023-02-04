@@ -19,12 +19,13 @@ namespace GitEnlistmentManager.DTOs.Commands
             {
                 bool? result = null;
                 var enlistment = new Enlistment(nodeContext.Bucket);
+
                 await Application.Current.Dispatcher.BeginInvoke(() =>
                 {
                     var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
                     result = enlistmentSettingsEditor.ShowDialog();
                 });
-                if (result.HasValue && !result.Value) 
+                if (result.HasValue && !result.Value)
                 {
                     return false;
                 }

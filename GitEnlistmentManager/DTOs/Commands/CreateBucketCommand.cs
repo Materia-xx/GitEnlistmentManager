@@ -36,7 +36,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                         var bucketSettingsEditor = new BucketSettings(this.ResultBucket, mainWindow);
                         result = bucketSettingsEditor.ShowDialog();
                     });
-                    if (result.HasValue && !result.Value) 
+                    if (result.HasValue && !result.Value)
                     {
                         return false;
                     }

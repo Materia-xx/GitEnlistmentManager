@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="D:\Gem\Starspark\gem\wip\012000.w2" Link="012000.w2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Images\GEM.ico" />
   </ItemGroup>
 

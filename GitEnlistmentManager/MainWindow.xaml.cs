@@ -255,12 +255,13 @@ Command Sets
                     bool? result = null;
                     var gemSettingsEditor = new GemSettings(this.gem);
                     result = gemSettingsEditor.ShowDialog();
-                    // After the editor closes, reload the UI so we pick up any changes made
-                    await this.ReloadTreeview().ConfigureAwait(false);
+
                     if (result.HasValue && !result.HasValue)
                     {
                         return;
                     }
+                    // After the editor closes, reload the UI so we pick up any changes made
+                    await this.ReloadTreeview().ConfigureAwait(false);
                 };
                 menu.Items.Add(menuEditGemSettings);
             }
@@ -283,12 +284,12 @@ Command Sets
                         bool? result = null;
                         var repoSettingsEditor = new RepoSettings(new Repo(repoCollection), isNew: true);
                         result = repoSettingsEditor.ShowDialog();
-                        // After the editor closes, reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
                         if (result.HasValue && !result.Value)
                         {
                             return;
                         }
+                        // After the editor closes, reload the UI so we pick up any changes made
+                        await this.ReloadTreeview().ConfigureAwait(false);
                     };
                     menu.Items.Add(menuAddNewRepo);
 
@@ -322,12 +323,12 @@ Command Sets
                             bool? result = null;
                             var repoSettingsEditor = new RepoSettings(repo, isNew: false);
                             result = repoSettingsEditor.ShowDialog();
-                            // After the editor closes, reload the UI so we pick up any changes made
-                            await this.ReloadTreeview().ConfigureAwait(false);
-                            if (result.HasValue && !result.Value) 
+                            if (result.HasValue && !result.Value)
                             {
                                 return;
                             }
+                            // After the editor closes, reload the UI so we pick up any changes made
+                            await this.ReloadTreeview().ConfigureAwait(false);
                         };
                         menu.Items.Add(menuEditRepoSettings);
 
@@ -381,14 +382,14 @@ Command Sets
                         bool? result = null;
 
                         result = enlistmentSettingsEditor.ShowDialog();
-                        // After the editor closes, create the enlistment
-                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, childEnlistment: enlistment).ConfigureAwait(false);
-                        // Reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
                         if (result.HasValue && !result.Value)
                         {
                             return;
                         }
+                        // After the editor closes, create the enlistment
+                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, childEnlistment: enlistment).ConfigureAwait(false);
+                        // Reload the UI so we pick up any changes made
+                        await this.ReloadTreeview().ConfigureAwait(false);
                     };
                     menu.Items.Add(menuAddNewEnlistmentAbove);
 
