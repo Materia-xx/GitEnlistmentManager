@@ -22,7 +22,7 @@ namespace GitEnlistmentManager
         {
             // Transfer data from form to DTO
             FormToDto();
-
+            this.DialogResult = true;
             // Close the form, the main UI will create the enlistment
             // so that the commands can be viewed in the UI.
             this.Close();
