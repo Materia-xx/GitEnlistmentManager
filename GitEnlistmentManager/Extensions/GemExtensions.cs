@@ -286,6 +286,10 @@ namespace GitEnlistmentManager.Extensions
                 var openRootSolutionCommandSet = new OpenRootSolutionCommandSet();
                 writeCommandSetIfNotExist(openRootSolutionCommandSet);
             }
+            {
+                var deleteBucketCommandSet = new DeleteBucketCommandSet();
+                writeCommandSetIfNotExist(deleteBucketCommandSet);
+            }
 
             foreach (var placement in new List<CommandSetPlacement>()
             {
@@ -425,9 +429,10 @@ namespace GitEnlistmentManager.Extensions
             // Process in reverse so it's easier to add overridden command sets. They are overridden by the override key.
             foreach (var acs in allCommandSets.Reverse())
             {
-                // A commandset that doesn't have a override key isn't valid
+                // A command set that doesn't have a override key isn't valid
                 if (acs.OverrideKey == null)
                 {
+                    MessageBox.Show($"Command set {acs.Filename} is missing an override key and is being skipped.");
                     continue;
                 }
                 if (!commandSets.Any(cs => cs.OverrideKey != null && cs.OverrideKey.Equals(acs.OverrideKey, StringComparison.OrdinalIgnoreCase)))

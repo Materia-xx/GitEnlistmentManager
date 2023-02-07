@@ -88,7 +88,7 @@ namespace GitEnlistmentManager.Extensions
             return null;
         }
 
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null)
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null) // TODO: move this into the createEnlistmentCommand ?
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
