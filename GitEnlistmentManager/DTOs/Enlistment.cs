@@ -26,6 +26,7 @@ namespace GitEnlistmentManager.DTOs
                     arguments: $"branch --show-current",
                     tokens: null,
                     openNewWindow: false,
+                    useShellExecute: false,
                     workingFolder: enlistmentDirectory,
                     outputHandler: (s) =>
                     {

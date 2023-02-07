@@ -55,6 +55,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 arguments: $"ls-remote --heads {nodeContext.Repo.Metadata.CloneUrl}",
                 tokens: null,
                 openNewWindow: false,
+                useShellExecute: false,
                 workingFolder: null,
                 outputHandler: (s) =>
                 {
