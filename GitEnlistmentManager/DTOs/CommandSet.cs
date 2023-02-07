@@ -21,7 +21,7 @@ namespace GitEnlistmentManager.DTOs
         public string? RightClickText { get; set; }
 
         [JsonIgnore]
-        public string? CommandSetPath { get; set; }
+        public string? Filename { get; set; }
 
         public List<ICommand> Commands { get; } = new();
 
@@ -32,17 +32,27 @@ namespace GitEnlistmentManager.DTOs
             return this.Filters.All(f => f.Matches(repoCollection, repo, bucket, enlistment));
         }
 
-        public static bool WriteCommandSet(CommandSet commandSet)
+        public static bool WriteCommandSet(CommandSet commandSet, string commandSetDirectory, bool overwrite)
         {
-            if (string.IsNullOrWhiteSpace(commandSet?.CommandSetPath))
+            if (string.IsNullOrWhiteSpace(commandSet?.Filename))
             {
-                MessageBox.Show($"Command set path not set, unable to save command {commandSet?.Verb}");
+                MessageBox.Show($"Command set filename not set, unable to save command {commandSet?.Verb}");
                 return false;
+            }
+            if (string.IsNullOrWhiteSpace(commandSetDirectory))
+            {
+                MessageBox.Show($"Command set directory not set, unable to save command {commandSet?.Verb}");
+                return false;
+            }
+            var commandSetPath = Path.Combine(commandSetDirectory, commandSet.Filename);
+            if (File.Exists(commandSetPath) && !overwrite)
+            {
+                return true;
             }
 
             try
             {
-                var commandDefinitionInfo = new FileInfo(commandSet.CommandSetPath);
+                var commandDefinitionInfo = new FileInfo(commandSetPath);
                 var commandJson = JsonConvert.SerializeObject(commandSet, GemJsonSerializer.Settings);
                 File.WriteAllText(commandDefinitionInfo.FullName, commandJson);
             }
@@ -65,7 +75,7 @@ namespace GitEnlistmentManager.DTOs
                     MessageBox.Show($"Unable to deserialize Command set from {commandSetPath}");
                     return null;
                 }
-                commandSet.CommandSetPath = commandSetPath;
+                commandSet.Filename = Path.GetFileName(commandSetPath);
                 return commandSet;
             }
             catch (Exception ex)
