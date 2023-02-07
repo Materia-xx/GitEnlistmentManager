@@ -118,14 +118,14 @@ namespace GitEnlistmentManager.Globals
                 // UseShellExecute must be false in order to use environment variables
                 // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
                 // A commandset that opens the VS command prompt could make use of this so gem is callable from that commandline
-                var gemExe = Assembly.GetExecutingAssembly().FullName;
+                var gemExe = Assembly.GetExecutingAssembly().Location;
+
                 string? gemExeDirectory = null;
                 if (gemExe != null)
                 {
                     gemExeDirectory = new FileInfo(gemExe)?.Directory?.FullName;
                 }
                 process.StartInfo.Environment["Path"] = $"{Environment.GetEnvironmentVariable("Path")};{gemExeDirectory}";
-
             }
 
             try
