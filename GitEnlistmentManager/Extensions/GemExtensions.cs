@@ -259,6 +259,7 @@ namespace GitEnlistmentManager.Extensions
                     var exampleCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Enlistment,
+                        OverrideKey = "Status",
                         RightClickText = "Status",
                         Verb = "Status",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemstatus.cmdjson"),
@@ -282,6 +283,7 @@ namespace GitEnlistmentManager.Extensions
                     var prCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Enlistment,
+                        OverrideKey = "pr",
                         RightClickText = "Pull Request",
                         Verb = "pr",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gempr.cmdjson"),
@@ -300,6 +302,7 @@ namespace GitEnlistmentManager.Extensions
                     var createEnlistmentCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Bucket,
+                        OverrideKey = "ce",
                         RightClickText = "Create New Enlistment",
                         Verb = "ce",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemce.cmdjson"),
@@ -313,6 +316,7 @@ namespace GitEnlistmentManager.Extensions
                     var createEnlistmentCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Enlistment,
+                        OverrideKey = "dev2022",
                         RightClickText = "Open with 2022 Developer Prompt",
                         Verb = "dev2022",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemdev2022.cmdjson"),
@@ -343,6 +347,7 @@ namespace GitEnlistmentManager.Extensions
                     var listTokensCommandSet = new CommandSet()
                     {
                         Placement = csCreate,
+                        OverrideKey = "lt",
                         RightClickText = "List Tokens",
                         Verb = "lt",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, $"lt{csCreate}.cmdjson"),
@@ -357,6 +362,7 @@ namespace GitEnlistmentManager.Extensions
                     var archiveEnlistmentCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Enlistment,
+                        OverrideKey = "aeui",
                         RightClickText = "Archive Enlistment",
                         Verb = string.Empty,
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemaeui.cmdjson"),
@@ -371,6 +377,7 @@ namespace GitEnlistmentManager.Extensions
                     var archiveEnlistmentCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Bucket,
+                        OverrideKey = "aecmd",
                         RightClickText = string.Empty,
                         Verb = "ae",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemaecmd.cmdjson"),
@@ -384,6 +391,7 @@ namespace GitEnlistmentManager.Extensions
                     var recreateFromRemoteCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Repo,
+                        OverrideKey = "recreate",
                         RightClickText = "Re-create all from remote",
                         Verb = "recreate",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemrecreate.cmdjson"),
@@ -397,6 +405,7 @@ namespace GitEnlistmentManager.Extensions
                     var createBucketCommandSet = new CommandSet()
                     {
                         Placement = CommandSetPlacement.Repo,
+                        OverrideKey = "createbucket",
                         RightClickText = "Create bucket",
                         Verb = "createbucket",
                         CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemcreatebucket.cmdjson"),
@@ -531,15 +540,15 @@ namespace GitEnlistmentManager.Extensions
             }
 
             var commandSets = new List<CommandSet>();
-            // Process in reverse so it's easier to add overridden command sets. They are overridden by the verb.
+            // Process in reverse so it's easier to add overridden command sets. They are overridden by the override key.
             foreach (var acs in allCommandSets.Reverse())
             {
-                // A commandset that doesn't have a verb isn't valid
-                if (acs.Verb == null)
+                // A commandset that doesn't have a override key isn't valid
+                if (acs.OverrideKey == null)
                 {
                     continue;
                 }
-                if (!commandSets.Any(cs => cs.Verb != null && cs.Verb.Equals(acs.Verb, StringComparison.OrdinalIgnoreCase)))
+                if (!commandSets.Any(cs => cs.OverrideKey != null && cs.OverrideKey.Equals(acs.OverrideKey, StringComparison.OrdinalIgnoreCase)))
                 {
                     commandSets.Add(acs);
                 }

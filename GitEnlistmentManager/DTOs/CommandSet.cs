@@ -16,6 +16,8 @@ namespace GitEnlistmentManager.DTOs
         
         public string? Verb { get; set; }
 
+        public string? OverrideKey {  get; set; }
+
         public string? RightClickText { get; set; }
 
         [JsonIgnore]
