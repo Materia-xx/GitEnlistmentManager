@@ -71,7 +71,6 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"clone {gitShallowOption} {branchFrom} {gitAutoCrlfOption} {this.CloneUrl} \"{enlistmentDirectory.FullName}\"",
                 tokens: null, // There are no tokens in the above programPath/arguments - If we did supply tokens here it would supply an invalid enlistmentBranch because it's not made yet.
-                openNewWindow: false,
                 workingFolder: bucketDirectory.FullName
                 ).ConfigureAwait(false))
             {
@@ -88,7 +87,6 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"config remote.origin.fetch {fetchSettings}",
                 tokens: null, // There are no tokens in the above programPath/arguments - If we did supply tokens here it would supply an invalid enlistmentBranch because it's not made yet.
-                openNewWindow: false,
                 workingFolder: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {

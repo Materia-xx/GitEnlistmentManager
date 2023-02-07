@@ -290,6 +290,7 @@ namespace GitEnlistmentManager.Extensions
                         new RunProgramCommand()
                         {
                             OpenNewWindow = true,
+                            UseShellExecute= true,
                             Program = "{EnlistmentPullRequestUrl}"
                         }
                     );
@@ -495,7 +496,18 @@ namespace GitEnlistmentManager.Extensions
             return tokens;
         }
 
-        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection repoCollection, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gem"></param>
+        /// <param name="placement">Where in the program the command set is associated with</param>
+        /// <param name="mode">If the command set is being ran from the UI or from a command prompt or both</param>
+        /// <param name="repoCollection"></param>
+        /// <param name="repo"></param>
+        /// <param name="bucket"></param>
+        /// <param name="enlistment"></param>
+        /// <returns></returns>
+        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection repoCollection, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null) // TODO: why does repoCollection here need to be passed in, if it doesn't make it nullable too
         {
             var allCommandSets = gem.CommandSets.Where(cs =>
                 cs.Placement == placement

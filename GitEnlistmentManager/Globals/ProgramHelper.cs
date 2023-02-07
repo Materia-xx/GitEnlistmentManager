@@ -1,35 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace GitEnlistmentManager.Globals
 {
     public static class ProgramHelper
     {
-        // TODO: is it possible to just redirect calls to the main runprogram in mainwindow.cs to here too? There are more updates to the other function that need to be copied here.
-        public static async Task<bool> RunProgram(
-            string? programPath,
-            string? arguments,
-            Dictionary<string, string>? tokens,
-            bool openNewWindow,
-            string? workingFolder,
-            Func<string, Task>? metaOutputHandler = null,
-            Func<string, Task>? outputHandler = null,
-            Func<string, Task>? errorHandler = null
-            )
+        public static string? ResolveTokens(string? input, Dictionary<string, string>? tokens)
         {
-            metaOutputHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
-            outputHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
-            errorHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
+            if (input == null)
+            {
+                return null;
+            }
 
             // Replace tokens that come from GEM. These are in the format of {token}
             if (tokens != null)
             {
                 foreach (var token in tokens)
                 {
-                    programPath = programPath?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
-                    arguments = arguments?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
+                    input = input.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
                 }
             }
 
@@ -50,19 +43,43 @@ namespace GitEnlistmentManager.Globals
                 var find = $"%{envVarName}%";
                 var replace = envVarsCaseInsensitive[envVarName];
 
-                programPath = programPath?.Replace(find, replace, StringComparison.OrdinalIgnoreCase);
-                arguments = arguments?.Replace(find, replace, StringComparison.OrdinalIgnoreCase);
+                input = input.Replace(find, replace, StringComparison.OrdinalIgnoreCase);
             }
+
+            return input;
+        }
+
+        // TODO: is it possible to just redirect calls to the main runprogram in mainwindow.cs to here too? There are more updates to the other function that need to be copied here.
+        public static async Task<bool> RunProgram(
+            string? programPath,
+            string? arguments,
+            Dictionary<string, string>? tokens,
+            bool useShellExecute,
+            bool openNewWindow,
+            string? workingFolder,
+            Func<string, Task>? metaOutputHandler = null,
+            Func<string, Task>? outputHandler = null,
+            Func<string, Task>? errorHandler = null,
+            // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
+            int successfulExitCode = 0
+            )
+        {
+            metaOutputHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
+            outputHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
+            errorHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
+
+            programPath = ProgramHelper.ResolveTokens(programPath, tokens);
+            arguments = ProgramHelper.ResolveTokens(arguments, tokens);
+            workingFolder = ProgramHelper.ResolveTokens(workingFolder, tokens);
 
             if (workingFolder != null)
             {
-                // I have no idea why this line needs an extra Environment.NewLine added but the others don't
-                await metaOutputHandler($"cd \"{workingFolder}\"{Environment.NewLine}").ConfigureAwait(false);
+                await metaOutputHandler($"cd \"{workingFolder}\"").ConfigureAwait(false);
             }
             await metaOutputHandler($"\"{programPath}\" {arguments}").ConfigureAwait(false);
 
-            bool useShellExecute = false;
             // We need shell execute to open urls
+            // TODO: don't override this here, the calling function should know if they are opening a url or not
             if (programPath != null && programPath.StartsWith("http"))
             {
                 useShellExecute = true;
@@ -97,8 +114,30 @@ namespace GitEnlistmentManager.Globals
                         await errorHandler(e.Data).ConfigureAwait(false);
                     }
                 });
+
+                // UseShellExecute must be false in order to use environment variables
+                // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
+                // A commandset that opens the VS command prompt could make use of this so gem is callable from that commandline
+                var gemExe = Assembly.GetExecutingAssembly().FullName;
+                string? gemExeDirectory = null;
+                if (gemExe != null)
+                {
+                    gemExeDirectory = new FileInfo(gemExe)?.Directory?.FullName;
+                }
+                process.StartInfo.Environment["Path"] = $"{Environment.GetEnvironmentVariable("Path")};{gemExeDirectory}";
+
             }
-            process.Start();
+
+            try
+            {
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return false;
+            }
+
             if (!useShellExecute)
             {
                 process.BeginOutputReadLine();
@@ -115,8 +154,7 @@ namespace GitEnlistmentManager.Globals
             process.Close();
 
             await metaOutputHandler(string.Empty).ConfigureAwait(false);
-            // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
-            return exitCode == 0;
+            return exitCode == successfulExitCode;
         }
     }
 }

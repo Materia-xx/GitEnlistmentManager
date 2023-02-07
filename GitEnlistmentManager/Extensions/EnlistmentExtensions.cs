@@ -255,7 +255,7 @@ namespace GitEnlistmentManager.Extensions
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory != null)
             {
-                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName;
+                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName; // TODO: standardize the names, some use folder, some use directory
             }
 
             var pullRequestUrl = await enlistment.GetPullRequestUrl().ConfigureAwait(false);
