@@ -282,6 +282,10 @@ namespace GitEnlistmentManager.Extensions
                 var createBucketCommandSet = new CreateBucketCommandSet();
                 writeCommandSetIfNotExist(createBucketCommandSet);
             }
+            {
+                var openRootSolutionCommandSet = new OpenRootSolutionCommandSet();
+                writeCommandSetIfNotExist(openRootSolutionCommandSet);
+            }
 
             foreach (var placement in new List<CommandSetPlacement>()
             {
