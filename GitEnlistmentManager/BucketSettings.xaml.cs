@@ -32,6 +32,7 @@ namespace GitEnlistmentManager
 
             // Transfer data from form to DTO
             FormToDto();
+            this.DialogResult = true;
             this.Close();
         }
 

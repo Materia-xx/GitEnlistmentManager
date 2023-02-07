@@ -30,11 +30,16 @@ namespace GitEnlistmentManager.DTOs.Commands
 
                 if (string.IsNullOrEmpty(this.ResultBucket.GemName))
                 {
+                    bool? result = null;
                     await Application.Current.Dispatcher.BeginInvoke(() =>
                     {
                         var bucketSettingsEditor = new BucketSettings(this.ResultBucket, mainWindow);
-                        bucketSettingsEditor.ShowDialog();
+                        result = bucketSettingsEditor.ShowDialog();
                     });
+                    if (result.HasValue && !result.Value)
+                    {
+                        return false;
+                    }
                 }
 
                 // Force directory for the bucket to be created
