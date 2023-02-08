@@ -244,6 +244,8 @@ namespace GitEnlistmentManager.Extensions
         public static async Task<Dictionary<string, string>> GetTokens(this Enlistment enlistment)
         {
             var tokens = enlistment.Bucket.GetTokens();
+            var parent = enlistment.GetParentEnlistment();
+            var child = enlistment.GetChildEnlistment();
 
             if (enlistment.GemName != null)
             {
@@ -256,6 +258,38 @@ namespace GitEnlistmentManager.Extensions
             if (enlistmentDirectory != null)
             {
                 tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName; // TODO: standardize the names, some use folder, some use directory
+            }
+
+            if (parent!= null)
+            {
+                if (parent.GemName != null)
+                {
+                    tokens["ParentEnlistmentName"] = parent.GemName;
+                }
+
+                tokens["ParentEnlistmentBranch"] = await parent.GetFullGitBranch().ConfigureAwait(false) ?? string.Empty;
+
+                var parentEnlistmentDirectory = parent?.GetDirectoryInfo();
+                if (parentEnlistmentDirectory != null)
+                {
+                    tokens["ParentEnlistmentDirectory"] = parentEnlistmentDirectory.FullName;
+                }
+            }
+
+            if (child!= null)
+            {
+                if (child.GemName != null)
+                {
+                    tokens["ChildEnlistmentName"] = child.GemName;
+                }
+
+                tokens["ChildEnlistmentBranch"] = await child.GetFullGitBranch().ConfigureAwait(false) ?? string.Empty;
+                
+                var childEnlistmentDirectory = child?.GetDirectoryInfo();
+                if (childEnlistmentDirectory != null)
+                {
+                    tokens["ChildEnlistmentDirectory"] = childEnlistmentDirectory.FullName;
+                }
             }
 
             var pullRequestUrl = await enlistment.GetPullRequestUrl().ConfigureAwait(false);
