@@ -120,19 +120,28 @@ namespace GitEnlistmentManager
 
         private async void btnOpenReposFolder_Click(object sender, RoutedEventArgs e)
         {
-            await this.OpenFolder(txtReposFolder.Text).ConfigureAwait(false);
+            await ProgramHelper.OpenFolder(txtReposFolder.Text).ConfigureAwait(false);
+        }       
+
+        private async void btnOpenCommandSetFolders_Click(object sender, RoutedEventArgs e)
+        {
+            var paths = txtCommandSetFolders.Text.Split(StringExtensions.LineReturnCharArray,StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var path in paths)
+            {
+                await ProgramHelper.OpenFolder(path).ConfigureAwait(false);
+            }
+            await ProgramHelper.OpenFolder(this.gem.GetDefaultCommandSetsFolder().FullName).ConfigureAwait(false);
         }
 
-        private async Task OpenFolder(string path)
+        private async void btnOpenRepoCollectionDefinitionFolders_Click(object sender, RoutedEventArgs e)
         {
-            await ProgramHelper.RunProgram(
-                programPath: "Explorer.exe",
-                arguments: path,
-                null,
-                useShellExecute: false,
-                workingFolder: null,
-                openNewWindow: true
-                ).ConfigureAwait(false);
+            var paths = txtRepoCollectionDefinitionFolders.Text.Split(StringExtensions.LineReturnCharArray, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var path in paths)
+            {
+                await ProgramHelper.OpenFolder(path).ConfigureAwait(false);
+            }
         }
     }
 }
