@@ -1,6 +1,7 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.DTOs.CommandSetFilters;
+using GitEnlistmentManager.DTOs.CommandSets;
 using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using System;
@@ -242,169 +243,64 @@ namespace GitEnlistmentManager.Extensions
         private static void WriteDefaultCommandSets(Gem gem)
         {
             var defaultCommandSetsFolder = gem.GetDefaultCommandSetsFolder();
+            void writeCommandSetIfNotExist(CommandSet cs)
+            {
+                CommandSet.WriteCommandSet(cs, defaultCommandSetsFolder.FullName, overwrite: true);
+            }
 
             // Currently there is no UI support for creating or editing command sets, so we give an example of what one looks like and write it out
-            // The example is always written out to the first command set folder.
             // Note that shell commands like 'echo' are not directly supported, but you could call cmd.exe and pass parameters to a .cmd and use them.
-            if (gem.LocalAppData.CommandSetFolders.Count > 0)
             {
-                static void writeCommandSetIfNotExist(CommandSet cs)
-                {
-                    if (!File.Exists(cs.CommandSetPath))
-                    {
-                        CommandSet.WriteCommandSet(cs);
-                    }
-                }
-                {
-                    var exampleCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Enlistment,
-                        RightClickText = "Status",
-                        Verb = "Status",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemstatus.cmdjson"),
-                    };
-                    exampleCommandSet.Commands.Add(
-                        new RunProgramCommand()
-                        {
-                            Program = "{GitExePath}",
-                            Arguments = "status"
-                        }
-                    );
-                    exampleCommandSet.Filters.Add(
-                        new CommandSetFilterCloneUrlContains()
-                        {
-                            SearchFor = "GitEnlistmentManager" // TODO: will need some good documentation around how to set these command sets and filters up.
-                        }
-                    );
-                    writeCommandSetIfNotExist(exampleCommandSet);
-                }
-                {
-                    var prCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Enlistment,
-                        RightClickText = "Pull Request",
-                        Verb = "pr",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gempr.cmdjson"),
-                    };
-                    prCommandSet.Commands.Add(
-                        new RunProgramCommand()
-                        {
-                            OpenNewWindow = true,
-                            Program = "{EnlistmentPullRequestUrl}"
-                        }
-                    );
-                    writeCommandSetIfNotExist(prCommandSet);
-                }
-                {
-                    var createEnlistmentCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Bucket,
-                        RightClickText = "Create New Enlistment",
-                        Verb = "ce",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemce.cmdjson"),
-                    };
-                    createEnlistmentCommandSet.Commands.Add(
-                        new CreateEnlistmentCommand()
-                    );
-                    writeCommandSetIfNotExist(createEnlistmentCommandSet);
-                }
-                {
-                    var createEnlistmentCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Enlistment,
-                        RightClickText = "Open with 2022 Developer Prompt",
-                        Verb = "dev2022",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemdev2022.cmdjson"),
-                    };
-                    createEnlistmentCommandSet.Commands.Add(
-                        new RunProgramCommand()
-                        {
-                            Program = "wt", // TODO: if wt isn't installed this will error out // TODO: also only works for community. What about other SKUs?
-                            // Setting the starting directory and then doing CD later into the right directory isn't necessary here. I'm just keeping it around as an example of how to do the escaping for multiple commands
-                            Arguments = @"-w gem nt --title ""{RepoName}"" --startingDirectory ""{ReposFolder}"" ""%comspec%"" /k \""\""C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat\""&&CD /d \""{EnlistmentDirectory}\""\""",
-                            OpenNewWindow = true,
-                            // This actually starts with a working folder of the ReposFolder and later on changes directory to the desired directory
-                            // This directory ends up being locked by the terminal no matter what directory you CD to, which then would prevent enlistments from
-                            // being archived correctly from the command prompt if we let it default to the enlistment directory
-                            WorkingFolder = @"{ReposFolder}"
-                        }
-                    );
-                    writeCommandSetIfNotExist(createEnlistmentCommandSet);
-                }
-                foreach (var csCreate in new List<CommandSetPlacement>()
-                {
-                    CommandSetPlacement.Enlistment,
-                    CommandSetPlacement.Bucket,
-                    CommandSetPlacement.Repo,
-                    CommandSetPlacement.RepoCollection
-                })
-                {
-                    var listTokensCommandSet = new CommandSet()
-                    {
-                        Placement = csCreate,
-                        RightClickText = "List Tokens",
-                        Verb = "lt",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, $"lt{csCreate}.cmdjson"),
-                    };
-                    listTokensCommandSet.Commands.Add(
-                        new ListTokensCommand()
-                    );
-                    writeCommandSetIfNotExist(listTokensCommandSet);
-                }
-                {
-                    // UI version
-                    var archiveEnlistmentCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Enlistment,
-                        RightClickText = "Archive Enlistment",
-                        Verb = string.Empty,
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemaeui.cmdjson"),
-                    };
-                    archiveEnlistmentCommandSet.Commands.Add(
-                        new ArchiveEnlistmentCommand()
-                    );
-                    writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
-                }
-                {
-                    // Command line version
-                    var archiveEnlistmentCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Bucket,
-                        RightClickText = string.Empty,
-                        Verb = "ae",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemaecmd.cmdjson"),
-                    };
-                    archiveEnlistmentCommandSet.Commands.Add(
-                        new ArchiveEnlistmentCommand()
-                    );
-                    writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
-                }
-                {
-                    var recreateFromRemoteCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Repo,
-                        RightClickText = "Re-create all from remote",
-                        Verb = "recreate",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemrecreate.cmdjson"),
-                    };
-                    recreateFromRemoteCommandSet.Commands.Add(
-                        new RecreateFromRemoteCommand()
-                    );
-                    writeCommandSetIfNotExist(recreateFromRemoteCommandSet);
-                }
-                {
-                    var createBucketCommandSet = new CommandSet()
-                    {
-                        Placement = CommandSetPlacement.Repo,
-                        RightClickText = "Create bucket",
-                        Verb = "createbucket",
-                        CommandSetPath = Path.Combine(defaultCommandSetsFolder.FullName, "gemcreatebucket.cmdjson"),
-                    };
-                    createBucketCommandSet.Commands.Add(
-                        new CreateBucketCommand()
-                    );
-                    writeCommandSetIfNotExist(createBucketCommandSet);
-                }
+                var exampleCommandSet = new GemStatusCommandSet();
+                writeCommandSetIfNotExist(exampleCommandSet);
+            }
+            {
+                var prCommandSet = new PRCommandSet();
+                writeCommandSetIfNotExist(prCommandSet);
+            }
+            {
+                var createEnlistmentCommandSet = new CreateEnlistmentCommandSet();
+                writeCommandSetIfNotExist(createEnlistmentCommandSet);
+            }
+            {
+                var openDevVS2022CommandSet = new OpenDevVS2022CommandSet();
+                writeCommandSetIfNotExist(openDevVS2022CommandSet);
+            }
+            {
+                var archiveEnlistmentCommandSet = new ArchiveEnlistmentCommandSet(CommandSetMode.UserInterface);
+                writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
+            }
+            {
+                var archiveEnlistmentCommandSet = new ArchiveEnlistmentCommandSet(CommandSetMode.CommandPrompt);
+                writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
+            }
+            {
+                var recreateFromRemoteCommandSet = new RecreateFromRemoteCommandSet();
+                writeCommandSetIfNotExist(recreateFromRemoteCommandSet);
+            }
+            {
+                var createBucketCommandSet = new CreateBucketCommandSet();
+                writeCommandSetIfNotExist(createBucketCommandSet);
+            }
+            {
+                var openRootSolutionCommandSet = new OpenRootSolutionCommandSet();
+                writeCommandSetIfNotExist(openRootSolutionCommandSet);
+            }
+            {
+                var deleteBucketCommandSet = new DeleteBucketCommandSet();
+                writeCommandSetIfNotExist(deleteBucketCommandSet);
+            }
+
+            foreach (var placement in new List<CommandSetPlacement>()
+            {
+                CommandSetPlacement.Enlistment,
+                CommandSetPlacement.Bucket,
+                CommandSetPlacement.Repo,
+                CommandSetPlacement.RepoCollection
+            })
+            {
+                var listTokensCommandSet = new ListTokensCommandSet(placement);
+                writeCommandSetIfNotExist(listTokensCommandSet);
             }
         }
 
@@ -495,7 +391,18 @@ namespace GitEnlistmentManager.Extensions
             return tokens;
         }
 
-        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection repoCollection, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gem"></param>
+        /// <param name="placement">Where in the program the command set is associated with</param>
+        /// <param name="mode">If the command set is being ran from the UI or from a command prompt or both</param>
+        /// <param name="repoCollection"></param>
+        /// <param name="repo"></param>
+        /// <param name="bucket"></param>
+        /// <param name="enlistment"></param>
+        /// <returns></returns>
+        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection repoCollection, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null) // TODO: why does repoCollection here need to be passed in, if it doesn't make it nullable too
         {
             var allCommandSets = gem.CommandSets.Where(cs =>
                 cs.Placement == placement
@@ -519,15 +426,16 @@ namespace GitEnlistmentManager.Extensions
             }
 
             var commandSets = new List<CommandSet>();
-            // Process in reverse so it's easier to add overridden command sets. They are overridden by the verb.
+            // Process in reverse so it's easier to add overridden command sets. They are overridden by the override key.
             foreach (var acs in allCommandSets.Reverse())
             {
-                // A commandset that doesn't have a verb isn't valid
-                if (acs.Verb == null)
+                // A command set that doesn't have a override key isn't valid
+                if (acs.OverrideKey == null)
                 {
+                    MessageBox.Show($"Command set {acs.Filename} is missing an override key and is being skipped.");
                     continue;
                 }
-                if (!commandSets.Any(cs => cs.Verb != null && cs.Verb.Equals(acs.Verb, StringComparison.OrdinalIgnoreCase)))
+                if (!commandSets.Any(cs => cs.OverrideKey != null && cs.OverrideKey.Equals(acs.OverrideKey, StringComparison.OrdinalIgnoreCase)))
                 {
                     commandSets.Add(acs);
                 }

@@ -458,137 +458,40 @@ Command Sets
             return true;
         }
 
-        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string>? tokens, bool openNewWindow, string? workingFolder = null)
+        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string>? tokens, string? workingFolder = null)
         {
-            // Replace tokens that come from GEM. These are in the format of {token}
-            if (tokens != null)
-            {
-                foreach (var token in tokens)
+            return await ProgramHelper.RunProgram(
+                programPath: programPath,
+                arguments: arguments,
+                tokens: tokens,
+                useShellExecute: false,
+                openNewWindow: false,
+                workingFolder: workingFolder,
+                metaOutputHandler: async (s) =>
                 {
-                    programPath = programPath?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
-                    arguments = arguments?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
-                    workingFolder = workingFolder?.Replace($"{{{token.Key}}}", token.Value, StringComparison.OrdinalIgnoreCase);
+                    await txtCommandPrompt.AppendLine(s, Brushes.White).ConfigureAwait(false);
+                    await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+                    {
+                        txtCommandPrompt.ScrollToEnd();
+                    });
+                },
+                outputHandler: async (s) =>
+                {
+                    await txtCommandPrompt.AppendLine(s, Brushes.LightGray).ConfigureAwait(false);
+                    await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+                    {
+                        txtCommandPrompt.ScrollToEnd();
+                    });
+                },
+                errorHandler: async (s) =>
+                {
+                    await txtCommandPrompt.AppendLine(s, Brushes.DarkGray).ConfigureAwait(false);
+                    await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
+                    {
+                        txtCommandPrompt.ScrollToEnd();
+                    });
                 }
-            }
-
-            // Replace environment variables formatted like %comspec%
-            var envVarsCaseSensitive = Environment.GetEnvironmentVariables();
-            var envVarsCaseInsensitive = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var envVarName in envVarsCaseSensitive.Keys)
-            {
-                var name = envVarName.ToString();
-                var value = envVarsCaseSensitive[envVarName]?.ToString();
-                if (value != null && name != null)
-                {
-                    envVarsCaseInsensitive[name] = value;
-                }
-            }
-            foreach (var envVarName in envVarsCaseInsensitive.Keys)
-            {
-                var find = $"%{envVarName}%";
-                var replace = envVarsCaseInsensitive[envVarName];
-
-                programPath = programPath?.Replace(find, replace, StringComparison.OrdinalIgnoreCase);
-                arguments = arguments?.Replace(find, replace, StringComparison.OrdinalIgnoreCase);
-            }
-
-            if (workingFolder != null)
-            {
-                await txtCommandPrompt.AppendLine($"cd \"{workingFolder}\"", Brushes.White).ConfigureAwait(false);
-            }
-            await txtCommandPrompt.AppendLine($"\"{programPath}\" {arguments}", Brushes.White).ConfigureAwait(false);
-
-            bool useShellExecute = false; // TODO: pass this in as a parameter from the command, it might not always be http, but something else the shell still needs to handle
-            // We need shell execute to open urls
-            if (programPath != null && programPath.StartsWith("http"))
-            {
-                useShellExecute = true;
-            }
-
-            using Process process = new();
-            process.StartInfo = new()
-            {
-                FileName = programPath,
-                Arguments = arguments,
-                UseShellExecute = useShellExecute,
-                WindowStyle = openNewWindow ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = !useShellExecute,
-                RedirectStandardError = !useShellExecute,
-                CreateNoWindow = !openNewWindow,
-                WorkingDirectory = workingFolder
-            };
-
-            if (!useShellExecute)
-            {
-                // UseShellExecute must be false in order to capture data
-                process.OutputDataReceived += new DataReceivedEventHandler(RunCommand_Output);
-                process.ErrorDataReceived += new DataReceivedEventHandler(RunCommand_Error);
-
-                // UseShellExecute must be false in order to use environment variables
-                // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
-                var gemExe = Assembly.GetExecutingAssembly().FullName;
-                string? gemExeDirectory = null;
-                if (gemExe != null)
-                {
-                    gemExeDirectory = new FileInfo(gemExe)?.Directory?.FullName;
-                }
-                process.StartInfo.Environment["Path"] = $"{Environment.GetEnvironmentVariable("Path")};{gemExeDirectory}";
-            }
-
-            try
-            {
-                process.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                return false;
-            }
-
-            if (!useShellExecute)
-            {
-                // UseShellExecute must be false in order to capture data
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
-
-            await process.WaitForExitAsync().ConfigureAwait(false);
-            process.Refresh();
-
-            var exitCode = -1;
-            if (process.HasExited)
-            {
-                exitCode = process.ExitCode;
-            }
-            process.Close();
-
-            await txtCommandPrompt.AppendLine(string.Empty, Brushes.White).ConfigureAwait(false);
-            // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
-            return exitCode == 0;
-        }
-
-        private async void RunCommand_Output(object sender, DataReceivedEventArgs e)
-        {
-            if (e.Data != null)
-            {
-                await txtCommandPrompt.AppendLine(e.Data, Brushes.LightGray).ConfigureAwait(false);
-                await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
-                {
-                    txtCommandPrompt.ScrollToEnd();
-                });
-            }
-        }
-
-        private async void RunCommand_Error(object sender, DataReceivedEventArgs e)
-        {
-            if (e.Data != null)
-            {
-                await txtCommandPrompt.AppendLine(e.Data, Brushes.DarkGray).ConfigureAwait(false);
-                await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
-                {
-                    txtCommandPrompt.ScrollToEnd();
-                });
-            }
+                ).ConfigureAwait(false);
         }
     }
 }

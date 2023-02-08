@@ -4,6 +4,7 @@ using GitEnlistmentManager.Globals;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GitEnlistmentManager
@@ -115,6 +116,23 @@ namespace GitEnlistmentManager
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.txtReposFolder.Focus();
+        }
+
+        private async void btnOpenReposFolder_Click(object sender, RoutedEventArgs e)
+        {
+            await this.OpenFolder(txtReposFolder.Text).ConfigureAwait(false);
+        }
+
+        private async Task OpenFolder(string path)
+        {
+            await ProgramHelper.RunProgram(
+                programPath: "Explorer.exe",
+                arguments: path,
+                null,
+                useShellExecute: false,
+                workingFolder: null,
+                openNewWindow: true
+                ).ConfigureAwait(false);
         }
     }
 }

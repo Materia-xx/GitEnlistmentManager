@@ -12,6 +12,8 @@
             <ColumnDefinition Width="130"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="35"/>
+            <ColumnDefinition Width="5"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="5"/>
@@ -48,5 +50,7 @@
 
         <Button Grid.Row="14" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
 
+        <Button Grid.Row="1" Grid.Column="4" x:Name="btnOpenReposFolder" Content="Open" Click="btnOpenReposFolder_Click"/>
+        
     </Grid>
 </Window>
