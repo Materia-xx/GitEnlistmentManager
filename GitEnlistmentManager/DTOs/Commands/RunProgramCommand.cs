@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using GitEnlistmentManager.Globals;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.Commands
@@ -6,6 +7,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     public class RunProgramCommand : ICommand
     {
         public bool OpenNewWindow { get; set; } = false;
+
+        public bool UseShellExecute { get; set; } = false;
 
         public string? Program { get; set; }
 
@@ -19,13 +22,26 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
         {
-            return await mainWindow.RunProgram(
-                programPath: this.Program,
-                arguments: this.Arguments,
-                tokens: await nodeContext.GetTokens().ConfigureAwait(false),
-                openNewWindow: this.OpenNewWindow,
-                workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
-                ).ConfigureAwait(false);
+            if (!this.OpenNewWindow)
+            {
+                return await mainWindow.RunProgram(
+                    programPath: this.Program,
+                    arguments: this.Arguments,
+                    tokens: await nodeContext.GetTokens().ConfigureAwait(false),
+                    workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
+                    ).ConfigureAwait(false);
+            }
+            else
+            {
+                return await ProgramHelper.RunProgram(
+                    programPath: this.Program,
+                    arguments: this.Arguments,
+                    tokens: await nodeContext.GetTokens().ConfigureAwait(false),
+                    useShellExecute: this.UseShellExecute,
+                    openNewWindow: true,
+                    workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
+                    ).ConfigureAwait(false);
+            }
         }
     }
 }

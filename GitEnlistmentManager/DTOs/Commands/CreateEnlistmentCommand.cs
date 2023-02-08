@@ -17,12 +17,18 @@ namespace GitEnlistmentManager.DTOs.Commands
         {
             if (nodeContext.Bucket != null)
             {
+                bool? result = null;
                 var enlistment = new Enlistment(nodeContext.Bucket);
+
                 await Application.Current.Dispatcher.BeginInvoke(() =>
                 {
                     var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                    enlistmentSettingsEditor.ShowDialog();
+                    result = enlistmentSettingsEditor.ShowDialog();
                 });
+                if (result.HasValue && !result.Value)
+                {
+                    return false;
+                }
 
                 // After the editor closes, create the enlistment
                 return await enlistment.CreateEnlistment(mainWindow, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(false);

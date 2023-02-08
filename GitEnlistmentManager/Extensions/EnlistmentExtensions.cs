@@ -88,7 +88,7 @@ namespace GitEnlistmentManager.Extensions
             return null;
         }
 
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null)
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null) // TODO: move this into the createEnlistmentCommand ?
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
@@ -255,7 +255,7 @@ namespace GitEnlistmentManager.Extensions
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory != null)
             {
-                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName;
+                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName; // TODO: standardize the names, some use folder, some use directory
             }
 
             var pullRequestUrl = await enlistment.GetPullRequestUrl().ConfigureAwait(false);
