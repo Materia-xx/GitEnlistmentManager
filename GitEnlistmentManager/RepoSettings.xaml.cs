@@ -1,6 +1,7 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +25,30 @@ namespace GitEnlistmentManager
             foreach (var platform in GitHostingPlatforms.Instance.Platforms)
             {
                 cboGitHostingPlatformName.Items.Add(platform.Name);
+            }
+
+            // Load choices for "Pick defaults from" combo box
+            cboChooseDefaultsFrom.Items.Clear();
+            var otherRepoNames = new List<string>();
+            var currentRepoCollectionName = this.repoSettings.RepoCollection.GemName;
+            foreach (var repoCollection in this.repoSettings.RepoCollection.Gem.RepoCollections)
+            {
+                var repoNames = repoCollection.Repos.Where(r => r.GemName != null).Select(r => r.GemName).ToList();
+                foreach (var repoName in repoNames)
+                {
+                    if (repoName != null)
+                    {
+                        if (currentRepoCollectionName == repoCollection.GemName && repoName == repoSettings.GemName)
+                        {
+                            continue;
+                        }
+                        otherRepoNames.Add($"{repoCollection.GemName}->{repoName}");
+                    }
+                }
+            }
+            foreach (var otherRepoName in otherRepoNames)
+            {
+                cboChooseDefaultsFrom.Items.Add(otherRepoName);
             }
 
             this.DtoToForm();
@@ -84,6 +109,44 @@ namespace GitEnlistmentManager
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.txtName.Focus();
+        }
+
+        private void cboChooseDefaultsFrom_SelectedChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count == 0)
+            {
+                return;
+            }
+
+            var chooseFromName = e.AddedItems[0]?.ToString();
+            if (chooseFromName == null)
+            {
+                return;
+            }
+
+            var arrowIndex = chooseFromName.IndexOf("->");
+            if (arrowIndex == -1)
+            {
+                return;
+            }
+            var repoCollectionName = chooseFromName.Substring(0, arrowIndex);
+            var repoName = chooseFromName.Substring(arrowIndex + 2);
+
+            var repoCollection = this.repoSettings.RepoCollection.Gem.RepoCollections.FirstOrDefault(rc => rc.GemName == repoCollectionName);
+            if (repoCollection == null)
+            {
+                return;
+            }
+
+            var chooseFromRepo = repoCollection.Repos.FirstOrDefault(r => r.GemName != null && r.GemName == repoName);
+            if (chooseFromRepo == null)
+            {
+                return;
+            }
+
+            this.txtBranchPrefix.Text = chooseFromRepo.Metadata.BranchPrefix;
+            this.txtUserName.Text = chooseFromRepo.Metadata.UserName;
+            this.txtUserEmail.Text = chooseFromRepo.Metadata.UserEmail;
         }
     }
 }
