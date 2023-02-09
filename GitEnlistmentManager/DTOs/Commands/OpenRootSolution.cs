@@ -36,7 +36,7 @@ namespace GitEnlistmentManager.DTOs.Commands
 
             // Look for Visual Studio
             var vsSkus = new List<string>() { "Community", "Enterprise" };
-            string devenvExe = null;
+            string? devenvExe = null;
             foreach (var vsSku in vsSkus)
             {
                 var potentialDevenvExe = @$"C:\Program Files\Microsoft Visual Studio\2022\{vsSku}\Common7\IDE\devenv.exe";

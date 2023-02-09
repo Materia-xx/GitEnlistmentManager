@@ -32,7 +32,7 @@ namespace GitEnlistmentManager.DTOs.Commands
             // If bucket wasn't passed in on the node context then try to parse it from properties
             if (nodeContext.Bucket == null && !string.IsNullOrWhiteSpace(this.BucketNameToDelete))
             {
-                nodeContext.Bucket = nodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName.Equals(this.BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
+                nodeContext.Bucket = nodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(this.BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
             }
 
             // If bucket still isn't set then we don't know what bucket to delete
