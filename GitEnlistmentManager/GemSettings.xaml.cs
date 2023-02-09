@@ -99,6 +99,10 @@ namespace GitEnlistmentManager
                 }
                 this.gem.LocalAppData.CommandSetFolders.Add(commandSetFolder);
             }
+
+            this.gem.LocalAppData.CompareProgram = this.txtCompareProgram.Text;
+            this.gem.LocalAppData.CompareArguments = this.txtCompareArguments.Text;
+
             return true;
         }
 
@@ -111,6 +115,9 @@ namespace GitEnlistmentManager
 
             this.txtRepoCollectionDefinitionFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionFolders);
             this.txtCommandSetFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetFolders);
+
+            this.txtCompareProgram.Text = this.gem.LocalAppData.CompareProgram;
+            this.txtCompareArguments.Text = this.gem.LocalAppData.CompareArguments;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

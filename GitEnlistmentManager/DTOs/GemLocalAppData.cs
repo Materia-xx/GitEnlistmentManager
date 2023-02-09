@@ -15,5 +15,9 @@ namespace GitEnlistmentManager.DTOs
         public int ArchiveSlots { get; set; } = 10;
 
         public int EnlistmentIncrement { get; set; } = 2000;
+
+        public string? CompareProgram { get; set; }
+
+        public string? CompareArguments { get; set; }
     }
 }

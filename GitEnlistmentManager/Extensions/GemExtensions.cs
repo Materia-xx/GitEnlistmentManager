@@ -181,6 +181,11 @@ namespace GitEnlistmentManager.Extensions
                         {
                             continue;
                         }
+                        // Don't show .vs folders made by Visual Studio
+                        if (bucketFolder.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
 
                         var bucket = new Bucket(repo)
                         {
@@ -190,6 +195,12 @@ namespace GitEnlistmentManager.Extensions
 
                         foreach (var enlistmentFolder in bucketFolder.GetDirectories())
                         {
+                            // Don't show .vs folders made by Visual Studio
+                            if (enlistmentFolder.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
                             var enlistment = new Enlistment(bucket)
                             {
                                 GemName = enlistmentFolder.Name
@@ -289,6 +300,14 @@ namespace GitEnlistmentManager.Extensions
             {
                 var deleteBucketCommandSet = new DeleteBucketCommandSet();
                 writeCommandSetIfNotExist(deleteBucketCommandSet);
+            }
+            {
+                var compareSelectLeftSideCommandSet = new CompareSelectLeftSideCommandSet();
+                writeCommandSetIfNotExist(compareSelectLeftSideCommandSet);
+            }
+            {
+                var compareToLeftSideCommandSet = new CompareToLeftSideCommandSet();
+                writeCommandSetIfNotExist(compareToLeftSideCommandSet);
             }
 
             foreach (var placement in new List<CommandSetPlacement>()
