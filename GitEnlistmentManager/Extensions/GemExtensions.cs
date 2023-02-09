@@ -290,6 +290,10 @@ namespace GitEnlistmentManager.Extensions
                 var deleteBucketCommandSet = new DeleteBucketCommandSet();
                 writeCommandSetIfNotExist(deleteBucketCommandSet);
             }
+            {
+                var refreshTreeviewCommandSet = new RefreshTreeviewCommandSet();
+                writeCommandSetIfNotExist(refreshTreeviewCommandSet);
+            }
 
             foreach (var placement in new List<CommandSetPlacement>()
             {
