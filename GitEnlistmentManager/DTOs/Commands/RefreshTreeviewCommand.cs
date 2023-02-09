@@ -1,10 +1,6 @@
 ﻿using GitEnlistmentManager.Extensions;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace GitEnlistmentManager.DTOs.Commands
 {
@@ -18,11 +14,15 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
         {
+            if (nodeContext.RepoCollection == null)
+            {
+                return false;
+            }
             if (nodeContext.RepoCollection.Gem.ReloadSettings())
             {
                 return true;
             }
-            return false;
+            return await Task.FromResult(false).ConfigureAwait(false);
         }
     }
 }
