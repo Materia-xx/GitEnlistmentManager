@@ -18,7 +18,7 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
         {
-            if (mainWindow.gem.ReloadSettings())
+            if (nodeContext.RepoCollection.Gem.ReloadSettings())
             {
                 return true;
             }

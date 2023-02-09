@@ -24,7 +24,7 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        public readonly Gem gem = new();
+        private readonly Gem gem = new();
         private readonly GemServer gemServer;
 
         public MainWindow()
@@ -263,7 +263,6 @@ Command Sets
                     // After the editor closes, reload the UI so we pick up any changes made
                     await this.ReloadTreeview().ConfigureAwait(false);
                 };
-                menu.Items.Add(menuEditGemSettings);
             }
             else
             {
