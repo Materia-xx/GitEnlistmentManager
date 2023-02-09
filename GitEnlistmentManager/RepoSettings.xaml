@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="Repo Settings" Height="320" Width="500" Loaded="Window_Loaded">
+        Title="Repo Settings" Height="370" Width="550" Loaded="Window_Loaded">
     <Grid>
         <Grid.Resources>
             <VisualBrush x:Key="BranchFromHint" Stretch="None" AlignmentX="Left" AlignmentY="Top" >
@@ -52,6 +52,8 @@
             <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="25"/>
@@ -63,9 +65,9 @@
         <TextBlock Grid.Row="5" Grid.Column="1">Short Name</TextBlock>
         <TextBlock Grid.Row="7" Grid.Column="1">Clone URL</TextBlock>
         <TextBlock Grid.Row="9" Grid.Column="1">Branch From</TextBlock>
-        <TextBlock Grid.Row="11" Grid.Column="1">Branch Prefix</TextBlock>
-        <TextBlock Grid.Row="13" Grid.Column="1">Commit User Name</TextBlock>
-        <TextBlock Grid.Row="15" Grid.Column="1">Commit User Email</TextBlock>
+        <TextBlock Grid.Row="13" Grid.Column="1">Branch Prefix</TextBlock>
+        <TextBlock Grid.Row="15" Grid.Column="1">Commit User Name</TextBlock>
+        <TextBlock Grid.Row="17" Grid.Column="1">Commit User Email</TextBlock>
 
         <ComboBox Grid.Row="1" Grid.Column="2" x:Name="cboGitHostingPlatformName"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtName"/>
@@ -83,7 +85,17 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TextBox Grid.Row="11" Grid.Column="2" x:Name="txtBranchPrefix">
+
+        <Grid Grid.Row="11" Grid.Column="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Choose Defaults From..."/>
+            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="cboChooseDefaultsFrom" SelectionChanged="cboChooseDefaultsFrom_SelectedChanged"></ComboBox>
+        </Grid>
+        <TextBox Grid.Row="13" Grid.Column="2" x:Name="txtBranchPrefix">
             <TextBox.Style>
                 <Style TargetType="{x:Type TextBox}">
                     <Setter Property="Background" Value="Transparent"/>
@@ -95,9 +107,9 @@
                 </Style>
             </TextBox.Style>
         </TextBox>
-        <TextBox Grid.Row="13" Grid.Column="2" x:Name="txtUserName"/>
-        <TextBox Grid.Row="15" Grid.Column="2" x:Name="txtUserEmail"/>
+        <TextBox Grid.Row="15" Grid.Column="2" x:Name="txtUserName"/>
+        <TextBox Grid.Row="17" Grid.Column="2" x:Name="txtUserEmail"/>
 
-        <Button Grid.Row="18" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="20" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
     </Grid>
 </Window>

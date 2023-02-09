@@ -156,5 +156,17 @@ namespace GitEnlistmentManager.Globals
             await metaOutputHandler(string.Empty).ConfigureAwait(false);
             return exitCode == successfulExitCode;
         }
+
+        public static async Task OpenFolder(string path)
+        {
+            await ProgramHelper.RunProgram(
+                programPath: "Explorer.exe",
+                arguments: path,
+                tokens: null,
+                useShellExecute: false,
+                workingFolder: null,
+                openNewWindow: true
+                ).ConfigureAwait(false);
+        }
     }
 }
