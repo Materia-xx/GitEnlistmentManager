@@ -263,6 +263,7 @@ Command Sets
                     // After the editor closes, reload the UI so we pick up any changes made
                     await this.ReloadTreeview().ConfigureAwait(false);
                 };
+                menu.Items.Add(menuEditGemSettings);
             }
             else
             {
