@@ -24,7 +24,7 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly Gem gem = new();
+        public readonly Gem gem = new();
         private readonly GemServer gemServer;
 
         public MainWindow()
