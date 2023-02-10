@@ -7,13 +7,13 @@ namespace GitEnlistmentManager.DTOs
     {
         public Gem Gem { get; }
 
-        public string RepoCollectionFolderPath { get; }
+        public string RepoCollectionDirectoryPath { get; }
         public List<Repo> Repos { get; } = new List<Repo>();
 
-        public RepoCollection(Gem gem, string repoCollectionFolderPath)
+        public RepoCollection(Gem gem, string repoCollectionDirectoryPath)
         {
             this.Gem = gem;
-            RepoCollectionFolderPath = repoCollectionFolderPath;
+            RepoCollectionDirectoryPath = repoCollectionDirectoryPath;
             this.Icon = Icons.GetBitMapImage(@"repocollection.png");
         }
     }

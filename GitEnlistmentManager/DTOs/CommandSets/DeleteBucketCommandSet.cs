@@ -12,9 +12,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Verb = string.Empty;
             Filename = "gemdeletebucketui.cmdjson";
 
-            Commands.Add(
-                new DeleteBucketCommand()
-            );
+            this.Commands.Add(new DeleteBucketCommand());
+            this.Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }

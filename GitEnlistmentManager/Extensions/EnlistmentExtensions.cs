@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -38,7 +37,7 @@ namespace GitEnlistmentManager.Extensions
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating enlistment folder: {ex.Message}");
+                    MessageBox.Show($"Error creating enlistment directory: {ex.Message}");
                     return null;
                 }
             }
@@ -88,7 +87,8 @@ namespace GitEnlistmentManager.Extensions
             return null;
         }
 
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null) // TODO: move this into the createEnlistmentCommand ?
+        // TODO: move this into the createEnlistmentCommand ?
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null)
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
@@ -202,7 +202,7 @@ namespace GitEnlistmentManager.Extensions
             var createEnlistmentCommandSet = new CommandSet();
             createEnlistmentCommandSet.Commands.Add(new GitCloneCommand()
             {
-                // If we know about a parent enlistment (a local repo/folder) then use that as the place we clone from.
+                // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl,
                 BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
@@ -257,7 +257,7 @@ namespace GitEnlistmentManager.Extensions
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory != null)
             {
-                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName; // TODO: standardize the names, some use folder, some use directory
+                tokens["EnlistmentDirectory"] = enlistmentDirectory.FullName;
             }
 
             if (parent!= null)

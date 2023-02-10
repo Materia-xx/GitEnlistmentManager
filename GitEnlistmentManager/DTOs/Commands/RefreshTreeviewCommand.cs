@@ -14,15 +14,7 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
         {
-            if (nodeContext.RepoCollection == null)
-            {
-                return false;
-            }
-            if (nodeContext.RepoCollection.Gem.ReloadSettings())
-            {
-                return true;
-            }
-            return await Task.FromResult(false).ConfigureAwait(false);
+            return await mainWindow.ReloadTreeview().ConfigureAwait(false);
         }
     }
 }

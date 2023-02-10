@@ -8,13 +8,12 @@ namespace GitEnlistmentManager.DTOs.CommandSets
         {
             Placement = CommandSetPlacement.Repo;
             OverrideKey = "createbucket";
-            RightClickText = "Create bucket";
+            RightClickText = "Create Bucket";
             Verb = "createbucket";
             Filename = "gemcreatebucket.cmdjson";
 
-            Commands.Add(
-                new CreateBucketCommand()
-            );
+            this.Commands.Add(new CreateBucketCommand());
+            this.Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }

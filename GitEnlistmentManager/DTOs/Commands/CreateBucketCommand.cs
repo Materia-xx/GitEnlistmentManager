@@ -23,35 +23,36 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
         {
-            if (nodeContext.Repo != null)
+            if (nodeContext.Repo == null)
             {
-                this.ResultBucket = new Bucket(nodeContext.Repo);
-                this.ResultBucket.GemName = this.BucketName;
-
-                if (string.IsNullOrEmpty(this.ResultBucket.GemName))
-                {
-                    bool? result = null;
-                    await Application.Current.Dispatcher.BeginInvoke(() =>
-                    {
-                        var bucketSettingsEditor = new BucketSettings(this.ResultBucket, mainWindow);
-                        result = bucketSettingsEditor.ShowDialog();
-                    });
-                    if (result.HasValue && !result.Value)
-                    {
-                        return false;
-                    }
-                }
-
-                // Force directory for the bucket to be created
-                if (this.ResultBucket.GetDirectoryInfo() != null)
-                {
-                    // Run any "AfterBucketCreate" command sets 
-                    var afterBucketCreateCommandSets = this.ResultBucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, CommandSetMode.Any, this.ResultBucket.Repo.RepoCollection, this.ResultBucket.Repo, this.ResultBucket);
-                    await mainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: this.ResultBucket)).ConfigureAwait(false);
-                }
-                return true;
+                return false;
             }
-            return false;
+
+            this.ResultBucket = new Bucket(nodeContext.Repo);
+            this.ResultBucket.GemName = this.BucketName;
+
+            if (string.IsNullOrEmpty(this.ResultBucket.GemName))
+            {
+                bool? result = null;
+                await Application.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    var bucketSettingsEditor = new BucketSettings(this.ResultBucket, mainWindow);
+                    result = bucketSettingsEditor.ShowDialog();
+                });
+                if (!result.HasValue || !result.Value)
+                {
+                    return false;
+                }
+            }
+
+            // Force directory for the bucket to be created
+            if (this.ResultBucket.GetDirectoryInfo() != null)
+            {
+                // Run any "AfterBucketCreate" command sets 
+                var afterBucketCreateCommandSets = this.ResultBucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, CommandSetMode.Any, this.ResultBucket.Repo.RepoCollection, this.ResultBucket.Repo, this.ResultBucket);
+                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: this.ResultBucket)).ConfigureAwait(false);
+            }
+            return true;
         }
     }
 }

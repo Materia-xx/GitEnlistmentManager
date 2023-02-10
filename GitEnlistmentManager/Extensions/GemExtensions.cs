@@ -27,7 +27,7 @@ namespace GitEnlistmentManager.Extensions
             var clone = new List<RepoCollection>();
             foreach (var rcBase in gem.RepoCollections)
             {
-                var rcClone = new RepoCollection(gem, rcBase.RepoCollectionFolderPath)
+                var rcClone = new RepoCollection(gem, rcBase.RepoCollectionDirectoryPath)
                 {
                     GemName = rcBase.GemName,
                     IsExpanded = rcBase.IsExpanded,
@@ -119,7 +119,7 @@ namespace GitEnlistmentManager.Extensions
         {
             // If the Gem settings are not yet set, these need to be set first before
             // doing anything else
-            while (!gem.ReadLocalAppData() || string.IsNullOrWhiteSpace(gem.LocalAppData.ReposFolder))
+            while (!gem.ReadLocalAppData() || string.IsNullOrWhiteSpace(gem.LocalAppData.ReposDirectory))
             {
                 var gemSettingsEditor = new GemSettings(gem);
                 var result = gemSettingsEditor.ShowDialog();
@@ -131,18 +131,18 @@ namespace GitEnlistmentManager.Extensions
 
             // Remember the state of IsExpanded, IsSelected before reloading
             var repoMetaClone = gem.CloneRepoCollectionsMeta();
-            // For each Gem repo collection folder we have, look through it for repo definitions
+            // For each Gem repo collection directory we have, look through it for repo definitions
             gem.RepoCollections.Clear();
-            foreach (var repoCollectionDefinitionFolder in gem.LocalAppData.RepoCollectionDefinitionFolders)
+            foreach (var repoCollectionDefinitionDirectory in gem.LocalAppData.RepoCollectionDefinitionDirectories)
             {
-                var repoCollectionDefinitionInfo = new DirectoryInfo(repoCollectionDefinitionFolder);
+                var repoCollectionDefinitionInfo = new DirectoryInfo(repoCollectionDefinitionDirectory);
                 if (!repoCollectionDefinitionInfo.Exists)
                 {
-                    MessageBox.Show($"Repo collection definition folder {repoCollectionDefinitionInfo.FullName} was not found");
+                    MessageBox.Show($"Repo collection definition directory {repoCollectionDefinitionInfo.FullName} was not found");
                     continue;
                 }
 
-                var repoCollection = new RepoCollection(gem, repoCollectionDefinitionFolder)
+                var repoCollection = new RepoCollection(gem, repoCollectionDefinitionDirectory)
                 {
                     GemName = repoCollectionDefinitionInfo.Name
                 };
@@ -168,42 +168,42 @@ namespace GitEnlistmentManager.Extensions
             {
                 foreach (var repo in repoCollection.Repos)
                 {
-                    var repoFolder = repo.GetDirectoryInfo();
-                    if (repoFolder == null)
+                    var repoDirectory = repo.GetDirectoryInfo();
+                    if (repoDirectory == null)
                     {
                         continue;
                     }
 
-                    foreach (var bucketFolder in repoFolder.GetDirectories())
+                    foreach (var bucketDirectory in repoDirectory.GetDirectories())
                     {
-                        // Don't show the archive folder in the UI
-                        if (bucketFolder.Name.Equals("archive", StringComparison.OrdinalIgnoreCase))
+                        // Don't show the archive directory in the UI
+                        if (bucketDirectory.Name.Equals("archive", StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
-                        // Don't show .vs folders made by Visual Studio
-                        if (bucketFolder.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                        // Don't show .vs directories made by Visual Studio
+                        if (bucketDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
 
                         var bucket = new Bucket(repo)
                         {
-                            GemName = bucketFolder.Name
+                            GemName = bucketDirectory.Name
                         };
                         repo.Buckets.Add(bucket);
 
-                        foreach (var enlistmentFolder in bucketFolder.GetDirectories())
+                        foreach (var enlistmentDirectory in bucketDirectory.GetDirectories())
                         {
-                            // Don't show .vs folders made by Visual Studio
-                            if (enlistmentFolder.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                            // Don't show .vs directory made by Visual Studio
+                            if (enlistmentDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
                             }
 
                             var enlistment = new Enlistment(bucket)
                             {
-                                GemName = enlistmentFolder.Name
+                                GemName = enlistmentDirectory.Name
                             };
                             bucket.Enlistments.Add(enlistment);
                         }
@@ -215,25 +215,25 @@ namespace GitEnlistmentManager.Extensions
 
             WriteDefaultCommandSets(gem);
 
-            // Look for commands in the command set folders
+            // Look for commands in the command set directory
             gem.CommandSets.Clear();
 
-            // Inject the default command set folder at the beginning, but it's not exposed in the UI
-            var commandSetFolders = new List<string>();
-            commandSetFolders.Add(gem.GetDefaultCommandSetsFolder().FullName);
-            commandSetFolders.AddRange(gem.LocalAppData.CommandSetFolders);
+            // Inject the default command set directory at the beginning, but it's not exposed in the UI
+            var commandSetDirectories = new List<string>();
+            commandSetDirectories.Add(gem.GetDefaultCommandSetsDirectory().FullName);
+            commandSetDirectories.AddRange(gem.LocalAppData.CommandSetDirectories);
 
-            foreach (var commandSetFolder in commandSetFolders)
+            foreach (var commandSetDirectory in commandSetDirectories)
             {
-                var commandSetFolderInfo = new DirectoryInfo(commandSetFolder);
-                if (!commandSetFolderInfo.Exists)
+                var commandSetDirectoryInfo = new DirectoryInfo(commandSetDirectory);
+                if (!commandSetDirectoryInfo.Exists)
                 {
-                    MessageBox.Show($"Command set folder {commandSetFolderInfo.FullName} was not found");
+                    MessageBox.Show($"Command set directory {commandSetDirectoryInfo.FullName} was not found");
                     continue;
                 }
 
                 // Loop through all the command set definitions that are present here
-                var commandDefinitions = commandSetFolderInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
+                var commandDefinitions = commandSetDirectoryInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
                 foreach (var commandDefinition in commandDefinitions)
                 {
                     var commandSet = CommandSet.ReadCommandSet(commandDefinition.FullName);
@@ -243,7 +243,7 @@ namespace GitEnlistmentManager.Extensions
                     }
 
                     // We always load all command sets. It's when we run them that we decide how to pick which one overrides the others
-                    // The important part here is that they are loaded in the same order that the command set folders are defined by the user.
+                    // The important part here is that they are loaded in the same order that the command set directories are defined by the user.
                     gem.CommandSets.Add(commandSet);
                 }
             }
@@ -253,17 +253,29 @@ namespace GitEnlistmentManager.Extensions
 
         private static void WriteDefaultCommandSets(Gem gem)
         {
-            var defaultCommandSetsFolder = gem.GetDefaultCommandSetsFolder();
+            var defaultCommandSetsDirectory = gem.GetDefaultCommandSetsDirectory();
             void writeCommandSetIfNotExist(CommandSet cs)
             {
-                CommandSet.WriteCommandSet(cs, defaultCommandSetsFolder.FullName, overwrite: true);
+                CommandSet.WriteCommandSet(cs, defaultCommandSetsDirectory.FullName, overwrite: true);
             }
 
             // Currently there is no UI support for creating or editing command sets, so we give an example of what one looks like and write it out
             // Note that shell commands like 'echo' are not directly supported, but you could call cmd.exe and pass parameters to a .cmd and use them.
             {
+                var editGemSettingsCommandSet = new EditGemSettingsCommandSet();
+                writeCommandSetIfNotExist(editGemSettingsCommandSet);
+            }
+            {
                 var exampleCommandSet = new GemStatusCommandSet();
                 writeCommandSetIfNotExist(exampleCommandSet);
+            }
+            {
+                var addRepoCommandSet = new CreateRepoCommandSet();
+                writeCommandSetIfNotExist(addRepoCommandSet);
+            }
+            {
+                var editRepoSettingsCommandSet = new EditRepoSettingsCommandSet();
+                writeCommandSetIfNotExist(editRepoSettingsCommandSet);
             }
             {
                 var prCommandSet = new PRCommandSet();
@@ -272,6 +284,10 @@ namespace GitEnlistmentManager.Extensions
             {
                 var createEnlistmentCommandSet = new CreateEnlistmentCommandSet();
                 writeCommandSetIfNotExist(createEnlistmentCommandSet);
+            }
+            {
+                var createEnlistmentAboveCommandSet = new CreateEnlistmentAboveCommandSet();
+                writeCommandSetIfNotExist(createEnlistmentAboveCommandSet);
             }
             {
                 var openDevVS2022CommandSet = new OpenDevVS2022CommandSet();
@@ -327,39 +343,39 @@ namespace GitEnlistmentManager.Extensions
             }
         }
 
-        public static DirectoryInfo GetAppDataFolder(this Gem _)
+        public static DirectoryInfo GetAppDataDirectory(this Gem _)
         {
-            var gemAppDataFolder = new DirectoryInfo(Path.Combine(
+            var gemAppDataDirectory = new DirectoryInfo(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Gem"));
-            if (!gemAppDataFolder.Exists)
+            if (!gemAppDataDirectory.Exists)
             {
-                gemAppDataFolder.Create();
+                gemAppDataDirectory.Create();
             }
-            return gemAppDataFolder;
+            return gemAppDataDirectory;
         }
 
-        public static DirectoryInfo GetDefaultCommandSetsFolder(this Gem gem)
+        public static DirectoryInfo GetDefaultCommandSetsDirectory(this Gem gem)
         {
-            var gemAppDataFolder = gem.GetAppDataFolder();
+            var gemAppDataDirectory = gem.GetAppDataDirectory();
 
-            var defaultCommandSetsFolder = new DirectoryInfo(Path.Combine(gemAppDataFolder.FullName, "DefaultCommandSets"));
-            if (!defaultCommandSetsFolder.Exists)
+            var defaultCommandSetsDirectory = new DirectoryInfo(Path.Combine(gemAppDataDirectory.FullName, "DefaultCommandSets"));
+            if (!defaultCommandSetsDirectory.Exists)
             {
-                defaultCommandSetsFolder.Create();
+                defaultCommandSetsDirectory.Create();
             }
 
-            return defaultCommandSetsFolder;
+            return defaultCommandSetsDirectory;
         }
 
         public static bool WriteLocalAppData(this Gem gem)
         {
-            var gemAppDataFolder = gem.GetAppDataFolder();
+            var gemAppDataDirectory = gem.GetAppDataDirectory();
 
             // Write the metadata
             try
             {
-                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemLocalAppDataFilename));
+                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataDirectory.FullName, gemLocalAppDataFilename));
                 var gemLocalAppDataJson = JsonConvert.SerializeObject(gem.LocalAppData, GemJsonSerializer.Settings);
                 File.WriteAllText(gemLocalAppDataFile.FullName, gemLocalAppDataJson);
             }
@@ -373,11 +389,11 @@ namespace GitEnlistmentManager.Extensions
 
         public static bool ReadLocalAppData(this Gem gem)
         {
-            var gemAppDataFolder = gem.GetAppDataFolder();
+            var gemAppDataDirectory = gem.GetAppDataDirectory();
 
             try
             {
-                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataFolder.FullName, gemLocalAppDataFilename));
+                var gemLocalAppDataFile = new FileInfo(Path.Combine(gemAppDataDirectory.FullName, gemLocalAppDataFilename));
                 if (!gemLocalAppDataFile.Exists)
                 {
                     // If the local app data doesn't exist then don't default it. The user needs to update the settings.
@@ -407,9 +423,9 @@ namespace GitEnlistmentManager.Extensions
         {
             var tokens = new Dictionary<string, string>();
             tokens["GitExePath"] = gem.LocalAppData.GitExePath;
-            if (gem.LocalAppData.ReposFolder != null)
+            if (gem.LocalAppData.ReposDirectory != null)
             {
-                tokens["ReposFolder"] = gem.LocalAppData.ReposFolder;
+                tokens["ReposDirectory"] = gem.LocalAppData.ReposDirectory;
             }
             return tokens;
         }
@@ -425,7 +441,7 @@ namespace GitEnlistmentManager.Extensions
         /// <param name="bucket"></param>
         /// <param name="enlistment"></param>
         /// <returns></returns>
-        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection repoCollection, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null) // TODO: why does repoCollection here need to be passed in, if it doesn't make it nullable too
+        public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection? repoCollection = null, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
         {
             var allCommandSets = gem.CommandSets.Where(cs =>
                 cs.Placement == placement

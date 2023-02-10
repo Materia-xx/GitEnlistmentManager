@@ -25,7 +25,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
                     result = enlistmentSettingsEditor.ShowDialog();
                 });
-                if (result.HasValue && !result.Value)
+                if (!result.HasValue || !result.Value)
                 {
                     return false;
                 }

@@ -8,7 +8,7 @@ namespace GitEnlistmentManager.Extensions
         public static Dictionary<string, string> GetTokens(this RepoCollection repoCollection)
         {
             var tokens = repoCollection.Gem.GetTokens();
-            tokens["RepoCollectionFolderPath"] = repoCollection.RepoCollectionFolderPath;
+            tokens["RepoCollectionDirectoryPath"] = repoCollection.RepoCollectionDirectoryPath;
             if (repoCollection.GemName != null)
             {
                 tokens["RepoCollectionName"] = repoCollection.GemName;

@@ -14,9 +14,9 @@ namespace GitEnlistmentManager.DTOs
 
         public Enlistment? Enlistment { get; set; }
 
-        public string? GetWorkingFolder()
+        public string? GetWorkingDirectory()
         {
-            return Enlistment?.GetDirectoryInfo()?.FullName ?? Bucket?.GetDirectoryInfo()?.FullName ?? Repo?.GetDirectoryInfo()?.FullName ?? RepoCollection?.RepoCollectionFolderPath;
+            return Enlistment?.GetDirectoryInfo()?.FullName ?? Bucket?.GetDirectoryInfo()?.FullName ?? Repo?.GetDirectoryInfo()?.FullName ?? RepoCollection?.RepoCollectionDirectoryPath;
         }
 
         public GemNodeContext Clone()

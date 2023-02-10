@@ -24,7 +24,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             this.Filters.Add(
                 new CommandSetFilterCsmMemoryContainsKey()
                 {
-                    Key = "LeftFolderCompare"
+                    Key = "LeftDirectoryCompare"
                 }
             );
 

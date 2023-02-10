@@ -14,7 +14,7 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public string? Arguments { get; set; }
 
-        public string? WorkingFolder { get; set; }
+        public string? WorkingDirectory { get; set; }
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
@@ -28,7 +28,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     programPath: this.Program,
                     arguments: this.Arguments,
                     tokens: await nodeContext.GetTokens().ConfigureAwait(false),
-                    workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
+                    workingDirectory: WorkingDirectory ?? nodeContext.GetWorkingDirectory()
                     ).ConfigureAwait(false);
             }
             else
@@ -39,7 +39,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     tokens: await nodeContext.GetTokens().ConfigureAwait(false),
                     useShellExecute: this.UseShellExecute,
                     openNewWindow: true,
-                    workingFolder: WorkingFolder ?? nodeContext.GetWorkingFolder()
+                    workingDirectory: WorkingDirectory ?? nodeContext.GetWorkingDirectory()
                     ).ConfigureAwait(false);
             }
         }

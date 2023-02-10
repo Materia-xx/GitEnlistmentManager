@@ -12,9 +12,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Verb = "ors";
             Filename = "gemopenrootsolution.cmdjson";
 
-            Commands.Add(
-                new OpenRootSolution()
-            );
+            Commands.Add(new OpenRootSolution());
         }
     }
 }

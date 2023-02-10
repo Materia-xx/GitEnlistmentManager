@@ -32,7 +32,7 @@ namespace GitEnlistmentManager.Extensions
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating bucket folder: {ex.Message}");
+                    MessageBox.Show($"Error creating bucket directory: {ex.Message}");
                     return null;
                 }
             }

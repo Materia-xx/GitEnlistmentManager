@@ -27,7 +27,7 @@ namespace GitEnlistmentManager.DTOs
                     tokens: null,
                     openNewWindow: false,
                     useShellExecute: false,
-                    workingFolder: enlistmentDirectory,
+                    workingDirectory: enlistmentDirectory,
                     outputHandler: (s) =>
                     {
                         this.branch = s;

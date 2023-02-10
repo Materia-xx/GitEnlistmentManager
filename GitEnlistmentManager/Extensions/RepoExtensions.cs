@@ -20,31 +20,31 @@ namespace GitEnlistmentManager.Extensions
 
             if (string.IsNullOrWhiteSpace(repo.RepoCollection.GemName))
             {
-                MessageBox.Show("Metadata folder must have a name");
+                MessageBox.Show("Metadata directory must have a name");
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(repo.RepoCollection.Gem.LocalAppData.ReposFolder))
+            if (string.IsNullOrWhiteSpace(repo.RepoCollection.Gem.LocalAppData.ReposDirectory))
             {
-                MessageBox.Show("Gem metadata does not have the ReposFolder set correctly");
+                MessageBox.Show("Gem metadata does not have the ReposDirectory set correctly");
                 return null;
             }
 
-            // Create the repos folder if it doesn't exist yet.
-            var targetRepoFolder = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposFolder, repo.RepoCollection.GemName, repo.Metadata.ShortName));
-            if (!targetRepoFolder.Exists)
+            // Create the repos directory if it doesn't exist yet.
+            var targetRepoDirectory = new DirectoryInfo(Path.Combine(repo.RepoCollection.Gem.LocalAppData.ReposDirectory, repo.RepoCollection.GemName, repo.Metadata.ShortName));
+            if (!targetRepoDirectory.Exists)
             {
                 try
                 {
-                    targetRepoFolder.Create();
+                    targetRepoDirectory.Create();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating repo folder: {ex.Message}");
+                    MessageBox.Show($"Error creating repo directory: {ex.Message}");
                     return null;
                 }
             }
-            return targetRepoFolder;
+            return targetRepoDirectory;
         }
 
         public static Dictionary<string, string> GetTokens(this Repo repo)
@@ -93,12 +93,12 @@ namespace GitEnlistmentManager.Extensions
 
         public static bool WriteMetadata(this Repo repo)
         {
-            var targetRepoCollectionFolder = new DirectoryInfo(repo.RepoCollection.RepoCollectionFolderPath);
+            var targetRepoCollectionDirectory = new DirectoryInfo(repo.RepoCollection.RepoCollectionDirectoryPath);
 
-            // Write the metadata for the repo folder
+            // Write the metadata for the repo directory
             try
             {
-                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionFolder.FullName, $"{repo.GemName}.repojson"));
+                var repoMetadataFile = new FileInfo(Path.Combine(targetRepoCollectionDirectory.FullName, $"{repo.GemName}.repojson"));
                 var repoMetadataJson = JsonConvert.SerializeObject(repo.Metadata, GemJsonSerializer.Settings);
                 File.WriteAllText(repoMetadataFile.FullName, repoMetadataJson);
             }

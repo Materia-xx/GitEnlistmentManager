@@ -30,7 +30,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config --local user.name ""{nodeContext.Repo.Metadata.UserName}""",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;
@@ -41,7 +41,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config --local user.email ""{nodeContext.Repo.Metadata.UserEmail}""",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;

@@ -12,9 +12,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Verb = mode == CommandSetMode.UserInterface ? string.Empty : "ae";
             Filename = mode == CommandSetMode.UserInterface ? "gemaeui.cmdjson" : "gemaecmd.cmdjson";
 
-            Commands.Add(
-                new ArchiveEnlistmentCommand()
-            );
+            this.Commands.Add(new ArchiveEnlistmentCommand());
+            this.Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }
