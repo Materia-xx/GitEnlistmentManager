@@ -1,16 +1,10 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.DTOs.Commands;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,13 +18,9 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly Gem gem = new();
-        private readonly GemServer gemServer;
-
         public MainWindow()
         {
             InitializeComponent();
-            this.gemServer = new GemServer(this.ProcessCSCommand);
             this.Loaded += MainWindow_Loaded;
             treeRepos.PreviewMouseRightButtonDown += TreeRepos_PreviewMouseRightButtonDown;
         }
@@ -42,27 +32,25 @@ namespace GitEnlistmentManager
                 this.Close();
             }
 
-            this.gemServer.Start();
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            this.gemServer?.Stop();
         }
 
-        private async Task<bool> ReloadTreeview()
+        public async Task<bool> ReloadTreeview()
         {
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 treeRepos.ItemsSource = null;
             });
-            if (!this.gem.ReloadSettings())
+            if (!Gem.Instance.ReloadSettings())
             {
                 return false;
             }
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                treeRepos.ItemsSource = gem.RepoCollections;
+                treeRepos.ItemsSource = Gem.Instance.RepoCollections;
             });
 
             return true;
@@ -102,7 +90,7 @@ namespace GitEnlistmentManager
                     {
                         return;
                     }
-                    if (this.gem.LocalAppData.ReposFolder == null || !command.WorkingDirectory.StartsWith(this.gem.LocalAppData.ReposFolder, StringComparison.OrdinalIgnoreCase))
+                    if (Gem.Instance.LocalAppData.ReposDirectory == null || !command.WorkingDirectory.StartsWith(Gem.Instance.LocalAppData.ReposDirectory, StringComparison.OrdinalIgnoreCase))
                     {
                         return;
                     }
@@ -112,8 +100,8 @@ namespace GitEnlistmentManager
                     var verb = command.CommandArgs[0].ToString();
 
                     // Figure out the context of where the command being run from.
-                    // It has to be running from within the repos folder.
-                    var relativeWorkingDirectory = command.WorkingDirectory.Substring(this.gem.LocalAppData.ReposFolder.Length);
+                    // It has to be running from within the repos directory.
+                    var relativeWorkingDirectory = command.WorkingDirectory.Substring(Gem.Instance.LocalAppData.ReposDirectory.Length);
                     var workingDirParts = relativeWorkingDirectory.Trim('\\').Split('\\');
 
                     RepoCollection? repoCollection = null;
@@ -123,7 +111,7 @@ namespace GitEnlistmentManager
 
                     if (workingDirParts.Length > 0 && !string.IsNullOrWhiteSpace(workingDirParts[0]))
                     {
-                        repoCollection = gem.RepoCollections.FirstOrDefault(rc => rc.GemName != null && rc.GemName.Equals(workingDirParts[0], StringComparison.OrdinalIgnoreCase));
+                        repoCollection = Gem.Instance.RepoCollections.FirstOrDefault(rc => rc.GemName != null && rc.GemName.Equals(workingDirParts[0], StringComparison.OrdinalIgnoreCase));
                     }
                     if (repoCollection != null && workingDirParts.Length > 1 && !string.IsNullOrWhiteSpace(workingDirParts[1]))
                     {
@@ -153,7 +141,7 @@ namespace GitEnlistmentManager
                     }
 
                     // All command sets that are available for this placement
-                    var commandSets = gem.GetCommandSets(nodeContext.GetPlacement(), CommandSetMode.CommandPrompt, repoCollection, repo, bucket, enlistment);
+                    var commandSets = Gem.Instance.GetCommandSets(nodeContext.GetPlacement(), CommandSetMode.CommandPrompt, repoCollection, repo, bucket, enlistment);
 
                     // Grab the last one that matches the verb being specified
                     var commandSet = commandSets.LastOrDefault(cs => cs.Verb != null && cs.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase));
@@ -242,28 +230,14 @@ Command Sets
 
             var menu = new ContextMenu();
             treeRepos.ContextMenu = menu;
+            List<CommandSet>? commandSets = null;
+            GemNodeContext? nodeContext = null;
 
             // If no items are selected then just show these basic choices
             if (treeViewItem == null)
             {
-                var menuEditGemSettings = new MenuItem
-                {
-                    Header = "Edit Gem Settings"
-                };
-                menuEditGemSettings.Click += async (s, e) =>
-                {
-                    bool? result = null;
-                    var gemSettingsEditor = new GemSettings(this.gem);
-                    result = gemSettingsEditor.ShowDialog();
-
-                    if (result.HasValue && !result.HasValue)
-                    {
-                        return;
-                    }
-                    // After the editor closes, reload the UI so we pick up any changes made
-                    await this.ReloadTreeview().ConfigureAwait(false);
-                };
-                menu.Items.Add(menuEditGemSettings);
+                commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.Gem, CommandSetMode.UserInterface);
+                nodeContext = new GemNodeContext();
             }
             else
             {
@@ -272,146 +246,47 @@ Command Sets
 
                 // Figure out what kind of treeviewItem we're clicking on (repo/bucket/enlistment) and create different menus for each type
                 var selectedItem = treeViewItem.DataContext;
-
                 if (selectedItem is RepoCollection repoCollection)
                 {
-                    var menuAddNewRepo = new MenuItem
-                    {
-                        Header = "Add New Repo"
-                    };
-                    menuAddNewRepo.Click += async (s, e) =>
-                    {
-                        bool? result = null;
-                        var repoSettingsEditor = new RepoSettings(new Repo(repoCollection), isNew: true);
-                        result = repoSettingsEditor.ShowDialog();
-                        if (result.HasValue && !result.Value)
-                        {
-                            return;
-                        }
-                        // After the editor closes, reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
-                    };
-                    menu.Items.Add(menuAddNewRepo);
-
-                    // Attach "RepoCollection" type command sets to the menu
-                    var repoCollectionCommandSets = gem.GetCommandSets(CommandSetPlacement.RepoCollection, CommandSetMode.UserInterface, repoCollection);
-                    foreach (var repoCollectionCommandSet in repoCollectionCommandSets)
-                    {
-                        var menuRepoCommandSet = new MenuItem()
-                        {
-                            Header = repoCollectionCommandSet.RightClickText
-                        };
-                        menuRepoCommandSet.Click += async (s, e) =>
-                        {
-                            await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(repoCollectionCommandSet, GemNodeContext.GetNodeContext(repoCollection: repoCollection)).ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuRepoCommandSet);
-                    }
+                    commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.RepoCollection, CommandSetMode.UserInterface, repoCollection);
+                    nodeContext = GemNodeContext.GetNodeContext(repoCollection: repoCollection);
                 }
-
-                if (selectedItem is Repo repo)
+                else if (selectedItem is Repo repo)
                 {
-                    if (repo.GetDirectoryInfo() != null)
-                    {
-                        var menuEditRepoSettings = new MenuItem()
-                        {
-                            Header = "Edit Repo Settings"
-                        };
-                        menuEditRepoSettings.Click += async (s, e) =>
-                        {
-                            bool? result = null;
-                            var repoSettingsEditor = new RepoSettings(repo, isNew: false);
-                            result = repoSettingsEditor.ShowDialog();
-                            if (result.HasValue && !result.Value)
-                            {
-                                return;
-                            }
-                            // After the editor closes, reload the UI so we pick up any changes made
-                            await this.ReloadTreeview().ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuEditRepoSettings);
-
-                        // Attach "Repo" type command sets to the menu
-                        var repoCommandSets = gem.GetCommandSets(CommandSetPlacement.Repo, CommandSetMode.UserInterface, repo.RepoCollection, repo);
-                        foreach (var repoCommandSet in repoCommandSets)
-                        {
-                            var menuRepoCommandSet = new MenuItem()
-                            {
-                                Header = repoCommandSet.RightClickText
-                            };
-                            menuRepoCommandSet.Click += async (s, e) =>
-                            {
-                                await this.ClearCommandWindow().ConfigureAwait(false);
-                                await this.RunCommandSet(repoCommandSet, GemNodeContext.GetNodeContext(repo: repo)).ConfigureAwait(false);
-                            };
-                            menu.Items.Add(menuRepoCommandSet);
-                        }
-                    }
+                    commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.Repo, CommandSetMode.UserInterface, repo.RepoCollection, repo);
+                    nodeContext = GemNodeContext.GetNodeContext(repo: repo);
                 }
-
-                if (selectedItem is Bucket bucket)
+                else if (selectedItem is Bucket bucket)
                 {
-                    // Attach "Bucket" type command sets to the menu
-                    var bucketCommandSets = gem.GetCommandSets(CommandSetPlacement.Bucket, CommandSetMode.UserInterface, bucket.Repo.RepoCollection, bucket.Repo, bucket);
-                    foreach (var bucketCommandSet in bucketCommandSets)
-                    {
-                        var menuBucketCommandSet = new MenuItem()
-                        {
-                            Header = bucketCommandSet.RightClickText
-                        };
-                        menuBucketCommandSet.Click += async (s, e) =>
-                        {
-                            await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(bucketCommandSet, GemNodeContext.GetNodeContext(bucket: bucket)).ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuBucketCommandSet);
-                    }
+                    commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.Bucket, CommandSetMode.UserInterface, bucket.Repo.RepoCollection, bucket.Repo, bucket);
+                    nodeContext = GemNodeContext.GetNodeContext(bucket: bucket);
                 }
-
-                if (selectedItem is Enlistment enlistment)
+                else if (selectedItem is Enlistment enlistment)
                 {
-                    var menuAddNewEnlistmentAbove = new MenuItem()
-                    {
-                        Header = "Add New Enlistment Above"
-                    };
-                    menuAddNewEnlistmentAbove.Click += async (s, e) =>
-                    {
-                        var newEnlistment = new Enlistment(enlistment.Bucket);
-                        var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment);
-                        bool? result = null;
-
-                        result = enlistmentSettingsEditor.ShowDialog();
-                        if (result.HasValue && !result.Value)
-                        {
-                            return;
-                        }
-                        // After the editor closes, create the enlistment
-                        await newEnlistment.CreateEnlistment(this, EnlistmentPlacement.PlaceAbove, childEnlistment: enlistment).ConfigureAwait(false);
-                        // Reload the UI so we pick up any changes made
-                        await this.ReloadTreeview().ConfigureAwait(false);
-                    };
-                    menu.Items.Add(menuAddNewEnlistmentAbove);
-
-                    // Attach "Enlistment" type command sets to the menu
-                    var enlistmentCommandSets = gem.GetCommandSets(CommandSetPlacement.Enlistment, CommandSetMode.UserInterface, enlistment.Bucket.Repo.RepoCollection, enlistment.Bucket.Repo, enlistment.Bucket, enlistment);
-                    foreach (var enlistmentCommandSet in enlistmentCommandSets)
-                    {
-                        var menuEnlistmentCommandSet = new MenuItem()
-                        {
-                            Header = enlistmentCommandSet.RightClickText
-                        };
-                        menuEnlistmentCommandSet.Click += async (s, e) =>
-                        {
-                            await this.ClearCommandWindow().ConfigureAwait(false);
-                            await this.RunCommandSet(enlistmentCommandSet, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
-                        };
-                        menu.Items.Add(menuEnlistmentCommandSet);
-                    }
+                    commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.Enlistment, CommandSetMode.UserInterface, enlistment.Bucket.Repo.RepoCollection, enlistment.Bucket.Repo, enlistment.Bucket, enlistment);
+                    nodeContext = GemNodeContext.GetNodeContext(enlistment: enlistment);
                 }
-
-                e.Handled = true;
             }
+
+            // Attach command sets to the menu
+            if (commandSets != null && nodeContext != null)
+            {
+                foreach (var gemCommandSet in commandSets)
+                {
+                    var menuGemCommandSet = new MenuItem()
+                    {
+                        Header = gemCommandSet.RightClickText
+                    };
+                    menuGemCommandSet.Click += async (s, e) =>
+                    {
+                        await this.ClearCommandWindow().ConfigureAwait(false);
+                        await this.RunCommandSet(gemCommandSet, nodeContext).ConfigureAwait(false);
+                    };
+                    menu.Items.Add(menuGemCommandSet);
+                }
+            }
+
+            e.Handled = true;
         }
 
         public async Task ClearCommandWindow()
@@ -448,17 +323,16 @@ Command Sets
         {
             foreach (var command in commandSet.Commands)
             {
-                await command.Execute(nodeContext, this).ConfigureAwait(false);
-
-                // All commands have the potential to change the structure of the repos/enlistments etc.
-                // A fully custom command wouldn't have the option to reload the UI.
-                // So reload the UI here so we pick up any changes made
-                await this.ReloadTreeview().ConfigureAwait(false);
+                // Execute the command and if the command was not successful then end now, returning false for the command set
+                if (!await command.Execute(nodeContext, this).ConfigureAwait(false))
+                {
+                    return false;
+                }
             }
             return true;
         }
 
-        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string>? tokens, string? workingFolder = null)
+        public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string>? tokens, string? workingDirectory = null)
         {
             return await ProgramHelper.RunProgram(
                 programPath: programPath,
@@ -466,7 +340,7 @@ Command Sets
                 tokens: tokens,
                 useShellExecute: false,
                 openNewWindow: false,
-                workingFolder: workingFolder,
+                workingDirectory: workingDirectory,
                 metaOutputHandler: async (s) =>
                 {
                     await txtCommandPrompt.AppendLine(s, Brushes.White).ConfigureAwait(false);

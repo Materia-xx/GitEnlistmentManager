@@ -30,7 +30,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"remote set-url --push origin {nodeContext.Repo.Metadata.CloneUrl}",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;
@@ -42,7 +42,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"config push.default current",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;

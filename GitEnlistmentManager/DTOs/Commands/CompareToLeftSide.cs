@@ -20,28 +20,28 @@ namespace GitEnlistmentManager.DTOs.Commands
                 return false;
             }
 
-            if (!CommandSetMemory.Memory.ContainsKey("LeftFolderCompare"))
+            if (!CommandSetMemory.Memory.ContainsKey("LeftDirectoryCompare"))
             {
                 return false;
             }
 
             var tokens = new Dictionary<string, string>();
-            tokens["LEFT"] = CommandSetMemory.Memory["LeftFolderCompare"];
-            var rightFolderCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
-            if (rightFolderCompare != null)
+            tokens["LEFT"] = CommandSetMemory.Memory["LeftDirectoryCompare"];
+            var rightDirectoryCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            if (rightDirectoryCompare != null)
             {
-                tokens["RIGHT"] = rightFolderCompare;
+                tokens["RIGHT"] = rightDirectoryCompare;
                 await ProgramHelper.RunProgram(
                     programPath: nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.CompareProgram,
                     arguments: nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.CompareArguments,
                     tokens: tokens,
                     useShellExecute: false,
                     openNewWindow: true,
-                    workingFolder: null
+                    workingDirectory: null
                     ).ConfigureAwait(false);
             }
 
-            CommandSetMemory.Memory.Remove("LeftFolderCompare");
+            CommandSetMemory.Memory.Remove("LeftDirectoryCompare");
             return await Task.FromResult(true).ConfigureAwait(false);
         }
     }

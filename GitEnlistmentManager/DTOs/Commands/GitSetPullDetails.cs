@@ -40,7 +40,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.Enlistment?.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"remote set-url origin {originUrl}",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;
@@ -59,7 +59,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     programPath: nodeContext.Enlistment?.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                     arguments: $@"fetch origin {pullFromBranch}",
                     tokens: null, // There are no tokens in the above programPath/arguments
-                    workingFolder: enlistmentDirectory.FullName
+                    workingDirectory: enlistmentDirectory.FullName
                     ).ConfigureAwait(false))
                 {
                     return false;
@@ -69,7 +69,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     programPath: nodeContext.Enlistment?.Bucket.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                     arguments: $@"branch --set-upstream-to=origin/{pullFromBranch} {enlistmentBranch}",
                     tokens: null, // There are no tokens in the above programPath/arguments
-                    workingFolder: enlistmentDirectory.FullName
+                    workingDirectory: enlistmentDirectory.FullName
                     ).ConfigureAwait(false))
                 {
                     return false;

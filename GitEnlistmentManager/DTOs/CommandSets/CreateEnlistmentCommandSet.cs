@@ -7,14 +7,13 @@ namespace GitEnlistmentManager.DTOs.CommandSets
         public CreateEnlistmentCommandSet()
         {
             Placement = CommandSetPlacement.Bucket;
-            OverrideKey = "ce";
-            RightClickText = "Create New Enlistment";
-            Verb = "ce";
-            Filename = "gemce.cmdjson";
+            OverrideKey = "createenlistment";
+            RightClickText = "Create Enlistment";
+            Verb = "createenlistment";
+            Filename = "gemcreateenlistment.cmdjson";
 
-            Commands.Add(
-                new CreateEnlistmentCommand()
-            );
+            this.Commands.Add(new CreateEnlistmentCommand());
+            this.Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }

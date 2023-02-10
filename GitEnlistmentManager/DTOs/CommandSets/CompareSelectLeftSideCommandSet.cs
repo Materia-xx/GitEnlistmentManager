@@ -17,9 +17,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
                 new CompareSelectLeftSide()
             );
 
-            this.Filters.Add(
-                new CommandSetFilterGemCompareOptionSet()
-            );
+            this.Filters.Add(new CommandSetFilterGemCompareOptionSet());
         }
     }
 }

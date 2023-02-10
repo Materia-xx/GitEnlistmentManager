@@ -27,12 +27,12 @@ namespace GitEnlistmentManager.DTOs.Commands
                 return false;
             }
 
-            // Create the new branch that this folder will represent
+            // Create the new branch that this directory will represent
             if (!await mainWindow.RunProgram(
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $@"checkout -b ""{this.Branch ?? (nodeContext.Enlistment == null ? null : await nodeContext.Enlistment.GetFullGitBranch().ConfigureAwait(false))}""",
                 tokens: null, // There are no tokens in the above programPath/arguments
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;

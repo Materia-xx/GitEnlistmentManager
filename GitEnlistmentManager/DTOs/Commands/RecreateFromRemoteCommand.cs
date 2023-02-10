@@ -56,7 +56,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 tokens: null,
                 openNewWindow: false,
                 useShellExecute: false,
-                workingFolder: null,
+                workingDirectory: null,
                 outputHandler: (s) =>
                 {
                     // Each branch listed will be a commit and then the branch which always starts with refs/heads
@@ -139,7 +139,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 }
 
                 // All of the commands expect to see bucket and enlistment object set, so we at-least need an enlistment object with the right name set
-                // This should be enough for the commands to get the right folder to clone to.
+                // This should be enough for the commands to get the right directory to clone to.
                 var enlistment = new Enlistment(bucket)
                 {
                     GemName = enlistmentName
@@ -149,7 +149,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 var recreateEnlistmentCommandSet = new CommandSet();
                 recreateEnlistmentCommandSet.Commands.Add(new GitCloneCommand()
                 {
-                    // If we know about a parent enlistment (a local repo/folder) then use that as the place we clone from.
+                    // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                     // Otherwise use the remote clone URL.
                     CloneUrl = bucket.Repo.Metadata.CloneUrl,
                     BranchFrom = cloneFromBranch,

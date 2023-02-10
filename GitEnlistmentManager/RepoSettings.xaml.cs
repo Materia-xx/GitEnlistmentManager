@@ -75,7 +75,7 @@ namespace GitEnlistmentManager
             // Transfer data from form to DTO
             FormToDto();
             this.DialogResult = true;
-            // Write the metadata.json. This also creates the folder if it doesn't exist
+            // Write the metadata.json. This also creates the directory if it doesn't exist
             if (this.repoSettings.WriteMetadata())
             {
                 this.Close();

@@ -1,9 +1,5 @@
 ﻿using GitEnlistmentManager.DTOs.Commands;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.CommandSets
 {
@@ -11,15 +7,13 @@ namespace GitEnlistmentManager.DTOs.CommandSets
     {
         public RefreshTreeviewCommandSet()
         {
-            Placement = CommandSetPlacement.RepoCollection;
+            Placement = CommandSetPlacement.Gem;
             OverrideKey = "refresh";
-            RightClickText = "Refresh Treeview";
+            RightClickText = "Refresh";
             Verb = String.Empty;
             Filename = "gemrefresh.cmdjson";
 
-            Commands.Add(
-                new RefreshTreeviewCommand()
-            );
+            Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }

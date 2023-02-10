@@ -10,11 +10,9 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             OverrideKey = "lt";
             RightClickText = "List Tokens";
             Verb = "lt";
-            Filename = $"lt{placement}.cmdjson";
+            Filename = $"gemlt{placement}.cmdjson";
 
-            Commands.Add(
-                new ListTokensCommand()
-            );
+            this.Commands.Add(new ListTokensCommand());
         }
     }
 }

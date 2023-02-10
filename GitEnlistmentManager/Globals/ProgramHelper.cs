@@ -49,14 +49,13 @@ namespace GitEnlistmentManager.Globals
             return input;
         }
 
-        // TODO: is it possible to just redirect calls to the main runprogram in mainwindow.cs to here too? There are more updates to the other function that need to be copied here.
         public static async Task<bool> RunProgram(
             string? programPath,
             string? arguments,
             Dictionary<string, string>? tokens,
             bool useShellExecute,
             bool openNewWindow,
-            string? workingFolder,
+            string? workingDirectory,
             Func<string, Task>? metaOutputHandler = null,
             Func<string, Task>? outputHandler = null,
             Func<string, Task>? errorHandler = null,
@@ -70,20 +69,13 @@ namespace GitEnlistmentManager.Globals
 
             programPath = ProgramHelper.ResolveTokens(programPath, tokens);
             arguments = ProgramHelper.ResolveTokens(arguments, tokens);
-            workingFolder = ProgramHelper.ResolveTokens(workingFolder, tokens);
+            workingDirectory = ProgramHelper.ResolveTokens(workingDirectory, tokens);
 
-            if (workingFolder != null)
+            if (workingDirectory != null)
             {
-                await metaOutputHandler($"cd \"{workingFolder}\"").ConfigureAwait(false);
+                await metaOutputHandler($"cd \"{workingDirectory}\"").ConfigureAwait(false);
             }
             await metaOutputHandler($"\"{programPath}\" {arguments}").ConfigureAwait(false);
-
-            // We need shell execute to open urls
-            // TODO: don't override this here, the calling function should know if they are opening a url or not
-            if (programPath != null && programPath.StartsWith("http"))
-            {
-                useShellExecute = true;
-            }
 
             using Process process = new();
             process.StartInfo = new()
@@ -95,7 +87,7 @@ namespace GitEnlistmentManager.Globals
                 RedirectStandardOutput = !useShellExecute,
                 RedirectStandardError = !useShellExecute,
                 CreateNoWindow = !openNewWindow,
-                WorkingDirectory = workingFolder
+                WorkingDirectory = workingDirectory
             };
 
             if (!useShellExecute)
@@ -157,14 +149,14 @@ namespace GitEnlistmentManager.Globals
             return exitCode == successfulExitCode;
         }
 
-        public static async Task OpenFolder(string path)
+        public static async Task OpenDirectory(string path)
         {
             await ProgramHelper.RunProgram(
                 programPath: "Explorer.exe",
                 arguments: path,
                 tokens: null,
                 useShellExecute: false,
-                workingFolder: null,
+                workingDirectory: null,
                 openNewWindow: true
                 ).ConfigureAwait(false);
         }

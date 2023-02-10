@@ -37,9 +37,9 @@ namespace GitEnlistmentManager
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(this.gem.LocalAppData.ReposFolder))
+            if (string.IsNullOrWhiteSpace(this.gem.LocalAppData.ReposDirectory))
             {
-                MessageBox.Show($"Please specify the repos folder");
+                MessageBox.Show($"Please specify the repos directory");
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace GitEnlistmentManager
 
         private bool FormToDto()
         {
-            this.gem.LocalAppData.ReposFolder = this.txtReposFolder.Text;
+            this.gem.LocalAppData.ReposDirectory = this.txtReposDirectory.Text;
             this.gem.LocalAppData.GitExePath = this.txtGitExePath.Text;
 
             if (int.TryParse(this.txtArchiveSlots.Text, out int resultArchiveSlots))
@@ -76,28 +76,28 @@ namespace GitEnlistmentManager
                 return false;
             }
 
-            var repoCollectionDefinitionFolders = this.txtRepoCollectionDefinitionFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            this.gem.LocalAppData.RepoCollectionDefinitionFolders.Clear();
-            foreach (var repoCollectionDefinitionFolder in repoCollectionDefinitionFolders)
+            var repoCollectionDefinitionDirectories = this.txtRepoCollectionDefinitionDirectories.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            this.gem.LocalAppData.RepoCollectionDefinitionDirectories.Clear();
+            foreach (var repoCollectionDefinitionDirectory in repoCollectionDefinitionDirectories)
             {
-                if (!Directory.Exists(repoCollectionDefinitionFolder))
+                if (!Directory.Exists(repoCollectionDefinitionDirectory))
                 {
-                    MessageBox.Show($"{repoCollectionDefinitionFolder} doesn't exist, skipping.");
+                    MessageBox.Show($"{repoCollectionDefinitionDirectory} doesn't exist, skipping.");
                     continue;
                 }
-                this.gem.LocalAppData.RepoCollectionDefinitionFolders.Add(repoCollectionDefinitionFolder);
+                this.gem.LocalAppData.RepoCollectionDefinitionDirectories.Add(repoCollectionDefinitionDirectory);
             }
 
-            var commandSetFolders = this.txtCommandSetFolders.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            this.gem.LocalAppData.CommandSetFolders.Clear();
-            foreach (var commandSetFolder in commandSetFolders)
+            var commandSetDirectories = this.txtCommandSetDirectories.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            this.gem.LocalAppData.CommandSetDirectories.Clear();
+            foreach (var commandSetDirectory in commandSetDirectories)
             {
-                if (!Directory.Exists(commandSetFolder))
+                if (!Directory.Exists(commandSetDirectory))
                 {
-                    MessageBox.Show($"{commandSetFolder} doesn't exist, skipping.");
+                    MessageBox.Show($"{commandSetDirectory} doesn't exist, skipping.");
                     continue;
                 }
-                this.gem.LocalAppData.CommandSetFolders.Add(commandSetFolder);
+                this.gem.LocalAppData.CommandSetDirectories.Add(commandSetDirectory);
             }
 
             this.gem.LocalAppData.CompareProgram = this.txtCompareProgram.Text;
@@ -108,13 +108,13 @@ namespace GitEnlistmentManager
 
         private void DtoToForm()
         {
-            this.txtReposFolder.Text = this.gem.LocalAppData.ReposFolder;
+            this.txtReposDirectory.Text = this.gem.LocalAppData.ReposDirectory;
             this.txtGitExePath.Text = this.gem.LocalAppData.GitExePath;
             this.txtArchiveSlots.Text = this.gem.LocalAppData.ArchiveSlots.ToString();
             this.txtEnlistmentIncrement.Text = this.gem.LocalAppData.EnlistmentIncrement.ToString();
 
-            this.txtRepoCollectionDefinitionFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionFolders);
-            this.txtCommandSetFolders.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetFolders);
+            this.txtRepoCollectionDefinitionDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionDirectories);
+            this.txtCommandSetDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetDirectories);
 
             this.txtCompareProgram.Text = this.gem.LocalAppData.CompareProgram;
             this.txtCompareArguments.Text = this.gem.LocalAppData.CompareArguments;
@@ -122,32 +122,32 @@ namespace GitEnlistmentManager
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            this.txtReposFolder.Focus();
+            this.txtReposDirectory.Focus();
         }
 
-        private async void btnOpenReposFolder_Click(object sender, RoutedEventArgs e)
+        private async void btnOpenReposDirectory_Click(object sender, RoutedEventArgs e)
         {
-            await ProgramHelper.OpenFolder(txtReposFolder.Text).ConfigureAwait(false);
-        }       
+            await ProgramHelper.OpenDirectory(txtReposDirectory.Text).ConfigureAwait(false);
+        }
 
-        private async void btnOpenCommandSetFolders_Click(object sender, RoutedEventArgs e)
+        private async void btnOpenCommandSetDirectories_Click(object sender, RoutedEventArgs e)
         {
-            var paths = txtCommandSetFolders.Text.Split(StringExtensions.LineReturnCharArray,StringSplitOptions.RemoveEmptyEntries);
+            var paths = txtCommandSetDirectories.Text.Split(StringExtensions.LineReturnCharArray,StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var path in paths)
             {
-                await ProgramHelper.OpenFolder(path).ConfigureAwait(false);
+                await ProgramHelper.OpenDirectory(path).ConfigureAwait(false);
             }
-            await ProgramHelper.OpenFolder(this.gem.GetDefaultCommandSetsFolder().FullName).ConfigureAwait(false);
+            await ProgramHelper.OpenDirectory(this.gem.GetDefaultCommandSetsDirectory().FullName).ConfigureAwait(false);
         }
 
-        private async void btnOpenRepoCollectionDefinitionFolders_Click(object sender, RoutedEventArgs e)
+        private async void btnOpenRepoCollectionDefinitionDirectories_Click(object sender, RoutedEventArgs e)
         {
-            var paths = txtRepoCollectionDefinitionFolders.Text.Split(StringExtensions.LineReturnCharArray, StringSplitOptions.RemoveEmptyEntries);
+            var paths = txtRepoCollectionDefinitionDirectories.Text.Split(StringExtensions.LineReturnCharArray, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var path in paths)
             {
-                await ProgramHelper.OpenFolder(path).ConfigureAwait(false);
+                await ProgramHelper.OpenDirectory(path).ConfigureAwait(false);
             }
         }
     }

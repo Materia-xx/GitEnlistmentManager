@@ -12,9 +12,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Verb = "recreate";
             Filename = "gemrecreate.cmdjson";
 
-            Commands.Add(
-                new RecreateFromRemoteCommand()
-            );
+            this.Commands.Add(new RecreateFromRemoteCommand());
+            this.Commands.Add(new RefreshTreeviewCommand());
         }
     }
 }

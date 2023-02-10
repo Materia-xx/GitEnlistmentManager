@@ -52,7 +52,7 @@ namespace GitEnlistmentManager.DTOs.Commands
 
             // The intention is that a branch will never be changed to a different branch in these enlistments
             // So we set --depth 1 to save some time/space. But this only works when cloning from the
-            // remote repo and not a local parent folder.
+            // remote repo and not a local parent directory.
             var gitShallowOption = this.CloneUrl == nodeContext.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
 
             var branchFrom = string.IsNullOrWhiteSpace(this.BranchFrom)
@@ -71,7 +71,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"clone {gitShallowOption} {branchFrom} {gitAutoCrlfOption} {this.CloneUrl} \"{enlistmentDirectory.FullName}\"",
                 tokens: null, // There are no tokens in the above programPath/arguments - If we did supply tokens here it would supply an invalid enlistmentBranch because it's not made yet.
-                workingFolder: bucketDirectory.FullName
+                workingDirectory: bucketDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;
@@ -87,7 +87,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"config remote.origin.fetch {fetchSettings}",
                 tokens: null, // There are no tokens in the above programPath/arguments - If we did supply tokens here it would supply an invalid enlistmentBranch because it's not made yet.
-                workingFolder: enlistmentDirectory.FullName
+                workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;

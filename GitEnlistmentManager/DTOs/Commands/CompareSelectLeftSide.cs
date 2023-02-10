@@ -20,10 +20,10 @@ namespace GitEnlistmentManager.DTOs.Commands
                 return false;
             }
 
-            var leftFolderCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
-            if (leftFolderCompare != null)
+            var leftDirectoryCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            if (leftDirectoryCompare != null)
             {
-                CommandSetMemory.Memory["LeftFolderCompare"] = leftFolderCompare;
+                CommandSetMemory.Memory["LeftDirectoryCompare"] = leftDirectoryCompare;
             }
             return await Task.FromResult(true).ConfigureAwait(false);
         }

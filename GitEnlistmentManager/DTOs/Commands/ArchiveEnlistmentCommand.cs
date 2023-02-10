@@ -36,30 +36,30 @@ namespace GitEnlistmentManager.DTOs.Commands
                 return false;
             }
 
-            var repoFolder = nodeContext.Enlistment.Bucket.Repo.GetDirectoryInfo()?.FullName;
-            if (repoFolder == null)
+            var repoDirectory = nodeContext.Enlistment.Bucket.Repo.GetDirectoryInfo()?.FullName;
+            if (repoDirectory == null)
             {
                 return false;
             }
 
-            var enlistmentFolder = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
-            if (enlistmentFolder == null)
+            var enlistmentDirectory = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            if (enlistmentDirectory == null)
             {
                 return false;
             }
-            var enlistmentFolderInfo = new DirectoryInfo(enlistmentFolder);
-            var archiveFolderInfo = new DirectoryInfo(Path.Combine(repoFolder, "archive"));
+            var enlistmentDirectoryInfo = new DirectoryInfo(enlistmentDirectory);
+            var archiveDirectoryInfo = new DirectoryInfo(Path.Combine(repoDirectory, "archive"));
 
-            if (!archiveFolderInfo.Exists)
+            if (!archiveDirectoryInfo.Exists)
             {
-                archiveFolderInfo.Create();
+                archiveDirectoryInfo.Create();
             }
 
             // Find a spot to store the archive
             var archiveSlots = nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.ArchiveSlots;
-            var archiveDirs = archiveFolderInfo.GetDirectories().ToList().OrderByDescending(d => d.CreationTime);
+            var archiveDirs = archiveDirectoryInfo.GetDirectories().ToList().OrderByDescending(d => d.CreationTime);
             var usedSlots = 0;
-            // Recycle folders so we have at-least 1 spot free
+            // Recycle directories so we have at-least 1 spot free
             foreach (var archiveDir in archiveDirs)
             {
                 usedSlots++;
@@ -73,7 +73,7 @@ namespace GitEnlistmentManager.DTOs.Commands
             DirectoryInfo? archiveSlotDirectoryInfo = null;
             for (int i = 0; i < archiveSlots; i++)
             {
-                archiveSlotDirectoryInfo = new DirectoryInfo(Path.Combine(archiveFolderInfo.FullName, i.ToString()));
+                archiveSlotDirectoryInfo = new DirectoryInfo(Path.Combine(archiveDirectoryInfo.FullName, i.ToString()));
                 if (!archiveSlotDirectoryInfo.Exists)
                 {
                     break;
@@ -94,8 +94,8 @@ namespace GitEnlistmentManager.DTOs.Commands
                     archiveSlotDirectoryInfo.Create();
                 }
 
-                var archiveToInfo = new DirectoryInfo(Path.Combine(archiveSlotDirectoryInfo.FullName, enlistmentFolderInfo.Name));
-                enlistmentFolderInfo.MoveTo(archiveToInfo.FullName);
+                var archiveToInfo = new DirectoryInfo(Path.Combine(archiveSlotDirectoryInfo.FullName, enlistmentDirectoryInfo.Name));
+                enlistmentDirectoryInfo.MoveTo(archiveToInfo.FullName);
 
                 // Remove the enlistment from GEM config, otherwise re-parenting will just re-parent it back to the thing we just moved.
                 nodeContext.Enlistment.Bucket.Enlistments.Remove(nodeContext.Enlistment);

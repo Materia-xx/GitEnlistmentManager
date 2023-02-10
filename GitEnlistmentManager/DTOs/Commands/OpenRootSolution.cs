@@ -66,7 +66,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                 tokens: null, // There are no tokens in the above programPath/arguments
                 useShellExecute: false,
                 openNewWindow: true,
-                workingFolder: repoDirectory.FullName
+                workingDirectory: repoDirectory.FullName
                 ).ConfigureAwait(false))
             {
                 return false;
