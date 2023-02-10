@@ -20,12 +20,11 @@ namespace GitEnlistmentManager
             base.OnStartup(e);
             this.ShutdownMode = ShutdownMode.OnLastWindowClose;
 
-            var mainWindow = new MainWindow();
-            mainWindow.Show();
-
-            bool isServerRunning = !mutex.WaitOne(TimeSpan.Zero, true);
-            if (!isServerRunning)
+            bool serverAlreadyRunning = !mutex.WaitOne(TimeSpan.Zero, true);
+            if (!serverAlreadyRunning)
             {
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
                 this.gemServer = new GemServer(mainWindow.ProcessCSCommand);
                 this.gemServer.Start();
             }
@@ -39,6 +38,12 @@ namespace GitEnlistmentManager
                     WorkingDirectory = Directory.GetCurrentDirectory()
                 };
                 GemClient.Instance.SendCommand(cmd);
+            }
+
+            // If the server was already running, then close this instance right after sending any command
+            if (serverAlreadyRunning)
+            {
+                this.Shutdown();
             }
         }
 
