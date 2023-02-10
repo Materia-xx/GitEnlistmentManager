@@ -18,6 +18,8 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class MainWindow : Window
     {
+        public event EventHandler? FullyLoaded;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -31,11 +33,7 @@ namespace GitEnlistmentManager
             {
                 this.Close();
             }
-
-        }
-
-        protected override void OnClosed(EventArgs e)
-        {
+            FullyLoaded?.Invoke(this, new EventArgs());
         }
 
         public async Task<bool> ReloadTreeview()
@@ -88,15 +86,21 @@ namespace GitEnlistmentManager
                     // Working directory is required and must be under the one specified in the settings
                     if (string.IsNullOrWhiteSpace(command.WorkingDirectory))
                     {
+                        MessageBox.Show("Working directory is required for running a client/server command");
                         return;
                     }
-                    if (Gem.Instance.LocalAppData.ReposDirectory == null || !command.WorkingDirectory.StartsWith(Gem.Instance.LocalAppData.ReposDirectory, StringComparison.OrdinalIgnoreCase))
+                    if (Gem.Instance.LocalAppData.ReposDirectory == null)
                     {
+                        MessageBox.Show("The LocalAppData ReposDirectory is not loaded or set properly.");
+                        return;
+                    }
+                    if (!command.WorkingDirectory.StartsWith(Gem.Instance.LocalAppData.ReposDirectory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        MessageBox.Show("The directory Gem starts in should be within the ReposDirectory.");
                         return;
                     }
 
                     // The first parameter has to be the verb of the command set to run
-
                     var verb = command.CommandArgs[0].ToString();
 
                     // Figure out the context of where the command being run from.
@@ -137,6 +141,7 @@ namespace GitEnlistmentManager
                     // We always have to have a repo collection
                     if (repoCollection == null)
                     {
+                        MessageBox.Show("RepoCollection was not set properly");
                         return;
                     }
 
@@ -149,7 +154,9 @@ namespace GitEnlistmentManager
                     // If no command set with that verb was found then write out something in the UI
                     if (commandSet == null)
                     {
-                        await this.AppendCommandLine($"No commands with verb '{verb}' were found.", Brushes.LightSalmon).ConfigureAwait(false);
+                        var message = $"No commands with verb '{verb}' were found.";
+                        MessageBox.Show(message);
+                        await this.AppendCommandLine(message, Brushes.LightSalmon).ConfigureAwait(false);
                     }
                     else
                     {

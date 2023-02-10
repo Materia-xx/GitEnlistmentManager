@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using GitEnlistmentManager.Extensions;
+using System;
+using System.Collections.Generic;
 
 namespace GitEnlistmentManager.DTOs
 {
     public class Gem
     {
-        private static readonly Gem gem = new();
-        public static Gem Instance
+        private static readonly Lazy<Gem> gem = new(() =>
         {
-            get { return gem; }
-        }
+            var gem = new Gem();
+            gem.ReloadSettings();
+            return gem;
+        });
+
+        public static Gem Instance => gem.Value;
 
         private Gem()
         {
