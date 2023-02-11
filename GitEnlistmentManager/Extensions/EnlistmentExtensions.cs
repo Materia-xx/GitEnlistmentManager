@@ -210,19 +210,19 @@ namespace GitEnlistmentManager.Extensions
             });
 
             // Create the branch that this enlistment will be working in
-            createEnlistmentCommandSet.Commands.Add(new GitCreateBranch()
+            createEnlistmentCommandSet.Commands.Add(new GitCreateBranchCommand()
             {
                 Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
-            createEnlistmentCommandSet.Commands.Add(new GitSetPullDetails());
+            createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand());
 
             // Always push to a branch in the main repo and always push to a branch with the same name as the current one
-            createEnlistmentCommandSet.Commands.Add(new GitSetPushDetails());
+            createEnlistmentCommandSet.Commands.Add(new GitSetPushDetailsCommand());
 
             // Set the user name and email
-            createEnlistmentCommandSet.Commands.Add(new GitSetUserDetails());
+            createEnlistmentCommandSet.Commands.Add(new GitSetUserDetailsCommand());
 
             // Run all the commands
             if (!await mainWindow.RunCommandSet(createEnlistmentCommandSet, nodeContext).ConfigureAwait(false))

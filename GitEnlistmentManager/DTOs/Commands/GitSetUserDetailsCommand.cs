@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.Commands
 {
-    public class GitSetUserDetails : ICommand
+    public class GitSetUserDetailsCommand : ICommand
     {
         public bool OpenNewWindow { get; set; } = false;
 

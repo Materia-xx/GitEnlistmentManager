@@ -248,87 +248,57 @@ namespace GitEnlistmentManager.Extensions
                 }
             }
 
+            // Commands are a hardcoded list from within the program
+            gem.Commands.Clear();
+            gem.Commands.Add(typeof(ArchiveEnlistmentCommand));
+            gem.Commands.Add(typeof(CompareSelectLeftSideCommand));
+            gem.Commands.Add(typeof(CompareToLeftSideCommand));
+            gem.Commands.Add(typeof(CreateBucketCommand));
+            gem.Commands.Add(typeof(CreateEnlistmentAboveCommand));
+            gem.Commands.Add(typeof(CreateEnlistmentCommand));
+            gem.Commands.Add(typeof(CreateRepoCommand));
+            gem.Commands.Add(typeof(DeleteBucketCommand));
+            gem.Commands.Add(typeof(EditGemSettingsCommand));
+            gem.Commands.Add(typeof(EditRepoSettingsCommand));
+            gem.Commands.Add(typeof(GitCloneCommand));
+            gem.Commands.Add(typeof(GitCreateBranchCommand));
+            gem.Commands.Add(typeof(GitSetPullDetailsCommand));
+            gem.Commands.Add(typeof(GitSetPushDetailsCommand));
+            gem.Commands.Add(typeof(GitSetUserDetailsCommand));
+            gem.Commands.Add(typeof(ListTokensCommand));
+            gem.Commands.Add(typeof(OpenRootSolutionCommand));
+            gem.Commands.Add(typeof(RecreateFromRemoteCommand));
+            gem.Commands.Add(typeof(RefreshTreeviewCommand));
+            gem.Commands.Add(typeof(RunProgramCommand));
+            gem.Commands.Add(typeof(ShowHelpCommand));
             return true;
         }
 
         private static void WriteDefaultCommandSets(Gem gem)
         {
-            var defaultCommandSetsDirectory = gem.GetDefaultCommandSetsDirectory();
-            void writeCommandSetIfNotExist(CommandSet cs)
-            {
-                CommandSet.WriteCommandSet(cs, defaultCommandSetsDirectory.FullName, overwrite: true);
-            }
-
             // Currently there is no UI support for creating or editing command sets, so we give an example of what one looks like and write it out
             // Note that shell commands like 'echo' are not directly supported, but you could call cmd.exe and pass parameters to a .cmd and use them.
+            var defaultCommandSets = new List<CommandSet>
             {
-                var editGemSettingsCommandSet = new EditGemSettingsCommandSet();
-                writeCommandSetIfNotExist(editGemSettingsCommandSet);
-            }
-            {
-                var exampleCommandSet = new GemStatusCommandSet();
-                writeCommandSetIfNotExist(exampleCommandSet);
-            }
-            {
-                var addRepoCommandSet = new CreateRepoCommandSet();
-                writeCommandSetIfNotExist(addRepoCommandSet);
-            }
-            {
-                var editRepoSettingsCommandSet = new EditRepoSettingsCommandSet();
-                writeCommandSetIfNotExist(editRepoSettingsCommandSet);
-            }
-            {
-                var prCommandSet = new PRCommandSet();
-                writeCommandSetIfNotExist(prCommandSet);
-            }
-            {
-                var createEnlistmentCommandSet = new CreateEnlistmentCommandSet();
-                writeCommandSetIfNotExist(createEnlistmentCommandSet);
-            }
-            {
-                var createEnlistmentAboveCommandSet = new CreateEnlistmentAboveCommandSet();
-                writeCommandSetIfNotExist(createEnlistmentAboveCommandSet);
-            }
-            {
-                var openDevVS2022CommandSet = new OpenDevVS2022CommandSet();
-                writeCommandSetIfNotExist(openDevVS2022CommandSet);
-            }
-            {
-                var archiveEnlistmentCommandSet = new ArchiveEnlistmentCommandSet(CommandSetMode.UserInterface);
-                writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
-            }
-            {
-                var archiveEnlistmentCommandSet = new ArchiveEnlistmentCommandSet(CommandSetMode.CommandPrompt);
-                writeCommandSetIfNotExist(archiveEnlistmentCommandSet);
-            }
-            {
-                var recreateFromRemoteCommandSet = new RecreateFromRemoteCommandSet();
-                writeCommandSetIfNotExist(recreateFromRemoteCommandSet);
-            }
-            {
-                var createBucketCommandSet = new CreateBucketCommandSet();
-                writeCommandSetIfNotExist(createBucketCommandSet);
-            }
-            {
-                var openRootSolutionCommandSet = new OpenRootSolutionCommandSet();
-                writeCommandSetIfNotExist(openRootSolutionCommandSet);
-            }
-            {
-                var deleteBucketCommandSet = new DeleteBucketCommandSet();
-                writeCommandSetIfNotExist(deleteBucketCommandSet);
-            }
-            {
-                var refreshTreeviewCommandSet = new RefreshTreeviewCommandSet();
-                writeCommandSetIfNotExist(refreshTreeviewCommandSet);
-            }
-            {
-                var compareSelectLeftSideCommandSet = new CompareSelectLeftSideCommandSet();
-                writeCommandSetIfNotExist(compareSelectLeftSideCommandSet);
-            }
-            {
-                var compareToLeftSideCommandSet = new CompareToLeftSideCommandSet();
-                writeCommandSetIfNotExist(compareToLeftSideCommandSet);
-            }
+                new ArchiveEnlistmentCommandSet(CommandSetMode.UserInterface),
+                new ArchiveEnlistmentCommandSet(CommandSetMode.CommandPrompt),
+                new CreateBucketCommandSet(),
+                new CreateEnlistmentAboveCommandSet(),
+                new CreateEnlistmentCommandSet(),
+                new CreateRepoCommandSet(),
+                new CompareSelectLeftSideCommandSet(),
+                new CompareToLeftSideCommandSet(),
+                new DeleteBucketCommandSet(),
+                new EditGemSettingsCommandSet(),
+                new EditRepoSettingsCommandSet(),
+                new GemStatusCommandSet(),
+                new OpenDevVS2022CommandSet(),
+                new OpenRootSolutionCommandSet(),
+                new PRCommandSet(),
+                new RecreateFromRemoteCommandSet(),
+                new RefreshTreeviewCommandSet(),
+                new ShowHelpCommandSet(),
+            };
 
             foreach (var placement in new List<CommandSetPlacement>()
             {
@@ -338,8 +308,13 @@ namespace GitEnlistmentManager.Extensions
                 CommandSetPlacement.RepoCollection
             })
             {
-                var listTokensCommandSet = new ListTokensCommandSet(placement);
-                writeCommandSetIfNotExist(listTokensCommandSet);
+                defaultCommandSets.Add(new ListTokensCommandSet(placement));
+            }
+
+            var defaultCommandSetsDirectory = gem.GetDefaultCommandSetsDirectory();
+            foreach (var commandSet in defaultCommandSets)
+            {
+                CommandSet.WriteCommandSet(commandSet, defaultCommandSetsDirectory.FullName, overwrite: true);
             }
         }
 
@@ -444,7 +419,7 @@ namespace GitEnlistmentManager.Extensions
         public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection? repoCollection = null, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
         {
             var allCommandSets = gem.CommandSets.Where(cs =>
-                cs.Placement == placement
+                (cs.Placement == placement || cs.Placement == CommandSetPlacement.All)
                 && cs.Matches(
                     repoCollection: repoCollection,
                     repo: repo,

@@ -105,7 +105,7 @@ namespace GitEnlistmentManager.DTOs.Commands
                     // Change NodeContext.Enlistment focus to the child before re-parenting so it knows what enlistment needs to be re-parented
                     nodeContext.Enlistment = childEnlistment;
                     // This sets the *branch* and *URL* that the enlistment will pull from
-                    var setPullDetailsCommand = new GitSetPullDetails();
+                    var setPullDetailsCommand = new GitSetPullDetailsCommand();
                     if (!await setPullDetailsCommand.Execute(nodeContext, mainWindow).ConfigureAwait(false))
                     {
                         return false;
