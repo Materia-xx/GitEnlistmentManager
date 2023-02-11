@@ -66,13 +66,13 @@ namespace GitEnlistmentManager
                 return false;
             }
 
-            if (int.TryParse(this.txtEnlistmentIncrement.Text, out int resultEnlistmentIncrement))
+            if (int.TryParse(this.txtServerPort.Text, out int resultServerPort))
             {
-                this.gem.LocalAppData.EnlistmentIncrement = resultEnlistmentIncrement;
+                this.gem.LocalAppData.ServerPort = resultServerPort;
             }
             else
             {
-                MessageBox.Show("Unable to convert the enlistment increment amount into a number!");
+                MessageBox.Show("Unable to convert the server port into a number!");
                 return false;
             }
 

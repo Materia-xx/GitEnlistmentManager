@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.ClientServer;
+using GitEnlistmentManager.DTOs;
 using System;
 using System.IO;
 using System.Threading;
@@ -32,14 +33,14 @@ namespace GitEnlistmentManager
                 // If we didn't there is a chance that gem will be refreshing the data and any command sent won't be handled correctly
                 mainWindow.FullyLoaded += MainWindow_FullyLoaded;
                 mainWindow.Show();
-                this.gemServer = new GemServer(mainWindow.ProcessCSCommand);
+                this.gemServer = new GemServer(mainWindow.ProcessCSCommand, Gem.Instance.LocalAppData.ServerPort);
                 this.gemServer.Start();
             }
 
             if (e.Args.Length > 0)
             {
                 // Wait for the main window to fully load before sending the command
-                while (!mainWindowFullyLoaded)
+                while (!this.mainWindowFullyLoaded)
                 {
                     await Task.Delay(300).ConfigureAwait(false);
                 }

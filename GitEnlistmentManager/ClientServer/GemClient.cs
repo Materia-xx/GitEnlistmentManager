@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using GitEnlistmentManager.DTOs;
+using System.Net.Sockets;
 using System.Text;
 
 namespace GitEnlistmentManager.ClientServer
@@ -10,7 +11,7 @@ namespace GitEnlistmentManager.ClientServer
         public static GemClient Instance { get; } = new();
 
         public GemClient()
-            : base(ipAddress, GemServer.Port)
+            : base(ipAddress, Gem.Instance.LocalAppData.ServerPort)
         {
         }
 

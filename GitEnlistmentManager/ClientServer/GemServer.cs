@@ -14,16 +14,15 @@ namespace GitEnlistmentManager.ClientServer
     public class GemServer
     {
         private static readonly IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-        public static int Port { get; } = 8397;
         private TcpListener Listener { get; }
         private Func<GemCSCommand, Task>? CommandProcessor { get; set; }
 
         // Keep track of the threads and create CancellationTokenSource for each
         private Dictionary<Thread, CancellationTokenSource> m_ThreadDictionary = new Dictionary<Thread, CancellationTokenSource>();
 
-        public GemServer(Func<GemCSCommand, Task> commandProcessor)
+        public GemServer(Func<GemCSCommand, Task> commandProcessor, int port)
         {
-            Listener = new TcpListener(ipAddress, Port);
+            Listener = new TcpListener(ipAddress, port);
             this.CommandProcessor = commandProcessor;
         }
 
