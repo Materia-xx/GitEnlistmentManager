@@ -1,4 +1,5 @@
-﻿using GitEnlistmentManager.Extensions;
+﻿using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.Extensions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

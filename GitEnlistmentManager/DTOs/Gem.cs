@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.DTOs.Commands;
+﻿using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.Extensions;
 using System;
 using System.Collections.Generic;
