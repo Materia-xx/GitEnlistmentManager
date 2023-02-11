@@ -4,13 +4,11 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.Commands
 {
-    public class GitCreateBranch : ICommand
+    public class GitSetPushDetailsCommand : ICommand
     {
         public bool OpenNewWindow { get; set; } = false;
 
-        public string CommandDocumentation { get; set; } = "Creates a branch";
-
-        public string? Branch { get; set; }
+        public string CommandDocumentation { get; set; } = "Sets the push details.";
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
@@ -22,17 +20,29 @@ namespace GitEnlistmentManager.DTOs.Commands
             {
                 return false;
             }
-
             var enlistmentDirectory = nodeContext.Enlistment?.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
                 return false;
             }
 
-            // Create the new branch that this directory will represent
+            // This will make it so 'git push' always pushes to a branch in the main repo
+            // i.e. child branch e3 will not push to child branch e2, but rather to the original repo
             if (!await mainWindow.RunProgram(
                 programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
-                arguments: $@"checkout -b ""{this.Branch ?? (nodeContext.Enlistment == null ? null : await nodeContext.Enlistment.GetFullGitBranch().ConfigureAwait(false))}""",
+                arguments: $@"remote set-url --push origin {nodeContext.Repo.Metadata.CloneUrl}",
+                tokens: null, // There are no tokens in the above programPath/arguments
+                workingDirectory: enlistmentDirectory.FullName
+                ).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            // This is the branch that 'git push' will publish to
+            // It is set to publish a branch with the same name on the remote
+            if (!await mainWindow.RunProgram(
+                programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
+                arguments: $@"config push.default current",
                 tokens: null, // There are no tokens in the above programPath/arguments
                 workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))

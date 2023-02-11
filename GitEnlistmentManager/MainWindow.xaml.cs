@@ -75,14 +75,6 @@ namespace GitEnlistmentManager
                         }
                     }
 
-                    // If the user is asking for help
-                    var firstArgument = remainingArgsStack.Pop();
-                    if (firstArgument != null && firstArgument.Equals("--help", StringComparison.OrdinalIgnoreCase))
-                    {
-                        await this.ShowHelp().ConfigureAwait(false);
-                        return;
-                    }
-
                     // Working directory is required and must be under the one specified in the settings
                     if (string.IsNullOrWhiteSpace(command.WorkingDirectory))
                     {
@@ -101,7 +93,13 @@ namespace GitEnlistmentManager
                     }
 
                     // The first parameter has to be the verb of the command set to run
-                    var verb = command.CommandArgs[0].ToString();
+                    // Special handling if the verb is a help request
+                    var verb = remainingArgsStack.Pop();
+                    if (verb != null
+                        && (verb.Equals("--help", StringComparison.OrdinalIgnoreCase) || verb.Equals("-?") || verb.Equals("/?")))
+                    {
+                        verb = "help";
+                    }
 
                     // Figure out the context of where the command being run from.
                     // It has to be running from within the repos directory.
@@ -154,7 +152,7 @@ namespace GitEnlistmentManager
                     // If no command set with that verb was found then write out something in the UI
                     if (commandSet == null)
                     {
-                        var message = $"No commands with verb '{verb}' were found.";
+                        var message = $"No command sets with verb '{verb}' were found.";
                         MessageBox.Show(message);
                         await this.AppendCommandLine(message, Brushes.LightSalmon).ConfigureAwait(false);
                     }
@@ -171,23 +169,6 @@ namespace GitEnlistmentManager
                     }
                     break;
             }
-        }
-
-        private async Task ShowHelp()
-        {
-            var helpText = @"GEM - Git Enlistment Manager
-Command Sets
-  Command sets can include tokens in the form of {token}. The program and arguments are the only 2 fields that allow token replacement.
-  The tokens that are available depend on where the command set is being run from. To get a list of currently available tokens use
-  the lt (list tokens) default command set. e.g. ""gem lt"" within a specific gem directory.
-            ";
-
-            await this.ClearCommandWindow().ConfigureAwait(false);
-            await txtCommandPrompt.AppendLine(helpText, Brushes.AliceBlue).ConfigureAwait(false);
-            await txtCommandPrompt.Dispatcher.BeginInvoke(() =>
-            {
-                txtCommandPrompt.ScrollToEnd();
-            });
         }
 
         private static TreeViewItem? VisualUpwardSearch(DependencyObject? source)

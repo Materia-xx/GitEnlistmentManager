@@ -14,7 +14,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Filename = "gemcomparetoleft.cmdjson";
 
             this.Commands.Add(
-                new CompareToLeftSide()
+                new CompareToLeftSideCommand()
             );
 
             this.Filters.Add(

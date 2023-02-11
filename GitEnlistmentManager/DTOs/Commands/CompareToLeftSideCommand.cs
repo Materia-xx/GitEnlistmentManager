@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.DTOs.Commands
 {
-    public class CompareToLeftSide : ICommand
+    public class CompareToLeftSideCommand : ICommand
     {
         public bool OpenNewWindow { get; set; } = false;
 

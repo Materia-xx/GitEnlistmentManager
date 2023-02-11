@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace GitEnlistmentManager.DTOs.Commands
 {
-    public class OpenRootSolution : ICommand
+    public class OpenRootSolutionCommand : ICommand
     {
         public bool OpenNewWindow { get; set; } = true;
 

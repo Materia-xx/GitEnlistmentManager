@@ -1,4 +1,5 @@
-﻿using GitEnlistmentManager.Extensions;
+﻿using GitEnlistmentManager.DTOs.Commands;
+using GitEnlistmentManager.Extensions;
 using System;
 using System.Collections.Generic;
 
@@ -24,5 +25,7 @@ namespace GitEnlistmentManager.DTOs
         public List<RepoCollection> RepoCollections { get; } = new List<RepoCollection>();
 
         public List<CommandSet> CommandSets { get; } = new List<CommandSet>();
+
+        public List<Type> Commands { get; } = new List<Type>();
     }
 }

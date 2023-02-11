@@ -159,13 +159,13 @@ namespace GitEnlistmentManager.DTOs.Commands
                 });
 
                 // This sets the *branch* and *URL* that the enlistment will pull from
-                recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetails());
+                recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand());
 
                 // Always push to a branch in the main repo and always push to a branch with the same name as the current one
-                recreateEnlistmentCommandSet.Commands.Add(new GitSetPushDetails());
+                recreateEnlistmentCommandSet.Commands.Add(new GitSetPushDetailsCommand());
 
                 // Set the user name and email
-                recreateEnlistmentCommandSet.Commands.Add(new GitSetUserDetails());
+                recreateEnlistmentCommandSet.Commands.Add(new GitSetUserDetailsCommand());
 
                 // We need a node context that is correct for the creation of the enlistment.
                 // This is different than the one passed in to this command in general. The repo and RepoCollection will be right though.
