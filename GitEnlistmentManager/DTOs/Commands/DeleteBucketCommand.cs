@@ -12,6 +12,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Deletes an empty bucket.";
+
         public string? BucketNameToDelete { get; set; }
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)

@@ -20,6 +20,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
                     Program = "{EnlistmentPullRequestUrl}"
                 }
             );
+            
+            this.CommandSetDocumentation = "Makes a pull request with the selected enlistment.";
         }
     }
 }

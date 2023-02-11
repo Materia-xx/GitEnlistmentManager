@@ -8,6 +8,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; }
 
+        public string CommandDocumentation { get; set; }
+
         public Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow);
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments);

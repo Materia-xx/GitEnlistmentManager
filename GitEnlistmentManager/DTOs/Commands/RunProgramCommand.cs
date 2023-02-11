@@ -8,6 +8,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Runs a program.";
+
         public bool UseShellExecute { get; set; } = false;
 
         public string? Program { get; set; }

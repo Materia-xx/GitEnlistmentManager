@@ -27,6 +27,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
                     SearchFor = "GitEnlistmentManager" // TODO: will need some good documentation around how to set these command sets and filters up.
                 }
             );
+            this.CommandSetDocumentation = "Checks the status of the enlistment compared to the main branch.";
         }
 
 

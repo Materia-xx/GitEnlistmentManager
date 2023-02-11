@@ -13,6 +13,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Filename = "gemopenrootsolution.cmdjson";
 
             Commands.Add(new OpenRootSolution());
+            
+            this.CommandSetDocumentation = "Opens the root solution of the selected enlistment.";
         }
     }
 }

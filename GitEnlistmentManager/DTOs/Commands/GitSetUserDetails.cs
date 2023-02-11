@@ -8,6 +8,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Sets the user's name and email.";
+
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }
