@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.ClientServer;
+using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;

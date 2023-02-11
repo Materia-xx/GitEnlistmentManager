@@ -1,5 +1,6 @@
-﻿using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.DTOs.Commands;
+﻿using GitEnlistmentManager.Commands;
+using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.DTOs;
 using System;
 using System.Collections.Generic;
 using System.IO;
