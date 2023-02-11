@@ -14,6 +14,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Filename = "gemrefresh.cmdjson";
 
             Commands.Add(new RefreshTreeviewCommand());
+
+            this.CommandSetDocumentation = "Refreshes the Gem Treeview.";
         }
     }
 }

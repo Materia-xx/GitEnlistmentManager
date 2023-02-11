@@ -14,6 +14,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
 
             this.Commands.Add(new EditGemSettingsCommand());
             this.Commands.Add(new RefreshTreeviewCommand());
+
+            this.CommandSetDocumentation = "Opens the menu to edit Gem Settings.";
         }
     }
 }

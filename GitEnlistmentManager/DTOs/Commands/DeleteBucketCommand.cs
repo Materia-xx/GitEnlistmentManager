@@ -12,6 +12,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Deletes a bucket, and maybe all the enlistments inside. I don't know if it deletes the enlistments or not, I don't actually work here. My name is John, and I'm stuck in the ventilation system and I require help to get out of here. This is a call for help. Please, I miss my wife and family. I need to get home for Christmas, and I don't know if it's already past that time already. Please, just send help.";
+
         public string? BucketNameToDelete { get; set; }
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)

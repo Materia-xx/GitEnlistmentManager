@@ -14,6 +14,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
 
             this.Commands.Add(new CreateEnlistmentAboveCommand());
             this.Commands.Add(new RefreshTreeviewCommand());
+
+            this.CommandSetDocumentation = "Creates a enlistment above the selected one.";
         }
     }
 }

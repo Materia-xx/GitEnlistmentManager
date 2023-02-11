@@ -9,6 +9,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Clones a branch of choice.";
+
         public string? CloneUrl { get; set; }
 
         /// <summary>

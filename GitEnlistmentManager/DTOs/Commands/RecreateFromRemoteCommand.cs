@@ -19,6 +19,8 @@ namespace GitEnlistmentManager.DTOs.Commands
 
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Recreates repositories from a git server.";
+
         public string? BranchPrefix { get; set; }
 
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)

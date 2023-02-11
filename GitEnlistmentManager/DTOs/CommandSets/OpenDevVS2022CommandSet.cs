@@ -40,6 +40,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
                     WorkingDirectory = @"{ReposDirectory}"
                 }
             );
+
+            this.CommandSetDocumentation = "Opens Developer Visual Studio for the selected enlistment.";
         }
     }
 }

@@ -28,6 +28,7 @@ namespace GitEnlistmentManager.DTOs.CommandSets
                 }
             );
 
+            this.CommandSetDocumentation = "Selects the other enlistment to be compared with the first previously selected enlistment";
         }
     }
 }

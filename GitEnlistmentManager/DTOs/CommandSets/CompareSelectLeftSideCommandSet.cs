@@ -18,6 +18,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             );
 
             this.Filters.Add(new CommandSetFilterGemCompareOptionSet());
+
+            this.CommandSetDocumentation = "Selects the first enlistment to compare to another one that will be selected next.";
         }
     }
 }

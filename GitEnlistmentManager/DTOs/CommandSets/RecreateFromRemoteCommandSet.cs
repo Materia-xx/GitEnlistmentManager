@@ -14,6 +14,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
 
             this.Commands.Add(new RecreateFromRemoteCommand());
             this.Commands.Add(new RefreshTreeviewCommand());
+
+            this.CommandSetDocumentation = "Recreates all buckets and enlistments from a git server.";
         }
     }
 }

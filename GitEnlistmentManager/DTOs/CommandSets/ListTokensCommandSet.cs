@@ -13,6 +13,8 @@ namespace GitEnlistmentManager.DTOs.CommandSets
             Filename = $"gemlt{placement}.cmdjson";
 
             this.Commands.Add(new ListTokensCommand());
+
+            this.CommandSetDocumentation = "Lists the tokens of the selected.";
         }
     }
 }
