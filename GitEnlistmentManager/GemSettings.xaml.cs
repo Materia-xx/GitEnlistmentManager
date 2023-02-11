@@ -66,13 +66,13 @@ namespace GitEnlistmentManager
                 return false;
             }
 
-            if (int.TryParse(this.txtEnlistmentIncrement.Text, out int resultEnlistmentIncrement))
+            if (int.TryParse(this.txtServerPort.Text, out int resultServerPort))
             {
-                this.gem.LocalAppData.EnlistmentIncrement = resultEnlistmentIncrement;
+                this.gem.LocalAppData.ServerPort = resultServerPort;
             }
             else
             {
-                MessageBox.Show("Unable to convert the enlistment increment amount into a number!");
+                MessageBox.Show("Unable to convert the server port into a number!");
                 return false;
             }
 
@@ -112,6 +112,7 @@ namespace GitEnlistmentManager
             this.txtGitExePath.Text = this.gem.LocalAppData.GitExePath;
             this.txtArchiveSlots.Text = this.gem.LocalAppData.ArchiveSlots.ToString();
             this.txtEnlistmentIncrement.Text = this.gem.LocalAppData.EnlistmentIncrement.ToString();
+            this.txtServerPort.Text = this.gem.LocalAppData.ServerPort.ToString();
 
             this.txtRepoCollectionDefinitionDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionDirectories);
             this.txtCommandSetDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetDirectories);

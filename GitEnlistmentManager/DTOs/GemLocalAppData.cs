@@ -16,6 +16,8 @@ namespace GitEnlistmentManager.DTOs
 
         public int EnlistmentIncrement { get; set; } = 2000;
 
+        public int ServerPort { get; set; } = 8397;
+
         public string? CompareProgram { get; set; }
 
         public string? CompareArguments { get; set; }
