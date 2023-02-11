@@ -7,6 +7,7 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Creates a Repository attached to a Respository Collection, defined in your settings.";
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }

@@ -20,6 +20,8 @@ namespace GitEnlistmentManager.DTOs
 
         public string? RightClickText { get; set; }
 
+        public string? CommandSetDocumentation { get; set; }
+
         [JsonIgnore]
         public string? Filename { get; set; }
 

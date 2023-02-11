@@ -9,6 +9,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Creates a bucket attached to a repository of choice.";
+
         public string? BucketName { get; set; }
 
         public Bucket? ResultBucket { get; private set; }

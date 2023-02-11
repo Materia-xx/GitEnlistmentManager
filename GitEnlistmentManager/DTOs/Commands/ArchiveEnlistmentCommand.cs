@@ -13,6 +13,7 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Archives an enlistment in an archive bucket in the same repo.";
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
             if (nodeContext.Bucket == null || arguments.Count == 0)

@@ -9,6 +9,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Creates an Enlistment attached to a Bucket of choice.";
+
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }

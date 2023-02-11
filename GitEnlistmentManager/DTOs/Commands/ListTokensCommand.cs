@@ -10,6 +10,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = false;
 
+        public string CommandDocumentation { get; set; } = "Lists the tokens.";
+
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }

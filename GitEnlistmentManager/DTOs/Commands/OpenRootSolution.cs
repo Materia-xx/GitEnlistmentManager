@@ -11,6 +11,8 @@ namespace GitEnlistmentManager.DTOs.Commands
     {
         public bool OpenNewWindow { get; set; } = true;
 
+        public string CommandDocumentation { get; set; } = "Opens a root solution in an enlistment.";
+
         public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
         {
         }
