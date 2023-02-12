@@ -23,15 +23,23 @@ namespace GitEnlistmentManager.Commands
             }
 
             var newEnlistment = new Enlistment(nodeContext.Bucket);
-
-            bool? result = null;
-
+            bool dialogSuccess = false;
             await mainWindow.Dispatcher.InvokeAsync(() =>
             {
-                var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment);
-                result = enlistmentSettingsEditor.ShowDialog();
+                var enlistmentSettingsEditor = new EnlistmentSettings(newEnlistment.Bucket.GemName, newEnlistment.GemName);
+                var result = enlistmentSettingsEditor.ShowDialog();
+                if (result.HasValue && result.Value)
+                {
+                    newEnlistment.Bucket.GemName = enlistmentSettingsEditor.BucketName;
+                    newEnlistment.GemName = enlistmentSettingsEditor.EnlistmentName;
+                    dialogSuccess = true;
+                }
+                else
+                {
+                    dialogSuccess = false;
+                }
             });
-            if (!result.HasValue || !result.Value)
+            if (!dialogSuccess)
             {
                 return false;
             }

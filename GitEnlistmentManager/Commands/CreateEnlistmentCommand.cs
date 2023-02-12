@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,15 +21,24 @@ namespace GitEnlistmentManager.Commands
         {
             if (nodeContext.Bucket != null)
             {
-                bool? result = null;
                 var enlistment = new Enlistment(nodeContext.Bucket);
-
-                await Application.Current.Dispatcher.BeginInvoke(() =>
+                bool dialogSuccess = false;
+                await Application.Current.Dispatcher.BeginInvoke(() => 
                 {
-                    var enlistmentSettingsEditor = new EnlistmentSettings(enlistment);
-                    result = enlistmentSettingsEditor.ShowDialog();
+                    var enlistmentSettingsEditor = new EnlistmentSettings(enlistment.Bucket.GemName, enlistment.GemName);
+                    var result = enlistmentSettingsEditor.ShowDialog();
+                    if (result.HasValue && result.Value)
+                    {
+                        enlistment.Bucket.GemName = enlistmentSettingsEditor.BucketName;
+                        enlistment.GemName = enlistmentSettingsEditor.EnlistmentName;
+                        dialogSuccess = true;
+                    }
+                    else
+                    {
+                        dialogSuccess = false;
+                    }
                 });
-                if (!result.HasValue || !result.Value)
+                if (!dialogSuccess)
                 {
                     return false;
                 }

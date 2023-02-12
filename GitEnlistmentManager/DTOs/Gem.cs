@@ -9,9 +9,9 @@ namespace GitEnlistmentManager.DTOs
     {
         private static readonly Lazy<Gem> gem = new(() =>
         {
-            var gem = new Gem();
-            gem.ReloadSettings();
-            return gem;
+            var newGem = new Gem();
+            newGem.ReloadSettings();
+            return newGem;
         });
 
         public static Gem Instance => gem.Value;
@@ -19,6 +19,8 @@ namespace GitEnlistmentManager.DTOs
         private Gem()
         {
         }
+
+        public static List<string> LoadingErrors { get; set; } = new List<string>();
 
         public GemLocalAppData LocalAppData { get; set; } = new GemLocalAppData();
 

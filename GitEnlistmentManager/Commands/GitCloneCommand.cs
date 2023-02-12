@@ -69,7 +69,6 @@ namespace GitEnlistmentManager.Commands
             //       It is possible to add --progress to see them, but because this program is not a true
             //       command terminal it spams many lines instead of keeping the progress on one line.
             //       I've left the option out for that reason.
-
             if (!await mainWindow.RunProgram(
                 programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
                 arguments: $"clone {gitShallowOption} {branchFrom} {gitAutoCrlfOption} {CloneUrl} \"{enlistmentDirectory.FullName}\"",
