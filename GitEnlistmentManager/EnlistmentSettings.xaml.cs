@@ -9,12 +9,15 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class EnlistmentSettings : Window
     {
-        private readonly Enlistment enlistment;
+        public string? BucketName { get; set; }
+        public string? EnlistmentName { get; set; }
 
-        public EnlistmentSettings(Enlistment enlistment)
+        public EnlistmentSettings(string? bucketName, string? enlistmentName, bool bucketNameIsEnabled = false)
         {
             InitializeComponent();
-            this.enlistment = enlistment;
+            this.BucketName = bucketName;
+            this.EnlistmentName= enlistmentName;
+            txtBucketName.IsEnabled = bucketNameIsEnabled;
             this.DtoToForm();
         }
 
@@ -30,12 +33,14 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.enlistment.GemName = this.txtEnlistmentName.Text;
+            this.BucketName = this.txtBucketName.Text;
+            this.EnlistmentName = this.txtEnlistmentName.Text;
         }
 
         private void DtoToForm()
         {
-            this.txtEnlistmentName.Text = this.enlistment.GemName;
+            this.txtBucketName.Text = this.BucketName;
+            this.txtEnlistmentName.Text = this.EnlistmentName;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

@@ -33,7 +33,6 @@
             <DataGrid.Columns>
                 <DataGridTextColumn x:Name="ColBranchName"  Header="Branch Name" Binding="{Binding Path=BranchName}"></DataGridTextColumn>
                 <DataGridTextColumn x:Name="ColLastCommitDate"  Header="Last Commit" Binding="{Binding Path=LastCommitDate}"></DataGridTextColumn>
-                <DataGridCheckBoxColumn x:Name="ColIsMerged" Header="Is Merged" Binding="{Binding Path=IsMerged}"></DataGridCheckBoxColumn>
                 <DataGridTemplateColumn x:Name="ColRecreate" Header="Re-Create">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

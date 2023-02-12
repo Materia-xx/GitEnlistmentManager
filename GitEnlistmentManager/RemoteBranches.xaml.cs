@@ -5,6 +5,7 @@ using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,35 +23,81 @@ namespace GitEnlistmentManager
 
         private Repo repo;
         private MainWindow mainWindow;
+        private DirectoryInfo? trackingRepoDirectory;
 
         public RemoteBranches(Repo repo, MainWindow mainWindow)
         {
             InitializeComponent();
             this.repo = repo;
             this.mainWindow = mainWindow;
+
+            // The default remote branch filter
+            txtBranchPrefixFilter.Text = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
+        }
+
+        private async Task<bool> RefreshTrackingRepo()
+        {
+            var repoDirectory = this.repo.GetDirectoryInfo()?.FullName;
+            if (repoDirectory == null)
+            {
+                return false;
+            }
+            this.trackingRepoDirectory = new DirectoryInfo(Path.Combine(repoDirectory, "archive", "gemref"));
+
+            if (this.trackingRepoDirectory.Exists)
+            {
+                return await ProgramHelper.RunProgram(
+                    programPath: Gem.Instance.LocalAppData.GitExePath,
+                    arguments: $"fetch --all",
+                    tokens: null, // There are no tokens in the above programPath/arguments
+                    useShellExecute: false,
+                    openNewWindow: false,
+                    workingDirectory: this.trackingRepoDirectory.FullName
+                    ).ConfigureAwait(false);
+            }
+            else
+            {
+                return await ProgramHelper.RunProgram(
+                    programPath: Gem.Instance.LocalAppData.GitExePath,
+                    arguments: $"clone --no-checkout {this.repo.Metadata.CloneUrl} \"{this.trackingRepoDirectory.FullName}\"",
+                    tokens: null, // There are no tokens in the above programPath/arguments
+                    useShellExecute: false,
+                    openNewWindow: false,
+                    workingDirectory: repoDirectory
+                    ).ConfigureAwait(false);
+            }
         }
 
         private async Task RefreshRemoteBranches()
         {
-            var remoteBranchDtos = new List<RemoteBranchDto>();
-
+            if (!await this.RefreshTrackingRepo() || this.trackingRepoDirectory == null)
+            {
+                return;
+            }
             if (this.repo == null || this.repo.Metadata.CloneUrl == null)
             {
                 return;
             }
 
+            var remoteBranchDtos = new List<RemoteBranchDto>();
+
             // If the branch prefix doesn't start with refs/heads then add it as a prefix
-            txtBranchPrefixFilter.Text?.TrimStart('/');
-            if (string.IsNullOrWhiteSpace(txtBranchPrefixFilter.Text))
+            var branchFilter = string.Empty;
+            await this.Dispatcher.InvokeAsync(() =>
             {
-                txtBranchPrefixFilter.Text = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
+                branchFilter = txtBranchPrefixFilter.Text?.TrimStart('/');
+            });
+
+            if (string.IsNullOrWhiteSpace(branchFilter))
+            {
+                branchFilter = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
             }
-            if (!txtBranchPrefixFilter.Text.StartsWith(refsHeads))
+            if (!branchFilter.StartsWith(refsHeads))
             {
-                txtBranchPrefixFilter.Text = $"{refsHeads}{txtBranchPrefixFilter.Text}";
+                branchFilter = $"{refsHeads}{branchFilter}";
             }
 
-            // Capture the output of this command
+            // Run a git command to list the remote branches
             var remoteBranches = new List<string>();
             await ProgramHelper.RunProgram(
                 programPath: this.repo.RepoCollection?.Gem.LocalAppData.GitExePath,
@@ -72,33 +119,46 @@ namespace GitEnlistmentManager
                     return Task.CompletedTask;
                 }).ConfigureAwait(false);
 
-            Application.Current.Dispatcher.Invoke(() =>
+            // Pick out only branches that match the prefix
+            var matchingBranches = remoteBranches.Where(b => b.StartsWith(branchFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+            // The branches should already be sorted, but just in case they aren't
+            matchingBranches.Sort();
+
+            if (matchingBranches != null)
             {
-                // Pick out only branches that match the prefix
-                var matchingBranches = remoteBranches.Where(b => b.StartsWith(txtBranchPrefixFilter.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-
-                // The branches should already be sorted, but just in case they aren't
-                matchingBranches.Sort();
-
                 foreach (var remoteBranch in matchingBranches)
                 {
-                    remoteBranchDtos.Add(new RemoteBranchDto()
-                    {
-                        BranchName = remoteBranch,
-                        IsMerged = true,
-                        LastCommitDate = DateTime.Now
-                    });
-                }
+                    var remoteBranchDto = new RemoteBranchDto()
+                    { 
+                        BranchName = remoteBranch
+                    };
 
+                    var originBranch = $"origin/{BranchWithoutRefsHeads(remoteBranch)}";
+                    await ProgramHelper.RunProgram(
+                        programPath: Gem.Instance.LocalAppData.GitExePath,
+                        arguments: $"log -1 {originBranch} --pretty=format:\"%ci\"",
+                        tokens: null,
+                        openNewWindow: false,
+                        useShellExecute: false,
+                        workingDirectory: this.trackingRepoDirectory.FullName,
+                        outputHandler: (s) =>
+                        {
+                            remoteBranchDto.LastCommitDate = s;
+                            return Task.CompletedTask;
+                        }).ConfigureAwait(false);
+                    remoteBranchDtos.Add(remoteBranchDto);
+                }
+            }
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
                 gridRemoteBranches.ItemsSource = remoteBranchDtos;
             });
         }
 
-        private class RemoteBranchDto
+        private string BranchWithoutRefsHeads(string branch)
         {
-            public string? BranchName { get; set; }
-            public DateTime LastCommitDate { get; set; }
-            public bool IsMerged { get; set; }
+            return branch.StartsWith(refsHeads) ? branch[refsHeads.Length..] : branch;
         }
 
         public async void BtnReCreate_Click(object sender, RoutedEventArgs e)
@@ -136,7 +196,27 @@ namespace GitEnlistmentManager
                 bucketName = branchParts[1];
             }
 
-            // TODO: at this point, show a dialog that lets the user correct the enlistment name and bucket name if desired. In all cases, even if we read it above.
+            bool dialogSuccess = false;
+            await mainWindow.Dispatcher.InvokeAsync(() =>
+            {
+                var enlistmentSettingsEditor = new EnlistmentSettings(bucketName, enlistmentName, true);
+                var result = enlistmentSettingsEditor.ShowDialog();
+                if (result.HasValue && result.Value)
+                {
+                    bucketName = enlistmentSettingsEditor.BucketName;
+                    enlistmentName = enlistmentSettingsEditor.EnlistmentName;
+                    dialogSuccess = true;
+                }
+                else
+                {
+                    dialogSuccess = false;
+                }
+            });
+            if (!dialogSuccess)
+            {
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(enlistmentName) || string.IsNullOrWhiteSpace(bucketName))
             {
                 await mainWindow.AppendCommandLine($"Skipping re-creation of enlistment because required fields are not provided", Brushes.White).ConfigureAwait(false);
@@ -171,12 +251,7 @@ namespace GitEnlistmentManager
             }
 
             var parentEnlistment = bucket.Enlistments.LastOrDefault();
-
-            var cloneFromBranch = dto.BranchName;
-            if (cloneFromBranch.StartsWith(refsHeads))
-            {
-                cloneFromBranch = cloneFromBranch[refsHeads.Length..];
-            }
+            var cloneFromBranch = BranchWithoutRefsHeads(dto.BranchName);
 
             // All of the enlistment creation commands expect to see bucket and enlistment object set,
             // We need an enlistment object with the right name set at minimum.
@@ -217,7 +292,7 @@ namespace GitEnlistmentManager
             await mainWindow.RunCommandSet(recreateEnlistmentCommandSet, recreateNodeContext).ConfigureAwait(false);
         }
 
-        public void BtnDelete_Click(object sender, RoutedEventArgs e)
+        public async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button b)
             {
@@ -231,11 +306,21 @@ namespace GitEnlistmentManager
             {
                 return;
             }
+            if (string.IsNullOrWhiteSpace(dto.BranchName))
+            {
+                return;
+            }
 
-            // TODO: this is the git command to run
-            // git push origin --delete user/Materia/trim/010000.w1
+            await ProgramHelper.RunProgram(
+                programPath: Gem.Instance.LocalAppData.GitExePath,
+                arguments: $"push origin --delete {this.BranchWithoutRefsHeads(dto.BranchName)}",
+                tokens: null, // There are no tokens in the above programPath/arguments
+                useShellExecute: false,
+                openNewWindow: false,
+                workingDirectory: this.trackingRepoDirectory?.FullName
+                ).ConfigureAwait(false);
 
-            // TODO: write code
+            await this.RefreshRemoteBranches().ConfigureAwait(false);
         }
 
         private async void RemoteBranches_Loaded(object sender, RoutedEventArgs e)
@@ -246,6 +331,12 @@ namespace GitEnlistmentManager
         private async void BtnBranchPrefixFilterApply_Click(object sender, RoutedEventArgs e)
         {
             await this.RefreshRemoteBranches().ConfigureAwait(true);
+        }
+
+        private class RemoteBranchDto
+        {
+            public string? BranchName { get; set; }
+            public string? LastCommitDate { get; set; }
         }
     }
 }

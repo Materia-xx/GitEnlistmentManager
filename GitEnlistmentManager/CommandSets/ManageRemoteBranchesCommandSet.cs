@@ -13,6 +13,7 @@ namespace GitEnlistmentManager.CommandSets
             Filename = "gemremotebranches.cmdjson";
 
             Commands.Add(new ManageRemoteBranchesCommand());
+            Commands.Add(new RefreshTreeviewCommand());
 
             CommandSetDocumentation = "Shows the manage remote branches window.";
         }

@@ -10,6 +10,7 @@ namespace GitEnlistmentManager.DTOs
         public Bucket Bucket { get; }
 
         private string? branch;
+        // This isn't in extensions because it caches the branch name privately in the instance
         public async Task<string?> GetFullGitBranch()
         {
             if (this.branch == null)
