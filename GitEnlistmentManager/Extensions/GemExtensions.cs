@@ -115,6 +115,8 @@ namespace GitEnlistmentManager.Extensions
 
         public static bool ReloadSettings(this Gem gem)
         {
+            Gem.LoadingErrors.Clear();
+
             // If the Gem settings are not yet set, these need to be set first before
             // doing anything else
             while (!gem.ReadLocalAppData() || string.IsNullOrWhiteSpace(gem.LocalAppData.ReposDirectory))
@@ -136,7 +138,7 @@ namespace GitEnlistmentManager.Extensions
                 var repoCollectionDefinitionInfo = new DirectoryInfo(repoCollectionDefinitionDirectory);
                 if (!repoCollectionDefinitionInfo.Exists)
                 {
-                    MessageBox.Show($"Repo collection definition directory {repoCollectionDefinitionInfo.FullName} was not found");
+                    Gem.LoadingErrors.Add($"Repo collection definition directory {repoCollectionDefinitionInfo.FullName} was not found");
                     continue;
                 }
 
@@ -221,29 +223,37 @@ namespace GitEnlistmentManager.Extensions
             commandSetDirectories.Add(gem.GetDefaultCommandSetsDirectory().FullName);
             commandSetDirectories.AddRange(gem.LocalAppData.CommandSetDirectories);
 
-            foreach (var commandSetDirectory in commandSetDirectories)
+            try
             {
-                var commandSetDirectoryInfo = new DirectoryInfo(commandSetDirectory);
-                if (!commandSetDirectoryInfo.Exists)
+                foreach (var commandSetDirectory in commandSetDirectories)
                 {
-                    MessageBox.Show($"Command set directory {commandSetDirectoryInfo.FullName} was not found");
-                    continue;
-                }
-
-                // Loop through all the command set definitions that are present here
-                var commandDefinitions = commandSetDirectoryInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
-                foreach (var commandDefinition in commandDefinitions)
-                {
-                    var commandSet = CommandSet.ReadCommandSet(commandDefinition.FullName);
-                    if (commandSet == null)
+                    var commandSetDirectoryInfo = new DirectoryInfo(commandSetDirectory);
+                    if (!commandSetDirectoryInfo.Exists)
                     {
+                        Gem.LoadingErrors.Add($"Command set directory {commandSetDirectoryInfo.FullName} was not found");
                         continue;
                     }
 
-                    // We always load all command sets. It's when we run them that we decide how to pick which one overrides the others
-                    // The important part here is that they are loaded in the same order that the command set directories are defined by the user.
-                    gem.CommandSets.Add(commandSet);
+                    // Loop through all the command set definitions that are present here
+                    var commandDefinitions = commandSetDirectoryInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
+                    foreach (var commandDefinition in commandDefinitions)
+                    {
+                        var readResult = CommandSet.ReadCommandSet(commandDefinition.FullName);
+                        if (readResult.CommandSet == null)
+                        {
+                            Gem.LoadingErrors.Add(readResult.LoadingError);
+                            continue;
+                        }
+
+                        // We always load all command sets. It's when we run them that we decide how to pick which one overrides the others
+                        // The important part here is that they are loaded in the same order that the command set directories are defined by the user.
+                        gem.CommandSets.Add(readResult.CommandSet);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading Command Sets: {ex.Message}");
             }
 
             // Commands are a hardcoded list from within the program
@@ -264,12 +274,12 @@ namespace GitEnlistmentManager.Extensions
             gem.Commands.Add(typeof(GitSetPushDetailsCommand));
             gem.Commands.Add(typeof(GitSetUserDetailsCommand));
             gem.Commands.Add(typeof(ListTokensCommand));
+            gem.Commands.Add(typeof(ManageRemoteBranchesCommand));
             gem.Commands.Add(typeof(OpenRootSolutionCommand));
-            gem.Commands.Add(typeof(RecreateFromRemoteCommand));
             gem.Commands.Add(typeof(RefreshTreeviewCommand));
             gem.Commands.Add(typeof(RunProgramCommand));
             gem.Commands.Add(typeof(ShowHelpCommand));
-            return true;
+            return Gem.LoadingErrors.Count == 0;
         }
 
         private static void WriteDefaultCommandSets(Gem gem)
@@ -290,10 +300,10 @@ namespace GitEnlistmentManager.Extensions
                 new EditGemSettingsCommandSet(),
                 new EditRepoSettingsCommandSet(),
                 new GemStatusCommandSet(),
+                new ManageRemoteBranchesCommandSet(),
                 new OpenDevVS2022CommandSet(),
                 new OpenRootSolutionCommandSet(),
                 new PRCommandSet(),
-                new RecreateFromRemoteCommandSet(),
                 new RefreshTreeviewCommandSet(),
                 new ShowHelpCommandSet(),
             };
@@ -417,7 +427,7 @@ namespace GitEnlistmentManager.Extensions
         public static List<CommandSet> GetCommandSets(this Gem gem, CommandSetPlacement placement, CommandSetMode mode, RepoCollection? repoCollection = null, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
         {
             var allCommandSets = gem.CommandSets.Where(cs =>
-                (cs.Placement == placement || cs.Placement == CommandSetPlacement.All)
+                cs.Placement == placement
                 && cs.Matches(
                     repoCollection: repoCollection,
                     repo: repo,

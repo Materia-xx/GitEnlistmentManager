@@ -32,7 +32,21 @@ namespace GitEnlistmentManager
         {
             if (!await this.ReloadTreeview().ConfigureAwait(false))
             {
-                this.Close();
+                await this.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        if (Gem.LoadingErrors.Any())
+                        {
+                            MessageBox.Show(string.Join(Environment.NewLine, Gem.LoadingErrors));
+                        }
+                    }
+                    catch { }
+                    finally
+                    {
+                        this.Close();
+                    }
+                });
             }
             FullyLoaded?.Invoke(this, new EventArgs());
         }

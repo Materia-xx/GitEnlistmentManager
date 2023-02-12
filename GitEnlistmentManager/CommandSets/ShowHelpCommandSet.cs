@@ -6,7 +6,7 @@ namespace GitEnlistmentManager.CommandSets
     {
         public ShowHelpCommandSet()
         {
-            Placement = CommandSetPlacement.All;
+            Placement = CommandSetPlacement.Gem;
             OverrideKey = "help";
             RightClickText = "Help";
             Verb = "help";

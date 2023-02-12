@@ -67,7 +67,7 @@ namespace GitEnlistmentManager.CommandSets
             return true;
         }
 
-        public static CommandSet? ReadCommandSet(string commandSetPath)
+        public static (CommandSet? CommandSet, string LoadingError) ReadCommandSet(string commandSetPath)
         {
             try
             {
@@ -75,17 +75,15 @@ namespace GitEnlistmentManager.CommandSets
                 var commandSet = JsonConvert.DeserializeObject<CommandSet>(commandSetJson, GemJsonSerializer.Settings);
                 if (commandSet == null)
                 {
-                    MessageBox.Show($"Unable to deserialize Command set from {commandSetPath}");
-                    return null;
+                    return (null, $"Deserializing {commandSetPath} returned null");
                 }
                 commandSet.Filename = Path.GetFileName(commandSetPath);
-                return commandSet;
+                return (commandSet, string.Empty);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading Command set: {ex.Message}");
+                return (null, $"Deserializing {commandSetPath} produced exception: {ex.Message}");
             }
-            return null;
         }
     }
 }
