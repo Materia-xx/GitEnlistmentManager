@@ -232,6 +232,9 @@ namespace GitEnlistmentManager
                 return;
             }
 
+            // TODO: this is the git command to run
+            // git push origin --delete user/Materia/trim/010000.w1
+
             // TODO: write code
         }
 
