@@ -206,8 +206,7 @@ namespace GitEnlistmentManager.Extensions
                 // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl,
-                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
-                PullFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom
+                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom
             });
 
             // Create the branch that this enlistment will be working in
@@ -217,7 +216,10 @@ namespace GitEnlistmentManager.Extensions
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
-            createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand());
+            createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
+            {
+                PullFromBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom
+            });
 
             // Always push to a branch in the main repo and always push to a branch with the same name as the current one
             createEnlistmentCommandSet.Commands.Add(new GitSetPushDetailsCommand());
@@ -229,6 +231,21 @@ namespace GitEnlistmentManager.Extensions
             if (!await mainWindow.RunCommandSet(createEnlistmentCommandSet, nodeContext).ConfigureAwait(false))
             {
                 return false;
+            }
+
+            // If placing an enlistment above, the child (focused in the UI) enlistment needs to be now re-parented
+            // This needs to be ran after the above command set is complete, otherwise enlistment.GetFullGitBranch won't work correctly
+            if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove && childEnlistment != null) // TODO: is it possible to pull the placement bits out of this function and into the callers that are creating those placements?
+            {
+                // This sets the *branch* and *URL* that the enlistment will pull from
+                if (!await new GitSetPullDetailsCommand()
+                {
+                    EnlistmentOverride = childEnlistment,
+                    PullFromBranch = await enlistment.GetFullGitBranch().ConfigureAwait(false)
+                }.Execute(nodeContext, mainWindow).ConfigureAwait(false))
+                {
+                    return false;
+                }
             }
 
             // Run any "After Enlistment Create" command sets attached to this enlistment

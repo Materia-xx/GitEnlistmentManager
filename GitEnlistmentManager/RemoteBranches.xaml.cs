@@ -268,12 +268,14 @@ namespace GitEnlistmentManager
                 // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = bucket.Repo.Metadata.CloneUrl,
-                BranchFrom = cloneFromBranch,
-                PullFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? bucket.Repo.Metadata.BranchFrom
+                BranchFrom = cloneFromBranch
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
-            recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand());
+            recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
+            {
+                PullFromBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? bucket.Repo.Metadata.BranchFrom
+            });
 
             // Always push to a branch in the main repo and always push to a branch with the same name as the current one
             recreateEnlistmentCommandSet.Commands.Add(new GitSetPushDetailsCommand());
