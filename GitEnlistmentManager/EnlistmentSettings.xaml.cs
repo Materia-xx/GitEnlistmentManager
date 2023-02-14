@@ -1,6 +1,4 @@
-﻿using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.Globals;
-using System.Windows;
+﻿using System.Windows;
 
 namespace GitEnlistmentManager
 {
@@ -9,16 +7,25 @@ namespace GitEnlistmentManager
     /// </summary>
     public partial class EnlistmentSettings : Window
     {
-        public string? BucketName { get; set; }
-        public string? EnlistmentName { get; set; }
+        private EnlistmentSettingsDialogResult dialogResult;
 
         public EnlistmentSettings(string? bucketName, string? enlistmentName, bool bucketNameIsEnabled = false)
         {
             InitializeComponent();
-            this.BucketName = bucketName;
-            this.EnlistmentName= enlistmentName;
             txtBucketName.IsEnabled = bucketNameIsEnabled;
+            dialogResult = new EnlistmentSettingsDialogResult()
+            {
+                BucketName = bucketName,
+                EnlistmentName = enlistmentName,
+                ScopeToBranch = true
+            };
             this.DtoToForm();
+        }
+
+        public new EnlistmentSettingsDialogResult? ShowDialog()
+        {
+            var result = base.ShowDialog();
+            return (result.HasValue && result.Value) ? dialogResult : null;
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
@@ -33,19 +40,29 @@ namespace GitEnlistmentManager
 
         private void FormToDto()
         {
-            this.BucketName = this.txtBucketName.Text;
-            this.EnlistmentName = this.txtEnlistmentName.Text;
+            dialogResult.BucketName = this.txtBucketName.Text;
+            dialogResult.EnlistmentName = this.txtEnlistmentName.Text;
+            dialogResult.ScopeToBranch = this.chkScopeToBranch.IsChecked.HasValue && this.chkScopeToBranch.IsChecked.Value;
         }
 
         private void DtoToForm()
         {
-            this.txtBucketName.Text = this.BucketName;
-            this.txtEnlistmentName.Text = this.EnlistmentName;
+            this.txtBucketName.Text = dialogResult.BucketName;
+            this.txtEnlistmentName.Text = dialogResult.EnlistmentName;
+            this.chkScopeToBranch.IsChecked = dialogResult.ScopeToBranch;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.txtEnlistmentName.Focus();
         }
+
+        public class EnlistmentSettingsDialogResult
+        {
+            public string? BucketName { get; set; }
+            public string? EnlistmentName { get; set; }
+            public bool ScopeToBranch { get; set; } = true;
+        }
+
     }
 }

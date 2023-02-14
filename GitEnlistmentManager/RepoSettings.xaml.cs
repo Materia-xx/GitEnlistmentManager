@@ -69,9 +69,6 @@ namespace GitEnlistmentManager
                 return;
             }
 
-            // TODO: add validation for other fields too
-
-
             // Transfer data from form to DTO
             FormToDto();
             this.DialogResult = true;

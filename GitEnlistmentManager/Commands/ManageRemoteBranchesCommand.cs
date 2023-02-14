@@ -1,26 +1,24 @@
 ﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    internal class ManageRemoteBranchesCommand : ICommand
+    internal class ManageRemoteBranchesCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Shows the manage remote branches window.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public ManageRemoteBranchesCommand()
         {
+            this.CommandDocumentation = "Shows the manage remote branches window.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Repo != null)
+            if (this.NodeContext.Repo != null)
             {
-                await mainWindow.Dispatcher.InvokeAsync(() =>
+                await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
                 {
-                    var remoteBranches = new RemoteBranches(nodeContext.Repo, mainWindow);
+                    var remoteBranches = new RemoteBranches(this.NodeContext.Repo);
                     remoteBranches.ShowDialog();
                 });
             }

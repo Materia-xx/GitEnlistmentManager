@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,44 +8,37 @@ using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class CreateEnlistmentCommand : ICommand
+    public class CreateEnlistmentCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Creates an Enlistment attached to a Bucket of choice.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public CreateEnlistmentCommand()
         {
+            this.CommandDocumentation = "Creates an Enlistment attached to a Bucket of choice.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Bucket != null)
+            if (this.NodeContext.Bucket != null)
             {
-                var enlistment = new Enlistment(nodeContext.Bucket);
-                bool dialogSuccess = false;
+                var enlistment = new Enlistment(this.NodeContext.Bucket);
+                EnlistmentSettings.EnlistmentSettingsDialogResult? result = null;
+
                 await Application.Current.Dispatcher.BeginInvoke(() => 
                 {
                     var enlistmentSettingsEditor = new EnlistmentSettings(enlistment.Bucket.GemName, enlistment.GemName);
-                    var result = enlistmentSettingsEditor.ShowDialog();
-                    if (result.HasValue && result.Value)
+                    result = enlistmentSettingsEditor.ShowDialog();
+                    if (result != null)
                     {
-                        enlistment.Bucket.GemName = enlistmentSettingsEditor.BucketName;
-                        enlistment.GemName = enlistmentSettingsEditor.EnlistmentName;
-                        dialogSuccess = true;
-                    }
-                    else
-                    {
-                        dialogSuccess = false;
+                        enlistment.Bucket.GemName = result.BucketName;
+                        enlistment.GemName = result.EnlistmentName;
                     }
                 });
-                if (!dialogSuccess)
+                if (result == null)
                 {
                     return false;
                 }
 
                 // After the editor closes, create the enlistment
-                return await enlistment.CreateEnlistment(mainWindow, EnlistmentPlacement.PlaceAtEnd).ConfigureAwait(false);
+                return await enlistment.CreateEnlistment(EnlistmentPlacement.PlaceAtEnd, childEnlistment: null, result.ScopeToBranch).ConfigureAwait(false);
             }
             return false;
         }

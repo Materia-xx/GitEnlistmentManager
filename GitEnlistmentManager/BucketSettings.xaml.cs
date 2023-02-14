@@ -1,6 +1,4 @@
 ﻿using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.Extensions;
-using GitEnlistmentManager.Globals;
 using System;
 using System.Windows;
 
@@ -12,13 +10,11 @@ namespace GitEnlistmentManager
     public partial class BucketSettings : Window
     {
         private readonly Bucket bucket;
-        private readonly MainWindow mainWindow;
 
-        public BucketSettings(Bucket bucket, MainWindow mainWindow)
+        public BucketSettings(Bucket bucket)
         {
             InitializeComponent();
             this.bucket = bucket;
-            this.mainWindow = mainWindow;
             this.DtoToForm();
         }
 

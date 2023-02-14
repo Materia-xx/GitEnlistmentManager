@@ -447,24 +447,7 @@ namespace GitEnlistmentManager.Extensions
                     break;
             }
 
-            var commandSets = new List<CommandSet>();
-            // Process in reverse so it's easier to add overridden command sets. They are overridden by the override key.
-            foreach (var acs in allCommandSets.Reverse())
-            {
-                // A command set that doesn't have a override key isn't valid
-                if (acs.OverrideKey == null)
-                {
-                    MessageBox.Show($"Command set {acs.Filename} is missing an override key and is being skipped.");
-                    continue;
-                }
-                if (!commandSets.Any(cs => cs.OverrideKey != null && cs.OverrideKey.Equals(acs.OverrideKey, StringComparison.OrdinalIgnoreCase)))
-                {
-                    commandSets.Add(acs);
-                }
-            }
-            commandSets.Reverse();
-
-            return commandSets;
+            return allCommandSets.ToList().RemoveTheOverriddenDefaultCommandSets();
         }
     }
 }

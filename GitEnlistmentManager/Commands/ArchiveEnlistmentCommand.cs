@@ -1,5 +1,7 @@
-﻿using GitEnlistmentManager.DTOs;
+﻿using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
@@ -10,41 +12,43 @@ using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class ArchiveEnlistmentCommand : ICommand
+    public class ArchiveEnlistmentCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Archives an enlistment in an archive bucket in the same repo.";
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public ArchiveEnlistmentCommand() 
         {
-            if (nodeContext.Bucket == null || arguments.Count == 0)
+            this.CommandDocumentation = "Archives an enlistment in an archive bucket in the same repo.";
+        }
+
+        public override void ParseArgs(Stack<string> arguments)
+        {
+            if (this.NodeContext.Bucket == null || arguments.Count == 0)
             {
                 return;
             }
 
             var enlistmentName = arguments.Peek();
-            var enlistment = nodeContext.Bucket.Enlistments.FirstOrDefault(e => e.GemName == enlistmentName);
+            var enlistment = this.NodeContext.Bucket.Enlistments.FirstOrDefault(e => e.GemName == enlistmentName);
             if (enlistment != null)
             {
-                nodeContext.Enlistment = enlistment;
+                this.NodeContext.Enlistment = enlistment;
                 arguments.Pop();
             }
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public async override Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null)
+            if (this.NodeContext.Enlistment == null)
             {
                 return false;
             }
 
-            var repoDirectory = nodeContext.Enlistment.Bucket.Repo.GetDirectoryInfo()?.FullName;
+            var repoDirectory = this.NodeContext.Enlistment.Bucket.Repo.GetDirectoryInfo()?.FullName;
             if (repoDirectory == null)
             {
                 return false;
             }
 
-            var enlistmentDirectory = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            var enlistmentDirectory = this.NodeContext.Enlistment.GetDirectoryInfo()?.FullName;
             if (enlistmentDirectory == null)
             {
                 return false;
@@ -58,7 +62,7 @@ namespace GitEnlistmentManager.Commands
             }
 
             // Find a spot to store the archive
-            var archiveSlots = nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.ArchiveSlots;
+            var archiveSlots = Gem.Instance.LocalAppData.ArchiveSlots;
             var archiveDirs = archiveDirectoryInfo.GetDirectories().ToList().OrderByDescending(d => d.CreationTime);
             var usedSlots = 0;
             // Recycle directories so we have at-least 1 spot free
@@ -90,7 +94,7 @@ namespace GitEnlistmentManager.Commands
 
             try
             {
-                var childEnlistment = nodeContext.Enlistment.GetChildEnlistment();
+                var childEnlistment = this.NodeContext.Enlistment.GetChildEnlistment();
                 if (!archiveSlotDirectoryInfo.Exists)
                 {
                     archiveSlotDirectoryInfo.Create();
@@ -100,14 +104,19 @@ namespace GitEnlistmentManager.Commands
                 enlistmentDirectoryInfo.MoveTo(archiveToInfo.FullName);
 
                 // Remove the enlistment from GEM config, otherwise re-parenting will just re-parent it back to the thing we just moved.
-                nodeContext.Enlistment.Bucket.Enlistments.Remove(nodeContext.Enlistment);
+                this.NodeContext.Enlistment.Bucket.Enlistments.Remove(this.NodeContext.Enlistment);
                 if (childEnlistment != null)
                 {
-                    // Change NodeContext.Enlistment focus to the child before re-parenting so it knows what enlistment needs to be re-parented
-                    nodeContext.Enlistment = childEnlistment;
                     // This sets the *branch* and *URL* that the enlistment will pull from
-                    var setPullDetailsCommand = new GitSetPullDetailsCommand();
-                    if (!await setPullDetailsCommand.Execute(nodeContext, mainWindow).ConfigureAwait(false))
+                    var setPullDetailsCommandSet = new CommandSet();
+                    var setPullCommand = new GitSetPullDetailsCommand()
+                    {
+                        ScopeToBranch = false
+                    };
+                    // Change NodeContext.Enlistment focus to the child before re-parenting so it knows what enlistment needs to be re-parented
+                    setPullCommand.NodeContext.Enlistment = childEnlistment;
+                    setPullDetailsCommandSet.Commands.Add(setPullCommand);
+                    if (!await Global.Instance.MainWindow.RunCommandSet(setPullDetailsCommandSet, this.NodeContext).ConfigureAwait(false))
                     {
                         return false;
                     }

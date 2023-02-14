@@ -1,23 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class EditGemSettingsCommand : ICommand
+    public class EditGemSettingsCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Opens the Gem Settings editor.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public EditGemSettingsCommand()
         {
+            this.CommandDocumentation = "Opens the Gem Settings editor.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
             bool? result = null;
-            await mainWindow.Dispatcher.InvokeAsync(() =>
+            await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
                 var gemSettingsEditor = new GemSettings(Gem.Instance);
                 result = gemSettingsEditor.ShowDialog();

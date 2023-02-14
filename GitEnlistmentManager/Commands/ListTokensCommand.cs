@@ -1,5 +1,5 @@
 ﻿using GitEnlistmentManager.DTOs;
-using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,27 +7,24 @@ using System.Windows.Media;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class ListTokensCommand : ICommand
+    public class ListTokensCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Lists the tokens.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public ListTokensCommand()
         {
+            this.CommandDocumentation = "Lists the tokens.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            var tokens = await nodeContext.GetTokens().ConfigureAwait(false);
-            await mainWindow.ClearCommandWindow().ConfigureAwait(false);
+            var tokens = await this.NodeContext.GetTokens().ConfigureAwait(false);
+            await Global.Instance.MainWindow.ClearCommandWindow().ConfigureAwait(false);
 
             var tokenKeys = tokens.Keys.ToList();
             tokenKeys.Sort();
 
             foreach (var tokenKey in tokenKeys)
             {
-                await mainWindow.AppendCommandLine($"{tokenKey} = {tokens[tokenKey]}", Brushes.AliceBlue).ConfigureAwait(false);
+                await Global.Instance.MainWindow.AppendCommandLine($"{tokenKey} = {tokens[tokenKey]}", Brushes.AliceBlue).ConfigureAwait(false);
             }
             return true;
         }

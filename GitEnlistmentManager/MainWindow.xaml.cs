@@ -175,7 +175,8 @@ namespace GitEnlistmentManager
                     {
                         foreach (var commandSetCommand in commandSet.Commands)
                         {
-                            commandSetCommand.ParseArgs(nodeContext, remainingArgsStack);
+                            commandSetCommand.NodeContext.SetBaseContext(nodeContext);
+                            commandSetCommand.ParseArgs(remainingArgsStack);
                         }
                         await this.RunCommandSet(
                             commandSet: commandSet,
@@ -326,8 +327,10 @@ namespace GitEnlistmentManager
         {
             foreach (var command in commandSet.Commands)
             {
+                command.NodeContext.SetBaseContext(nodeContext);
+
                 // Execute the command and if the command was not successful then end now, returning false for the command set
-                if (!await command.Execute(nodeContext, this).ConfigureAwait(false))
+                if (!await command.Execute().ConfigureAwait(false))
                 {
                     return false;
                 }

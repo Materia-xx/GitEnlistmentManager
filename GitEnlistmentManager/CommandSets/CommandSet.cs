@@ -26,7 +26,7 @@ namespace GitEnlistmentManager.CommandSets
         [JsonIgnore]
         public string? Filename { get; set; }
 
-        public List<ICommand> Commands { get; } = new();
+        public List<Command> Commands { get; } = new();
 
         public List<ICommandSetFilter> Filters { get; set; } = new();
 

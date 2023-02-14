@@ -1,8 +1,10 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,17 +12,14 @@ using System.Windows.Media;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class ShowHelpCommand : ICommand
+    public class ShowHelpCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Shows help.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public ShowHelpCommand() 
         {
+            this.CommandDocumentation = "Shows help.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
             var helpText = new StringBuilder();
             helpText.AppendLine(@"GEM - Git Enlistment Manager
@@ -80,12 +79,12 @@ setting in the Gem settings window.
 Following is a list of all Command Sets currently loaded:
             ");
 
-            // TODO: only show overrides if there is one
-            // TODO: Sort so things are ordered by placement, then verb
+            var commandSets = Gem.Instance.CommandSets.RemoveTheOverriddenDefaultCommandSets();
+            commandSets = commandSets.OrderBy(cs => cs.Placement).ThenBy(cs => cs.Verb).ToList();
 
-            foreach (var commandSet in Gem.Instance.CommandSets)
+            foreach (var commandSet in commandSets)
             {
-                // Help only shows command sets that hav a verb
+                // Help only shows command sets that have a verb
                 if (!string.IsNullOrWhiteSpace(commandSet.Verb))
                 {
                     helpText.AppendLine($"[{commandSet.Placement}] {commandSet.Verb} - {commandSet.CommandSetDocumentation}");
@@ -98,15 +97,25 @@ Following is a list of all known Commands:
 
             foreach (var commandType in Gem.Instance.Commands)
             {
-                var cmd = Activator.CreateInstance(commandType) as ICommand;
+                var cmd = Activator.CreateInstance(commandType) as Command;
                 if (cmd != null)
                 {
                     helpText.AppendLine($"{commandType.Name} - {cmd.CommandDocumentation}");
                 }
             }
 
-            await mainWindow.ClearCommandWindow().ConfigureAwait(false);
-            await mainWindow.AppendCommandLine(helpText.ToString(), Brushes.AliceBlue).ConfigureAwait(false);
+            helpText.AppendLine(@"
+Managing Server Branches
+
+In the manage server branches dialog you can recreate branches that only exist on the remote server or delete them.
+When using the re-create remote branch option, keep in mind the following tips to achieve success.
+* Only branches that originally existed in a bucket should be recreated in that bucket.
+* Branches should be re-created in the same order they originally existed in the bucket.
+");
+
+
+            await Global.Instance.MainWindow.ClearCommandWindow().ConfigureAwait(false);
+            await Global.Instance.MainWindow.AppendCommandLine(helpText.ToString(), Brushes.AliceBlue).ConfigureAwait(false);
 
             return true;
         }

@@ -8,30 +8,28 @@ using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class OpenRootSolutionCommand : ICommand
+    public class OpenRootSolutionCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = true;
-
-        public string CommandDocumentation { get; set; } = "Opens a root solution in an enlistment.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public OpenRootSolutionCommand() 
         {
+            this.CommandDocumentation = "Opens a root solution in an enlistment.";
+            this.OpenNewWindow = true;
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null || nodeContext.Repo == null)
+            if (this.NodeContext.Enlistment == null || this.NodeContext.Repo == null)
             {
                 return false;
             }
 
-            var enlistmentDirectory = nodeContext.Enlistment?.GetDirectoryInfo();
+            var enlistmentDirectory = this.NodeContext.Enlistment?.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
                 return false;
             }
 
-            var repoDirectory = nodeContext.Repo?.GetDirectoryInfo();
+            var repoDirectory = this.NodeContext.Repo?.GetDirectoryInfo();
             if (repoDirectory == null)
             {
                 return false;

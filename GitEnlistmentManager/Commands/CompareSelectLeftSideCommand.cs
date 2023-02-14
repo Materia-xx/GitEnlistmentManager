@@ -6,24 +6,21 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class CompareSelectLeftSideCommand : ICommand
+    public class CompareSelectLeftSideCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Selects the left side of the comparison";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public CompareSelectLeftSideCommand() 
         {
+            this.CommandDocumentation = "Selects the left side of the comparison";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null)
+            if (this.NodeContext.Enlistment == null)
             {
                 return false;
             }
 
-            var leftDirectoryCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            var leftDirectoryCompare = this.NodeContext.Enlistment.GetDirectoryInfo()?.FullName;
             if (leftDirectoryCompare != null)
             {
                 CommandSetMemory.Memory["LeftDirectoryCompare"] = leftDirectoryCompare;

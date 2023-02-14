@@ -22,14 +22,12 @@ namespace GitEnlistmentManager
         private static readonly string refsHeads = "refs/heads/";
 
         private Repo repo;
-        private MainWindow mainWindow;
         private DirectoryInfo? trackingRepoDirectory;
 
-        public RemoteBranches(Repo repo, MainWindow mainWindow)
+        public RemoteBranches(Repo repo)
         {
             InitializeComponent();
             this.repo = repo;
-            this.mainWindow = mainWindow;
 
             // The default remote branch filter
             txtBranchPrefixFilter.Text = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
@@ -196,51 +194,47 @@ namespace GitEnlistmentManager
                 bucketName = branchParts[1];
             }
 
-            bool dialogSuccess = false;
-            await mainWindow.Dispatcher.InvokeAsync(() =>
+            EnlistmentSettings.EnlistmentSettingsDialogResult? result = null;
+            await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
                 var enlistmentSettingsEditor = new EnlistmentSettings(bucketName, enlistmentName, true);
                 var result = enlistmentSettingsEditor.ShowDialog();
-                if (result.HasValue && result.Value)
+                if (result != null)
                 {
-                    bucketName = enlistmentSettingsEditor.BucketName;
-                    enlistmentName = enlistmentSettingsEditor.EnlistmentName;
-                    dialogSuccess = true;
-                }
-                else
-                {
-                    dialogSuccess = false;
+                    bucketName = result.BucketName;
+                    enlistmentName = result.EnlistmentName;
                 }
             });
-            if (!dialogSuccess)
+            if (result == null)
             {
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(enlistmentName) || string.IsNullOrWhiteSpace(bucketName))
             {
-                await mainWindow.AppendCommandLine($"Skipping re-creation of enlistment because required fields are not provided", Brushes.White).ConfigureAwait(false);
+                await Global.Instance.MainWindow.AppendCommandLine($"Skipping re-creation of enlistment because required fields are not provided", Brushes.White).ConfigureAwait(false);
                 return;
             }
 
-            await mainWindow.AppendCommandLine($"Re-creating branch '{dto.BranchName}'", Brushes.White).ConfigureAwait(false);
+            await Global.Instance.MainWindow.AppendCommandLine($"Re-creating branch '{dto.BranchName}'", Brushes.White).ConfigureAwait(false);
 
             // Look for an existing bucket with this name
             var bucket = this.repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
 
-            // TODO: document how to use the re-create option correctly
-            // TODO: - Only branches that originally existed in a bucket should be recreated in that bucket.
-            // TODO: - Branches should be re-created in the same order they originally existed in the bucket.
-
             // If the bucket doesn't exist yet, then create it
             if (bucket == null)
             {
+                var thisRepoNodeContext = GemNodeContext.GetNodeContext(repo: this.repo);
+                var createBucketCommandSet = new CommandSet();
+
                 var createBucketCommand = new CreateBucketCommand()
                 {
                     BucketName = bucketName
                 };
-                await mainWindow.AppendCommandLine($"Re-creating bucket '{bucketName}'", Brushes.White).ConfigureAwait(false);
-                await createBucketCommand.Execute(GemNodeContext.GetNodeContext(repo: this.repo), mainWindow).ConfigureAwait(false);
+                createBucketCommandSet.Commands.Add(createBucketCommand);
+                await Global.Instance.MainWindow.AppendCommandLine($"Re-creating bucket '{bucketName}'", Brushes.White).ConfigureAwait(false);
+                await Global.Instance.MainWindow.RunCommandSet(createBucketCommandSet, thisRepoNodeContext).ConfigureAwait(false);
+
                 if (createBucketCommand.ResultBucket == null)
                 {
                     MessageBox.Show($"Failed to create the bucket {bucketName}");
@@ -268,13 +262,15 @@ namespace GitEnlistmentManager
                 // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = bucket.Repo.Metadata.CloneUrl,
-                BranchFrom = cloneFromBranch
+                BranchFrom = cloneFromBranch,
+                ScopeToBranch = result.ScopeToBranch
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
             recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
             {
-                PullFromBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? bucket.Repo.Metadata.BranchFrom
+                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? bucket.Repo.Metadata.BranchFrom,
+                ScopeToBranch = result.ScopeToBranch
             });
 
             // Always push to a branch in the main repo and always push to a branch with the same name as the current one
@@ -291,7 +287,7 @@ namespace GitEnlistmentManager
                 enlistment: enlistment);
 
             // Run the command set
-            await mainWindow.RunCommandSet(recreateEnlistmentCommandSet, recreateNodeContext).ConfigureAwait(false);
+            await Global.Instance.MainWindow.RunCommandSet(recreateEnlistmentCommandSet, recreateNodeContext).ConfigureAwait(false);
         }
 
         public async void BtnDelete_Click(object sender, RoutedEventArgs e)

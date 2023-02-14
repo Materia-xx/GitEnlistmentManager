@@ -1,6 +1,7 @@
 ﻿using GitEnlistmentManager.Commands;
 using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -88,8 +89,7 @@ namespace GitEnlistmentManager.Extensions
             return null;
         }
 
-        // TODO: move this into the createEnlistmentCommand ?
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, MainWindow mainWindow, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment = null)
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment, bool scopeToBranch)
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
@@ -123,7 +123,7 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            await mainWindow.ClearCommandWindow().ConfigureAwait(false);
+            await Global.Instance.MainWindow.ClearCommandWindow().ConfigureAwait(false);
 
             Enlistment? parentEnlistment = null;
             int newNumberPrefix = -1;
@@ -138,7 +138,7 @@ namespace GitEnlistmentManager.Extensions
                         parentEnlistment = enlistment.Bucket.Enlistments.FirstOrDefault(e => e.GetNumberPrefix() == lastEnlistmentNumberPrefix);
                         if (parentEnlistment != null)
                         {
-                            newNumberPrefix = parentEnlistment.GetNumberPrefix() + enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.EnlistmentIncrement;
+                            newNumberPrefix = parentEnlistment.GetNumberPrefix() + Gem.Instance.LocalAppData.EnlistmentIncrement;
                         }
 
                         // Add the enlistment to the end of the enlistment settings
@@ -206,7 +206,8 @@ namespace GitEnlistmentManager.Extensions
                 // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl,
-                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom
+                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
+                ScopeToBranch = scopeToBranch
             });
 
             // Create the branch that this enlistment will be working in
@@ -218,7 +219,8 @@ namespace GitEnlistmentManager.Extensions
             // This sets the *branch* and *URL* that the enlistment will pull from
             createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
             {
-                PullFromBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom
+                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
+                ScopeToBranch = scopeToBranch
             });
 
             // Always push to a branch in the main repo and always push to a branch with the same name as the current one
@@ -228,35 +230,38 @@ namespace GitEnlistmentManager.Extensions
             createEnlistmentCommandSet.Commands.Add(new GitSetUserDetailsCommand());
 
             // Run all the commands
-            if (!await mainWindow.RunCommandSet(createEnlistmentCommandSet, nodeContext).ConfigureAwait(false))
+            if (!await Global.Instance.MainWindow.RunCommandSet(createEnlistmentCommandSet, nodeContext).ConfigureAwait(false))
             {
                 return false;
             }
 
             // If placing an enlistment above, the child (focused in the UI) enlistment needs to be now re-parented
             // This needs to be ran after the above command set is complete, otherwise enlistment.GetFullGitBranch won't work correctly
-            if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove && childEnlistment != null) // TODO: is it possible to pull the placement bits out of this function and into the callers that are creating those placements?
+            if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove && childEnlistment != null)
             {
-                // This sets the *branch* and *URL* that the enlistment will pull from
-                if (!await new GitSetPullDetailsCommand()
+                var reparentCommandSet = new CommandSet();
+                var setPullCommand = new GitSetPullDetailsCommand()
                 {
-                    EnlistmentOverride = childEnlistment,
-                    PullFromBranch = await enlistment.GetFullGitBranch().ConfigureAwait(false)
-                }.Execute(nodeContext, mainWindow).ConfigureAwait(false))
+                    FetchFilterBranch = await enlistment.GetFullGitBranch().ConfigureAwait(false),
+                    ScopeToBranch = scopeToBranch
+                };
+                setPullCommand.NodeContext.Enlistment = childEnlistment;
+                reparentCommandSet.Commands.Add(setPullCommand);
+                if (!await Global.Instance.MainWindow.RunCommandSet(reparentCommandSet, nodeContext).ConfigureAwait(false))
                 {
                     return false;
                 }
             }
 
             // Run any "After Enlistment Create" command sets attached to this enlistment
-            var afterCloneCommandSets = enlistment.Bucket.Repo.RepoCollection.Gem.GetCommandSets(
+            var afterEnlistmentCreateCommandSet = enlistment.Bucket.Repo.RepoCollection.Gem.GetCommandSets(
                 placement: CommandSetPlacement.AfterEnlistmentCreate,
                 mode: CommandSetMode.Any,
                 repoCollection: enlistment.Bucket.Repo.RepoCollection,
                 repo: enlistment.Bucket.Repo,
                 bucket: enlistment.Bucket,
                 enlistment: enlistment);
-            return await mainWindow.RunCommandSets(afterCloneCommandSets, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
+            return await Global.Instance.MainWindow.RunCommandSets(afterEnlistmentCreateCommandSet, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
         }
 
         public static async Task<Dictionary<string, string>> GetTokens(this Enlistment enlistment)
