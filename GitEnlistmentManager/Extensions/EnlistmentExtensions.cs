@@ -257,7 +257,7 @@ namespace GitEnlistmentManager.Extensions
                     FetchFilterBranch = await enlistment.GetFullGitBranch().ConfigureAwait(false),
                     ScopeToBranch = scopeToBranch
                 };
-                setPullCommand.NodeContext.OverrideNodeContext.Enlistment = childEnlistment;
+                setPullCommand.NodeContext.Enlistment = childEnlistment;
                 reparentCommandSet.Commands.Add(setPullCommand);
                 if (!await reparentCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false))
                 {

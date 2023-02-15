@@ -30,7 +30,7 @@ namespace GitEnlistmentManager.Commands
             var enlistment = this.NodeContext.Bucket.Enlistments.FirstOrDefault(e => e.GemName == enlistmentName);
             if (enlistment != null)
             {
-                this.NodeContext.BaseNodeContext.Enlistment = enlistment;
+                this.NodeContext.Enlistment = enlistment;
                 arguments.Pop();
             }
         }
@@ -114,9 +114,9 @@ namespace GitEnlistmentManager.Commands
                         ScopeToBranch = false
                     };
                     // Change NodeContext.Enlistment focus to the child before re-parenting so it knows what enlistment needs to be re-parented
-                    setPullCommand.NodeContext.BaseNodeContext.Enlistment = childEnlistment;
+                    setPullCommand.NodeContext.Enlistment = childEnlistment;
                     setPullDetailsCommandSet.Commands.Add(setPullCommand);
-                    if (!await setPullDetailsCommandSet.RunCommandSet(this.NodeContext.BaseNodeContext).ConfigureAwait(false))
+                    if (!await setPullDetailsCommandSet.RunCommandSet(this.NodeContext).ConfigureAwait(false))
                     {
                         return false;
                     }

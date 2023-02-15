@@ -235,10 +235,10 @@ namespace GitEnlistmentManager.Extensions
                     }
 
                     // Loop through all the command set definitions that are present here
-                    var commandDefinitions = commandSetDirectoryInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
-                    foreach (var commandDefinition in commandDefinitions)
+                    var commandSetFiles = commandSetDirectoryInfo.GetFiles("*.cmdjson", SearchOption.TopDirectoryOnly);
+                    foreach (var commandSetFile in commandSetFiles)
                     {
-                        var readResult = CommandSet.ReadCommandSet(commandDefinition.FullName);
+                        var readResult = CommandSet.ReadCommandSet(commandSetFile.FullName);
                         if (readResult.CommandSet == null)
                         {
                             Gem.LoadingErrors.Add(readResult.LoadingError);

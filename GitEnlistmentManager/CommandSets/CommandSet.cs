@@ -26,6 +26,9 @@ namespace GitEnlistmentManager.CommandSets
         [JsonIgnore]
         public string? Filename { get; set; }
 
+        [JsonIgnore]
+        public string? LoadedFromPath { get; set; }
+
         public List<Command> Commands { get; } = new();
 
         public List<ICommandSetFilter> Filters { get; set; } = new();
@@ -78,6 +81,7 @@ namespace GitEnlistmentManager.CommandSets
                     return (null, $"Deserializing {commandSetPath} returned null");
                 }
                 commandSet.Filename = Path.GetFileName(commandSetPath);
+                commandSet.LoadedFromPath = commandSetPath;
                 return (commandSet, string.Empty);
             }
             catch (Exception ex)

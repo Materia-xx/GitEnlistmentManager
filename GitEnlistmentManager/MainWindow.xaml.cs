@@ -173,10 +173,22 @@ namespace GitEnlistmentManager
                     }
                     else
                     {
+                        // The command sets loaded in Gem.CommandSets are never actually ran, they are just there to provide the verb for command line parsing and the right click menus
+                        // We always run a freshly created command set each time. This is so that any state changes in the commands are starting fresh each time.
+                        (commandSet, var loadingErrors) = CommandSet.ReadCommandSet(commandSet?.LoadedFromPath ?? string.Empty);
+                        if (commandSet == null)
+                        {
+                            MessageBox.Show(loadingErrors);
+                            return;
+                        }
+
                         foreach (var commandSetCommand in commandSet.Commands)
                         {
-                            commandSetCommand.NodeContext.BaseNodeContext.SetFrom(nodeContext);
+                            // Parse args first, this allows context to be initially set by command line args
                             commandSetCommand.ParseArgs(remainingArgsStack);
+
+                            // If args don't set context, then fall back to the current node context
+                            commandSetCommand.NodeContext.SetIfNotNullFrom(nodeContext);
                         }
                         await commandSet.RunCommandSet(
                             nodeContext: nodeContext
@@ -283,7 +295,17 @@ namespace GitEnlistmentManager
                     menuGemCommandSet.Click += async (s, e) =>
                     {
                         await this.ClearCommandWindow().ConfigureAwait(false);
-                        await gemCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false);
+
+                        // The command sets loaded in Gem.CommandSets are never actually ran, they are just there to provide the verb for command line parsing and the right click menus
+                        // We always run a freshly created command set each time. This is so that any state changes in the commands are starting fresh each time.
+                        (var commandSet, var loadingErrors) = CommandSet.ReadCommandSet(gemCommandSet?.LoadedFromPath ?? string.Empty);
+                        if (commandSet == null)
+                        {
+                            MessageBox.Show(loadingErrors);
+                            return;
+                        }
+
+                        await commandSet.RunCommandSet(nodeContext).ConfigureAwait(false);
                     };
                     menu.Items.Add(menuGemCommandSet);
                 }

@@ -48,28 +48,24 @@ namespace GitEnlistmentManager.Extensions
 
         public static async Task<bool> RunCommandSet(this CommandSet commandSet, GemNodeContext nodeContext)
         {
-            try
+            foreach (var command in commandSet.Commands)
             {
-                foreach (var command in commandSet.Commands)
+                // Commands are intended to run only 1 time because they are stateful.
+                if (command.Executed)
                 {
-                    command.NodeContext.BaseNodeContext.SetFrom(nodeContext);
+                    MessageBox.Show("Commands in a command set can only be run 1 time. This most likely represents a coding error in the program that needs to be fixed.");
+                    return false;
+                }
+                command.MarkAsExecuted();
+                command.NodeContext.SetIfNotNullFrom(nodeContext);
 
-                    // Execute the command and if the command was not successful then end now, returning false for the command set
-                    if (!await command.Execute().ConfigureAwait(false))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            finally
-            {
-                // Command sets will inherit node context while they are running, clear that now
-                foreach (var command in commandSet.Commands)
+                // Execute the command and if the command was not successful then end now, returning false for the command set
+                if (!await command.Execute().ConfigureAwait(false))
                 {
-                    command.NodeContext.BaseNodeContext.Clear();
+                    return false;
                 }
             }
+            return true;
         }
     }
 }

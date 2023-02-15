@@ -6,17 +6,23 @@ namespace GitEnlistmentManager.Commands
 {
     public abstract class Command
     {
+        public bool Executed { get; private set; }
+
         public bool OpenNewWindow { get; set; }
 
         public string? Documentation { get; set; }
 
-        public GemNodeContextSet NodeContext { get; } = new GemNodeContextSet();
+        public GemNodeContext NodeContext { get; } = new GemNodeContext();
 
         public abstract Task<bool> Execute();
 
+        public void MarkAsExecuted()
+        {
+            this.Executed = true;
+        }
+
         /// <summary>
-        /// Parses arguments passed in.
-        /// If this function sets a node context, it should always set the base one.
+        /// Parses any command line arguments
         /// </summary>
         /// <param name="arguments"></param>
         public virtual void ParseArgs(Stack<string> arguments)
