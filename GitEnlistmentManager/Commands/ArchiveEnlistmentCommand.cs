@@ -16,7 +16,7 @@ namespace GitEnlistmentManager.Commands
     {
         public ArchiveEnlistmentCommand() 
         {
-            this.CommandDocumentation = "Archives an enlistment in an archive bucket in the same repo.";
+            this.Documentation = "Archives an enlistment in an archive bucket in the same repo.";
         }
 
         public override void ParseArgs(Stack<string> arguments)
@@ -30,7 +30,7 @@ namespace GitEnlistmentManager.Commands
             var enlistment = this.NodeContext.Bucket.Enlistments.FirstOrDefault(e => e.GemName == enlistmentName);
             if (enlistment != null)
             {
-                this.NodeContext.Enlistment = enlistment;
+                this.NodeContext.BaseNodeContext.Enlistment = enlistment;
                 arguments.Pop();
             }
         }
@@ -114,9 +114,9 @@ namespace GitEnlistmentManager.Commands
                         ScopeToBranch = false
                     };
                     // Change NodeContext.Enlistment focus to the child before re-parenting so it knows what enlistment needs to be re-parented
-                    setPullCommand.NodeContext.Enlistment = childEnlistment;
+                    setPullCommand.NodeContext.BaseNodeContext.Enlistment = childEnlistment;
                     setPullDetailsCommandSet.Commands.Add(setPullCommand);
-                    if (!await Global.Instance.MainWindow.RunCommandSet(setPullDetailsCommandSet, this.NodeContext).ConfigureAwait(false))
+                    if (!await setPullDetailsCommandSet.RunCommandSet(this.NodeContext.BaseNodeContext).ConfigureAwait(false))
                     {
                         return false;
                     }

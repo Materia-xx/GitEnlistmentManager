@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.Commands
     {
         public RefreshTreeviewCommand()
         {
-            this.CommandDocumentation = "Refreshes the Gem Treeview.";
+            this.Documentation = "Refreshes the Gem Treeview.";
         }
 
         public override async Task<bool> Execute()

@@ -28,7 +28,7 @@ namespace GitEnlistmentManager.CommandSets
                 }
             );
 
-            CommandSetDocumentation = "Selects the other enlistment to be compared with the first previously selected enlistment";
+            Documentation = "Selects the other enlistment to be compared with the first previously selected enlistment";
         }
     }
 }

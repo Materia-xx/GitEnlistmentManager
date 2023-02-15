@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public GitSetPullDetailsCommand()
         {
-            this.CommandDocumentation = "Sets the pull details.";
+            this.Documentation = "Sets the pull details.";
         }
 
         public string? FetchFilterBranch { get; set; }

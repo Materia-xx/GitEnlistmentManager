@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.Commands
     {
         public GitSetPushDetailsCommand() 
         {
-            this.CommandDocumentation = "Sets the push details.";
+            this.Documentation = "Sets the push details.";
         }
 
         public override async Task<bool> Execute()

@@ -198,7 +198,7 @@ namespace GitEnlistmentManager
             await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
                 var enlistmentSettingsEditor = new EnlistmentSettings(bucketName, enlistmentName, true);
-                var result = enlistmentSettingsEditor.ShowDialog();
+                result = enlistmentSettingsEditor.ShowDialog();
                 if (result != null)
                 {
                     bucketName = result.BucketName;
@@ -233,7 +233,7 @@ namespace GitEnlistmentManager
                 };
                 createBucketCommandSet.Commands.Add(createBucketCommand);
                 await Global.Instance.MainWindow.AppendCommandLine($"Re-creating bucket '{bucketName}'", Brushes.White).ConfigureAwait(false);
-                await Global.Instance.MainWindow.RunCommandSet(createBucketCommandSet, thisRepoNodeContext).ConfigureAwait(false);
+                await createBucketCommandSet.RunCommandSet(thisRepoNodeContext).ConfigureAwait(false);
 
                 if (createBucketCommand.ResultBucket == null)
                 {
@@ -287,7 +287,7 @@ namespace GitEnlistmentManager
                 enlistment: enlistment);
 
             // Run the command set
-            await Global.Instance.MainWindow.RunCommandSet(recreateEnlistmentCommandSet, recreateNodeContext).ConfigureAwait(false);
+            await recreateEnlistmentCommandSet.RunCommandSet(recreateNodeContext).ConfigureAwait(false);
         }
 
         public async void BtnDelete_Click(object sender, RoutedEventArgs e)

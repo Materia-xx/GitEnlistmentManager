@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public CreateRepoCommand()
         {
-            this.CommandDocumentation = "Creates a Repository attached to a Repository Collection, defined in your settings.";
+            this.Documentation = "Creates a Repository attached to a Repository Collection, defined in your settings.";
         }
 
         public override async Task<bool> Execute()

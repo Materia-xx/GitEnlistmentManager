@@ -256,29 +256,6 @@ namespace GitEnlistmentManager.Extensions
                 MessageBox.Show($"Error loading Command Sets: {ex.Message}");
             }
 
-            // Commands are a hardcoded list from within the program
-            gem.Commands.Clear();
-            gem.Commands.Add(typeof(ArchiveEnlistmentCommand));
-            gem.Commands.Add(typeof(CompareSelectLeftSideCommand));
-            gem.Commands.Add(typeof(CompareToLeftSideCommand));
-            gem.Commands.Add(typeof(CreateBucketCommand));
-            gem.Commands.Add(typeof(CreateEnlistmentAboveCommand));
-            gem.Commands.Add(typeof(CreateEnlistmentCommand));
-            gem.Commands.Add(typeof(CreateRepoCommand));
-            gem.Commands.Add(typeof(DeleteBucketCommand));
-            gem.Commands.Add(typeof(EditGemSettingsCommand));
-            gem.Commands.Add(typeof(EditRepoSettingsCommand));
-            gem.Commands.Add(typeof(GitCloneCommand));
-            gem.Commands.Add(typeof(GitCreateBranchCommand));
-            gem.Commands.Add(typeof(GitSetPullDetailsCommand));
-            gem.Commands.Add(typeof(GitSetPushDetailsCommand));
-            gem.Commands.Add(typeof(GitSetUserDetailsCommand));
-            gem.Commands.Add(typeof(ListTokensCommand));
-            gem.Commands.Add(typeof(ManageRemoteBranchesCommand));
-            gem.Commands.Add(typeof(OpenRootSolutionCommand));
-            gem.Commands.Add(typeof(RefreshTreeviewCommand));
-            gem.Commands.Add(typeof(RunProgramCommand));
-            gem.Commands.Add(typeof(ShowHelpCommand));
             return Gem.LoadingErrors.Count == 0;
         }
 
@@ -291,6 +268,7 @@ namespace GitEnlistmentManager.Extensions
                 new ArchiveEnlistmentCommandSet(CommandSetMode.UserInterface),
                 new ArchiveEnlistmentCommandSet(CommandSetMode.CommandPrompt),
                 new CreateBucketCommandSet(),
+                new CreateDirectEnlistmentCommandSet(),
                 new CreateEnlistmentAboveCommandSet(),
                 new CreateEnlistmentCommandSet(),
                 new CreateRepoCommandSet(),

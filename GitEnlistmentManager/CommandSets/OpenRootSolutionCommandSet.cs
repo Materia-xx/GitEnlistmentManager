@@ -14,7 +14,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Commands.Add(new OpenRootSolutionCommand());
 
-            CommandSetDocumentation = "Opens the root solution of the selected enlistment.";
+            Documentation = "Opens the root solution of the selected enlistment.";
         }
     }
 }

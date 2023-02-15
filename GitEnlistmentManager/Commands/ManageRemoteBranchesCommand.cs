@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public ManageRemoteBranchesCommand()
         {
-            this.CommandDocumentation = "Shows the manage remote branches window.";
+            this.Documentation = "Shows the manage remote branches window.";
         }
 
         public override async Task<bool> Execute()

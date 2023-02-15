@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new DeleteBucketCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Deletes an empty bucket.";
+            Documentation = "Deletes an empty bucket.";
         }
     }
 }

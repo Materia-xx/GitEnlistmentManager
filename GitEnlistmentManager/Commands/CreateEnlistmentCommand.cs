@@ -12,7 +12,7 @@ namespace GitEnlistmentManager.Commands
     {
         public CreateEnlistmentCommand()
         {
-            this.CommandDocumentation = "Creates an Enlistment attached to a Bucket of choice.";
+            this.Documentation = "Creates an Enlistment attached to a Bucket of choice.";
         }
 
         public override async Task<bool> Execute()

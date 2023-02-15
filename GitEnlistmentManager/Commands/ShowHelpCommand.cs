@@ -1,4 +1,5 @@
-﻿using GitEnlistmentManager.DTOs;
+﻿using GitEnlistmentManager.CommandSetFilters;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System;
@@ -7,7 +8,6 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 
 namespace GitEnlistmentManager.Commands
@@ -16,8 +16,41 @@ namespace GitEnlistmentManager.Commands
     {
         public ShowHelpCommand() 
         {
-            this.CommandDocumentation = "Shows help.";
+            this.Documentation = "Shows help.";
         }
+
+        private List<Type> AllCommandsTypes = new List<Type>()
+        {
+            typeof(ArchiveEnlistmentCommand),
+            typeof(CompareSelectLeftSideCommand),
+            typeof(CompareToLeftSideCommand),
+            typeof(CreateBucketCommand),
+            typeof(CreateDirectEnlistmentCommand),
+            typeof(CreateEnlistmentAboveCommand),
+            typeof(CreateEnlistmentCommand),
+            typeof(CreateRepoCommand),
+            typeof(DeleteBucketCommand),
+            typeof(EditGemSettingsCommand),
+            typeof(EditRepoSettingsCommand),
+            typeof(GitCloneCommand),
+            typeof(GitCreateBranchCommand),
+            typeof(GitSetPullDetailsCommand),
+            typeof(GitSetPushDetailsCommand),
+            typeof(GitSetUserDetailsCommand),
+            typeof(ListTokensCommand),
+            typeof(ManageRemoteBranchesCommand),
+            typeof(OpenRootSolutionCommand),
+            typeof(RefreshTreeviewCommand),
+            typeof(RunProgramCommand),
+            typeof(ShowHelpCommand)
+        };
+
+        private List<Type> AllCommandSetFilterTypes = new List<Type>()
+        {
+            typeof(CommandSetFilterCloneUrlContains),
+            typeof(CommandSetFilterCsmMemoryContainsKey),
+            typeof(CommandSetFilterGemCompareOptionSet)
+        };
 
         public override async Task<bool> Execute()
         {
@@ -87,7 +120,20 @@ Following is a list of all Command Sets currently loaded:
                 // Help only shows command sets that have a verb
                 if (!string.IsNullOrWhiteSpace(commandSet.Verb))
                 {
-                    helpText.AppendLine($"[{commandSet.Placement}] {commandSet.Verb} - {commandSet.CommandSetDocumentation}");
+                    helpText.AppendLine($"[{commandSet.Placement}] {commandSet.Verb} - {commandSet.Documentation}");
+                }
+            }
+
+            helpText.AppendLine(@"
+Command Set Filters are additional bits that you can add into a command set to make it only appear
+in certain situations. The following filters are available:
+");
+            foreach (var commandSetFilterType in this.AllCommandSetFilterTypes.OrderBy(c => c.Name))
+            {
+                var filter = Activator.CreateInstance(commandSetFilterType) as ICommandSetFilter;
+                if (filter != null)
+                {
+                    helpText.AppendLine($"{commandSetFilterType.Name} - {filter.Documentation}");
                 }
             }
 
@@ -95,12 +141,12 @@ Following is a list of all Command Sets currently loaded:
 Following is a list of all known Commands:
 ");
 
-            foreach (var commandType in Gem.Instance.Commands)
+            foreach (var commandType in this.AllCommandsTypes.OrderBy(c => c.Name))
             {
                 var cmd = Activator.CreateInstance(commandType) as Command;
                 if (cmd != null)
                 {
-                    helpText.AppendLine($"{commandType.Name} - {cmd.CommandDocumentation}");
+                    helpText.AppendLine($"{commandType.Name} - {cmd.Documentation}");
                 }
             }
 

@@ -12,7 +12,7 @@ namespace GitEnlistmentManager.Commands
     {
         public CreateBucketCommand() 
         {
-            this.CommandDocumentation = "Creates a bucket attached to a repository of choice.";
+            this.Documentation = "Creates a bucket attached to a repository of choice.";
         }
 
         public string? BucketName { get; set; }
@@ -56,7 +56,7 @@ namespace GitEnlistmentManager.Commands
             {
                 // Run any "AfterBucketCreate" command sets 
                 var afterBucketCreateCommandSets = ResultBucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, CommandSetMode.Any, ResultBucket.Repo.RepoCollection, ResultBucket.Repo, ResultBucket);
-                await Global.Instance.MainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: ResultBucket)).ConfigureAwait(false);
+                await afterBucketCreateCommandSets.RunCommandSets(GemNodeContext.GetNodeContext(bucket: ResultBucket)).ConfigureAwait(false);
             }
             return true;
         }

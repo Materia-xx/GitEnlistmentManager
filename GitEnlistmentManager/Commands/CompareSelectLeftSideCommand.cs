@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.Commands
     {
         public CompareSelectLeftSideCommand() 
         {
-            this.CommandDocumentation = "Selects the left side of the comparison";
+            this.Documentation = "Selects the left side of the comparison";
         }
 
         public override async Task<bool> Execute()

@@ -12,7 +12,7 @@ namespace GitEnlistmentManager.Commands
     {
         public OpenRootSolutionCommand() 
         {
-            this.CommandDocumentation = "Opens a root solution in an enlistment.";
+            this.Documentation = "Opens a root solution in an enlistment.";
             this.OpenNewWindow = true;
         }
 

@@ -171,6 +171,8 @@ namespace GitEnlistmentManager.Extensions
                         enlistment.Bucket.Enlistments.Insert(childIndex, enlistment);
                     }
                     break;
+                case EnlistmentPlacement.Direct:
+                    break;
                 default:
                     MessageBox.Show("Enlistment placement mode not handled");
                     return false;
@@ -189,7 +191,12 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            enlistment.GemName = $"{newNumberPrefix:000000}.{enlistment.GemName}";
+            // Direct enlistments don't add a number prefix
+            if (enlistmentPlacement != EnlistmentPlacement.Direct)
+            {
+                enlistment.GemName = $"{newNumberPrefix:000000}.{enlistment.GemName}";
+            }
+
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
@@ -210,11 +217,15 @@ namespace GitEnlistmentManager.Extensions
                 ScopeToBranch = scopeToBranch
             });
 
-            // Create the branch that this enlistment will be working in
-            createEnlistmentCommandSet.Commands.Add(new GitCreateBranchCommand()
+            // Direct enlistments don't create a branch, they just keep using the main repo branch
+            if (enlistmentPlacement != EnlistmentPlacement.Direct)
             {
-                Branch= $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
-            });
+                // Create the branch that this enlistment will be working in
+                createEnlistmentCommandSet.Commands.Add(new GitCreateBranchCommand()
+                {
+                    Branch = $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
+                });
+            }
 
             // This sets the *branch* and *URL* that the enlistment will pull from
             createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
@@ -230,7 +241,7 @@ namespace GitEnlistmentManager.Extensions
             createEnlistmentCommandSet.Commands.Add(new GitSetUserDetailsCommand());
 
             // Run all the commands
-            if (!await Global.Instance.MainWindow.RunCommandSet(createEnlistmentCommandSet, nodeContext).ConfigureAwait(false))
+            if (!await createEnlistmentCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false))
             {
                 return false;
             }
@@ -245,9 +256,9 @@ namespace GitEnlistmentManager.Extensions
                     FetchFilterBranch = await enlistment.GetFullGitBranch().ConfigureAwait(false),
                     ScopeToBranch = scopeToBranch
                 };
-                setPullCommand.NodeContext.Enlistment = childEnlistment;
+                setPullCommand.NodeContext.OverrideNodeContext.Enlistment = childEnlistment;
                 reparentCommandSet.Commands.Add(setPullCommand);
-                if (!await Global.Instance.MainWindow.RunCommandSet(reparentCommandSet, nodeContext).ConfigureAwait(false))
+                if (!await reparentCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false))
                 {
                     return false;
                 }
@@ -261,7 +272,7 @@ namespace GitEnlistmentManager.Extensions
                 repo: enlistment.Bucket.Repo,
                 bucket: enlistment.Bucket,
                 enlistment: enlistment);
-            return await Global.Instance.MainWindow.RunCommandSets(afterEnlistmentCreateCommandSet, GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
+            return await afterEnlistmentCreateCommandSet.RunCommandSets(GemNodeContext.GetNodeContext(enlistment: enlistment)).ConfigureAwait(false);
         }
 
         public static async Task<Dictionary<string, string>> GetTokens(this Enlistment enlistment)

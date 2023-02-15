@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new CreateEnlistmentAboveCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Creates a enlistment above the selected one.";
+            Documentation = "Creates a enlistment above the selected one.";
         }
     }
 }

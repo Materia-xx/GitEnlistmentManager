@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public EditRepoSettingsCommand()
         {
-            this.CommandDocumentation = "Opens the Repository settings editor.";
+            this.Documentation = "Opens the Repository settings editor.";
         }
 
         public override async Task<bool> Execute()

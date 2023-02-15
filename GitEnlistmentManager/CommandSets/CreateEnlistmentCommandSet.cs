@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new CreateEnlistmentCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Creates an enlistment";
+            Documentation = "Creates an enlistment";
         }
     }
 }

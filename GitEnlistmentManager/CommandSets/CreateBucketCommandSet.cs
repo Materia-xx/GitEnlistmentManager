@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new CreateBucketCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Creates a bucket.";
+            Documentation = "Creates a bucket.";
         }
     }
 }

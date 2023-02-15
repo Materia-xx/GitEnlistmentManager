@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.Commands
     {
         public GitCreateBranchCommand()
         {
-            this.CommandDocumentation = "Creates a branch";
+            this.Documentation = "Creates a branch";
         }
 
         public string? Branch { get; set; }

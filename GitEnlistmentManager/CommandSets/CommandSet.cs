@@ -21,7 +21,7 @@ namespace GitEnlistmentManager.CommandSets
 
         public string? RightClickText { get; set; }
 
-        public string? CommandSetDocumentation { get; set; }
+        public string? Documentation { get; set; }
 
         [JsonIgnore]
         public string? Filename { get; set; }

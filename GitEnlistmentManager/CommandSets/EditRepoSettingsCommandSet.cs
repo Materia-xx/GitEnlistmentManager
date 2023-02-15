@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new EditRepoSettingsCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Opens the menu to edit Repo Settings.";
+            Documentation = "Opens the menu to edit Repo Settings.";
         }
     }
 }

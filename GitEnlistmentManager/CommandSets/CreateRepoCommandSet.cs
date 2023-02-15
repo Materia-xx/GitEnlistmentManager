@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new CreateRepoCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Creates a repository attached to the selected repository collection.";
+            Documentation = "Creates a repository attached to the selected repository collection.";
         }
     }
 }

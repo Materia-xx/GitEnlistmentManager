@@ -11,7 +11,7 @@ namespace GitEnlistmentManager.Commands
     {
         public GitCloneCommand()
         {
-            this.CommandDocumentation = "Clones a branch of choice.";
+            this.Documentation = "Clones a branch of choice.";
         }
 
         public string? CloneUrl { get; set; }

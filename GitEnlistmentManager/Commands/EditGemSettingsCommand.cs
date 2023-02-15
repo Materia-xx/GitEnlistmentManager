@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public EditGemSettingsCommand()
         {
-            this.CommandDocumentation = "Opens the Gem Settings editor.";
+            this.Documentation = "Opens the Gem Settings editor.";
         }
 
         public override async Task<bool> Execute()

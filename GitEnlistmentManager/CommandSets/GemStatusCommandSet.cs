@@ -23,12 +23,10 @@ namespace GitEnlistmentManager.CommandSets
             Filters.Add(
                 new CommandSetFilterCloneUrlContains()
                 {
-                    SearchFor = "GitEnlistmentManager" // TODO: will need some good documentation around how to set these command sets and filters up.
+                    SearchFor = "GitEnlistmentManager"
                 }
             );
-            CommandSetDocumentation = "Checks the status of the enlistment compared to the main branch.";
+            Documentation = "Checks the status of the enlistment compared to the main branch.";
         }
-
-
     }
 }

@@ -11,7 +11,7 @@ namespace GitEnlistmentManager.Commands
     {
         public ListTokensCommand()
         {
-            this.CommandDocumentation = "Lists the tokens.";
+            this.Documentation = "Lists the tokens.";
         }
 
         public override async Task<bool> Execute()

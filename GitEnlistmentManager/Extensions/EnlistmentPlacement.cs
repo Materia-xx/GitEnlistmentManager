@@ -2,6 +2,7 @@
 {
     public enum EnlistmentPlacement
     {
+        Direct,
         PlaceAtEnd,
         PlaceAbove
     }

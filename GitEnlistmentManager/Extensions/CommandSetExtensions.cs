@@ -1,7 +1,9 @@
 ﻿using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GitEnlistmentManager.Extensions
@@ -28,6 +30,46 @@ namespace GitEnlistmentManager.Extensions
             }
             commandSets.Reverse();
             return commandSets;
+        }
+
+        public static async Task<bool> RunCommandSets(this List<CommandSet> commandSets, GemNodeContext nodeContext)
+        {
+            foreach (var commandSet in commandSets)
+            {
+                if (!await commandSet.RunCommandSet(
+                    nodeContext: nodeContext
+                    ).ConfigureAwait(false))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static async Task<bool> RunCommandSet(this CommandSet commandSet, GemNodeContext nodeContext)
+        {
+            try
+            {
+                foreach (var command in commandSet.Commands)
+                {
+                    command.NodeContext.BaseNodeContext.SetFrom(nodeContext);
+
+                    // Execute the command and if the command was not successful then end now, returning false for the command set
+                    if (!await command.Execute().ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            finally
+            {
+                // Command sets will inherit node context while they are running, clear that now
+                foreach (var command in commandSet.Commands)
+                {
+                    command.NodeContext.BaseNodeContext.Clear();
+                }
+            }
         }
     }
 }

@@ -20,12 +20,20 @@ namespace GitEnlistmentManager.DTOs
             return Enlistment?.GetDirectoryInfo()?.FullName ?? Bucket?.GetDirectoryInfo()?.FullName ?? Repo?.GetDirectoryInfo()?.FullName ?? RepoCollection?.RepoCollectionDirectoryPath;
         }
 
-        public void SetBaseContext(GemNodeContext baseContext)
+        public void SetFrom(GemNodeContext otherContext)
         {
-            this.RepoCollection ??= baseContext.RepoCollection;
-            this.Repo ??= baseContext.Repo;
-            this.Bucket ??= baseContext.Bucket;
-            this.Enlistment ??= baseContext.Enlistment;
+            this.RepoCollection = otherContext.RepoCollection;
+            this.Repo = otherContext.Repo;
+            this.Bucket = otherContext.Bucket;
+            this.Enlistment = otherContext.Enlistment;
+        }
+
+        public void Clear()
+        {
+            this.RepoCollection = null;
+            this.Repo = null;
+            this.Bucket = null;
+            this.Enlistment = null;
         }
 
         public GemNodeContext Clone()

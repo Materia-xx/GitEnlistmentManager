@@ -9,7 +9,7 @@ namespace GitEnlistmentManager.Commands
     {
         public RunProgramCommand()
         {
-            this.CommandDocumentation = @"Runs a program. The Program, Arguments and WorkingDirectory properties can contain tokens in the form of {token}.
+            this.Documentation = @"Runs a program. The Program, Arguments and WorkingDirectory properties can contain tokens in the form of {token}.
 The tokens that are available depend on where the command set is being run from.
 To get a list of currently available tokens use 'gem lt' within a gem directory or 'List Tokens' right click menu.";
         }

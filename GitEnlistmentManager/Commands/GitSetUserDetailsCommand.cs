@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.Commands
     {
         public GitSetUserDetailsCommand()
         {
-            this.CommandDocumentation = "Sets the user's name and email.";
+            this.Documentation = "Sets the user's name and email.";
         }
 
         public override async Task<bool> Execute()
