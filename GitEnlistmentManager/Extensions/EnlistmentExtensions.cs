@@ -89,7 +89,7 @@ namespace GitEnlistmentManager.Extensions
             return null;
         }
 
-        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment, bool scopeToBranch)
+        public static async Task<bool> CreateEnlistment(this Enlistment enlistment, EnlistmentPlacement enlistmentPlacement, Enlistment? childEnlistment, bool scopeToBranch, bool gitAutoCrlf)
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
@@ -214,7 +214,8 @@ namespace GitEnlistmentManager.Extensions
                 // Otherwise use the remote clone URL.
                 CloneUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl,
                 BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
-                ScopeToBranch = scopeToBranch
+                ScopeToBranch = scopeToBranch,
+                GitAutoCrlf = gitAutoCrlf
             });
 
             // Direct enlistments don't create a branch, they just keep using the main repo branch

@@ -17,7 +17,8 @@ namespace GitEnlistmentManager
             {
                 BucketName = bucketName,
                 EnlistmentName = enlistmentName,
-                ScopeToBranch = true
+                ScopeToBranch = true,
+                GitAutoCrlf = false
             };
             this.DtoToForm();
         }
@@ -43,6 +44,7 @@ namespace GitEnlistmentManager
             dialogResult.BucketName = this.txtBucketName.Text;
             dialogResult.EnlistmentName = this.txtEnlistmentName.Text;
             dialogResult.ScopeToBranch = this.chkScopeToBranch.IsChecked.HasValue && this.chkScopeToBranch.IsChecked.Value;
+            dialogResult.GitAutoCrlf = this.chkGitAutoCrlf.IsChecked.HasValue && this.chkGitAutoCrlf.IsChecked.Value;
         }
 
         private void DtoToForm()
@@ -50,6 +52,7 @@ namespace GitEnlistmentManager
             this.txtBucketName.Text = dialogResult.BucketName;
             this.txtEnlistmentName.Text = dialogResult.EnlistmentName;
             this.chkScopeToBranch.IsChecked = dialogResult.ScopeToBranch;
+            this.chkGitAutoCrlf.IsChecked = dialogResult.GitAutoCrlf;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -62,6 +65,7 @@ namespace GitEnlistmentManager
             public string? BucketName { get; set; }
             public string? EnlistmentName { get; set; }
             public bool ScopeToBranch { get; set; } = true;
+            public bool GitAutoCrlf { get; set; } = false;
         }
 
     }

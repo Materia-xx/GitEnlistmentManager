@@ -23,6 +23,8 @@ namespace GitEnlistmentManager.Commands
 
         public bool ScopeToBranch { get; set; }
 
+        public bool GitAutoCrlf { get; set; }
+
         public override async Task<bool> Execute()
         {
             if (this.NodeContext.Enlistment == null || this.NodeContext.Bucket == null || this.NodeContext.Repo == null || this.NodeContext.RepoCollection == null)
@@ -58,7 +60,7 @@ namespace GitEnlistmentManager.Commands
                 : BranchFrom;
             branchFrom = this.ScopeToBranch ? $"--branch {branchFrom}" : string.Empty;
 
-            var gitAutoCrlfOption = "--config core.autocrlf=false";
+            var gitAutoCrlfOption = $"--config core.autocrlf={this.GitAutoCrlf}";
 
             // Note: Git on the commandline adds progress lines that are not included in redirected output.
             //       It is possible to add --progress to see them, but because this program is not a true

@@ -37,7 +37,7 @@ namespace GitEnlistmentManager.Commands
             }
 
             // After the editor closes, create the enlistment
-            return await newEnlistment.CreateEnlistment(EnlistmentPlacement.Direct, childEnlistment: null, result.ScopeToBranch).ConfigureAwait(false);
+            return await newEnlistment.CreateEnlistment(EnlistmentPlacement.Direct, childEnlistment: null, result.ScopeToBranch, result.GitAutoCrlf).ConfigureAwait(false);
         }
     }
 }
