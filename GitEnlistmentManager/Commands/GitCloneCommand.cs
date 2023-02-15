@@ -1,7 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 

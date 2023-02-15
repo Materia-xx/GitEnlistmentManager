@@ -263,7 +263,8 @@ namespace GitEnlistmentManager
                 // Otherwise use the remote clone URL.
                 CloneUrl = bucket.Repo.Metadata.CloneUrl,
                 BranchFrom = cloneFromBranch,
-                ScopeToBranch = result.ScopeToBranch
+                ScopeToBranch = result.ScopeToBranch,
+                GitAutoCrlf = result.GitAutoCrlf
             });
 
             // This sets the *branch* and *URL* that the enlistment will pull from
