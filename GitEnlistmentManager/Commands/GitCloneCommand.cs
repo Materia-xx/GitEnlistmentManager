@@ -1,16 +1,17 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
-using System.Collections.Generic;
+using GitEnlistmentManager.Globals;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class GitCloneCommand : ICommand
+    public class GitCloneCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Clones a branch of choice.";
+        public GitCloneCommand()
+        {
+            this.Documentation = "Clones a branch of choice.";
+        }
 
         public string? CloneUrl { get; set; }
 
@@ -19,13 +20,13 @@ namespace GitEnlistmentManager.Commands
         /// </summary>
         public string? BranchFrom { get; set; }
 
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
-        {
-        }
+        public bool ScopeToBranch { get; set; }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public bool GitAutoCrlf { get; set; }
+
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null || nodeContext.Bucket == null || nodeContext.Repo == null || nodeContext.RepoCollection == null)
+            if (this.NodeContext.Enlistment == null || this.NodeContext.Bucket == null || this.NodeContext.Repo == null || this.NodeContext.RepoCollection == null)
             {
                 return false;
             }
@@ -34,14 +35,14 @@ namespace GitEnlistmentManager.Commands
                 return false;
             }
 
-            var enlistmentDirectory = nodeContext.Enlistment.GetDirectoryInfo();
+            var enlistmentDirectory = this.NodeContext.Enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
                 MessageBox.Show("Encountered an error getting the enlistment directory.");
                 return false;
             }
 
-            var bucketDirectory = nodeContext.Bucket.GetDirectoryInfo();
+            var bucketDirectory = this.NodeContext.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {
                 MessageBox.Show("Encountered an error getting the bucket directory.");
@@ -51,21 +52,21 @@ namespace GitEnlistmentManager.Commands
             // The intention is that a branch will never be changed to a different branch in these enlistments
             // So we set --depth 1 to save some time/space. But this only works when cloning from the
             // remote repo and not a local parent directory.
-            var gitShallowOption = CloneUrl == nodeContext.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
+            var gitShallowOption = CloneUrl == this.NodeContext.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
 
             var branchFrom = string.IsNullOrWhiteSpace(BranchFrom)
-                ? nodeContext.Repo.Metadata.BranchFrom
+                ? this.NodeContext.Repo.Metadata.BranchFrom
                 : BranchFrom;
-            branchFrom = $"--branch {branchFrom}";
+            branchFrom = this.ScopeToBranch ? $"--branch {branchFrom}" : string.Empty;
 
-            var gitAutoCrlfOption = "--config core.autocrlf=false";
+            var gitAutoCrlfOption = $"--config core.autocrlf={this.GitAutoCrlf}";
 
             // Note: Git on the commandline adds progress lines that are not included in redirected output.
             //       It is possible to add --progress to see them, but because this program is not a true
             //       command terminal it spams many lines instead of keeping the progress on one line.
             //       I've left the option out for that reason.
-            if (!await mainWindow.RunProgram(
-                programPath: nodeContext.RepoCollection.Gem.LocalAppData.GitExePath,
+            if (!await Global.Instance.MainWindow.RunProgram(
+                programPath: Gem.Instance.LocalAppData.GitExePath,
                 arguments: $"clone {gitShallowOption} {branchFrom} {gitAutoCrlfOption} {CloneUrl} \"{enlistmentDirectory.FullName}\"",
                 tokens: null, // There are no tokens in the above programPath/arguments - If we did supply tokens here it would supply an invalid enlistmentBranch because it's not made yet.
                 workingDirectory: bucketDirectory.FullName

@@ -6,19 +6,16 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class CompareToLeftSideCommand : ICommand
+    public class CompareToLeftSideCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Selects the other side to compare to the left.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public CompareToLeftSideCommand()
         {
+            this.Documentation = "Selects the other side to compare to the left.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null)
+            if (this.NodeContext.Enlistment == null)
             {
                 return false;
             }
@@ -30,13 +27,13 @@ namespace GitEnlistmentManager.Commands
 
             var tokens = new Dictionary<string, string>();
             tokens["LEFT"] = CommandSetMemory.Memory["LeftDirectoryCompare"];
-            var rightDirectoryCompare = nodeContext.Enlistment.GetDirectoryInfo()?.FullName;
+            var rightDirectoryCompare = this.NodeContext.Enlistment.GetDirectoryInfo()?.FullName;
             if (rightDirectoryCompare != null)
             {
                 tokens["RIGHT"] = rightDirectoryCompare;
                 await ProgramHelper.RunProgram(
-                    programPath: nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.CompareProgram,
-                    arguments: nodeContext.Enlistment.Bucket.Repo.RepoCollection.Gem.LocalAppData.CompareArguments,
+                    programPath: Gem.Instance.LocalAppData.CompareProgram,
+                    arguments: Gem.Instance.LocalAppData.CompareArguments,
                     tokens: tokens,
                     useShellExecute: false,
                     openNewWindow: true,

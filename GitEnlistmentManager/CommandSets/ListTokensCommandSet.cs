@@ -14,7 +14,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Commands.Add(new ListTokensCommand());
 
-            CommandSetDocumentation = "Lists the tokens of the selected.";
+            Documentation = "Lists the tokens of the selected.";
         }
     }
 }

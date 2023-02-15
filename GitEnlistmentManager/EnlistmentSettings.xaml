@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="EnlistmentSettings" Height="190" Width="600" Loaded="Window_Loaded">
+        Title="EnlistmentSettings" Height="230" Width="600" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5"/>
@@ -18,6 +18,10 @@
             <RowDefinition Height="25"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="25"/>
@@ -26,11 +30,15 @@
 
         <TextBlock Grid.Row="1" Grid.Column="1">Bucket Name</TextBlock>
         <TextBlock Grid.Row="3" Grid.Column="1">Enlistment Name</TextBlock>
+        <TextBlock Grid.Row="5" Grid.Column="1">Scope To Branch</TextBlock>
+        <TextBlock Grid.Row="7" Grid.Column="1">Git Auto-CRLF</TextBlock>
 
         <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtBucketName" IsEnabled="False"/>
         <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtEnlistmentName"/>
+        <CheckBox Grid.Row="5" Grid.Column="2" x:Name="chkScopeToBranch">(Makes it so only the 1 branch can be pulled from the remote)</CheckBox>
+        <CheckBox Grid.Row="7" Grid.Column="2" x:Name="chkGitAutoCrlf"> (Makes Git automatically manage line feed characters when checking in or out)</CheckBox>
 
-        <Button Grid.Row="6" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="10" Grid.Column="2" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
 
     </Grid>
 </Window>

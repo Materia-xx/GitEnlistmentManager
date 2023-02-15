@@ -9,15 +9,16 @@ using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class DeleteBucketCommand : ICommand
+    public class DeleteBucketCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Deletes an empty bucket.";
+        public DeleteBucketCommand() 
+        {
+            this.Documentation = "Deletes an empty bucket.";
+        }
 
         public string? BucketNameToDelete { get; set; }
 
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public override void ParseArgs(Stack<string> arguments)
         {
             if (arguments.Count > 0)
             {
@@ -25,26 +26,26 @@ namespace GitEnlistmentManager.Commands
             }
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Repo == null)
+            if (this.NodeContext.Repo == null)
             {
                 return false;
             }
 
             // If bucket wasn't passed in on the node context then try to parse it from properties
-            if (nodeContext.Bucket == null && !string.IsNullOrWhiteSpace(BucketNameToDelete))
+            if (this.NodeContext.Bucket == null && !string.IsNullOrWhiteSpace(BucketNameToDelete))
             {
-                nodeContext.Bucket = nodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
+                this.NodeContext.BaseNodeContext.Bucket = this.NodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
             }
 
             // If bucket still isn't set then we don't know what bucket to delete
-            if (nodeContext.Bucket == null)
+            if (this.NodeContext.Bucket == null)
             {
                 return false;
             }
 
-            var bucketDirectory = nodeContext.Bucket.GetDirectoryInfo();
+            var bucketDirectory = this.NodeContext.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {
                 return false;

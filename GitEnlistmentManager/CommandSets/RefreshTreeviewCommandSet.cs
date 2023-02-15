@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Refreshes the Gem Treeview.";
+            Documentation = "Refreshes the Gem Treeview.";
         }
     }
 }

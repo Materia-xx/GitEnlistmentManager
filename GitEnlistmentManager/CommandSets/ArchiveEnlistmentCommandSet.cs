@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new ArchiveEnlistmentCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Archives an enlistment.";
+            Documentation = "Archives an enlistment.";
         }
     }
 }

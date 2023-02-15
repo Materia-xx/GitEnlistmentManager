@@ -14,7 +14,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Commands.Add(new ShowHelpCommand());
 
-            CommandSetDocumentation = "Shows help.";
+            Documentation = "Shows help.";
         }
     }
 }

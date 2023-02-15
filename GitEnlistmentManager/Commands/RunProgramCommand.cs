@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class RunProgramCommand : ICommand
+    public class RunProgramCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = @"Runs a program. The Program, Arguments and WorkingDirectory properties can contain tokens in the form of {token}.
+        public RunProgramCommand()
+        {
+            this.Documentation = @"Runs a program. The Program, Arguments and WorkingDirectory properties can contain tokens in the form of {token}.
 The tokens that are available depend on where the command set is being run from.
 To get a list of currently available tokens use 'gem lt' within a gem directory or 'List Tokens' right click menu.";
+        }
+
 
         public bool UseShellExecute { get; set; } = false;
 
@@ -21,19 +23,15 @@ To get a list of currently available tokens use 'gem lt' within a gem directory 
 
         public string? WorkingDirectory { get; set; }
 
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
-        {
-        }
-
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
             if (!OpenNewWindow)
             {
-                return await mainWindow.RunProgram(
+                return await Global.Instance.MainWindow.RunProgram(
                     programPath: Program,
                     arguments: Arguments,
-                    tokens: await nodeContext.GetTokens().ConfigureAwait(false),
-                    workingDirectory: WorkingDirectory ?? nodeContext.GetWorkingDirectory()
+                    tokens: await this.NodeContext.GetTokens().ConfigureAwait(false),
+                    workingDirectory: WorkingDirectory ?? this.NodeContext.GetWorkingDirectory()
                     ).ConfigureAwait(false);
             }
             else
@@ -41,10 +39,10 @@ To get a list of currently available tokens use 'gem lt' within a gem directory 
                 return await ProgramHelper.RunProgram(
                     programPath: Program,
                     arguments: Arguments,
-                    tokens: await nodeContext.GetTokens().ConfigureAwait(false),
+                    tokens: await this.NodeContext.GetTokens().ConfigureAwait(false),
                     useShellExecute: UseShellExecute,
                     openNewWindow: true,
-                    workingDirectory: WorkingDirectory ?? nodeContext.GetWorkingDirectory()
+                    workingDirectory: WorkingDirectory ?? this.NodeContext.GetWorkingDirectory()
                     ).ConfigureAwait(false);
             }
         }

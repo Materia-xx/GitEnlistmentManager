@@ -19,7 +19,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Filters.Add(new CommandSetFilterGemCompareOptionSet());
 
-            CommandSetDocumentation = "Selects the first enlistment to compare to another one that will be selected next.";
+            Documentation = "Selects the first enlistment to compare to another one that will be selected next.";
         }
     }
 }

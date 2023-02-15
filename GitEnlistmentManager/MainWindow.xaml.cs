@@ -175,10 +175,10 @@ namespace GitEnlistmentManager
                     {
                         foreach (var commandSetCommand in commandSet.Commands)
                         {
-                            commandSetCommand.ParseArgs(nodeContext, remainingArgsStack);
+                            commandSetCommand.NodeContext.BaseNodeContext.SetFrom(nodeContext);
+                            commandSetCommand.ParseArgs(remainingArgsStack);
                         }
-                        await this.RunCommandSet(
-                            commandSet: commandSet,
+                        await commandSet.RunCommandSet(
                             nodeContext: nodeContext
                             ).ConfigureAwait(false);
                     }
@@ -283,7 +283,7 @@ namespace GitEnlistmentManager
                     menuGemCommandSet.Click += async (s, e) =>
                     {
                         await this.ClearCommandWindow().ConfigureAwait(false);
-                        await this.RunCommandSet(gemCommandSet, nodeContext).ConfigureAwait(false);
+                        await gemCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false);
                     };
                     menu.Items.Add(menuGemCommandSet);
                 }
@@ -305,34 +305,6 @@ namespace GitEnlistmentManager
             {
                 txtCommandPrompt.ScrollToEnd();
             });
-        }
-
-        public async Task<bool> RunCommandSets(List<CommandSet> commandSets, GemNodeContext nodeContext)
-        {
-            foreach (var commandSet in commandSets)
-            {
-                if (!await this.RunCommandSet(
-                    commandSet: commandSet,
-                    nodeContext: nodeContext
-                    ).ConfigureAwait(false))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public async Task<bool> RunCommandSet(CommandSet commandSet, GemNodeContext nodeContext)
-        {
-            foreach (var command in commandSet.Commands)
-            {
-                // Execute the command and if the command was not successful then end now, returning false for the command set
-                if (!await command.Execute(nodeContext, this).ConfigureAwait(false))
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         public async Task<bool> RunProgram(string? programPath, string? arguments, Dictionary<string, string>? tokens, string? workingDirectory = null)

@@ -1,37 +1,35 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class GitSetUserDetailsCommand : ICommand
+    public class GitSetUserDetailsCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Sets the user's name and email.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public GitSetUserDetailsCommand()
         {
+            this.Documentation = "Sets the user's name and email.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Enlistment == null || nodeContext.Repo == null)
+            if (this.NodeContext.Enlistment == null || this.NodeContext.Repo == null)
             {
                 return false;
             }
 
-            var enlistmentDirectory = nodeContext.Enlistment?.GetDirectoryInfo();
+            var enlistmentDirectory = this.NodeContext.Enlistment?.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
                 return false;
             }
 
             // Set the user name
-            if (!await mainWindow.RunProgram(
-                programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
-                arguments: $@"config --local user.name ""{nodeContext.Repo.Metadata.UserName}""",
+            if (!await Global.Instance.MainWindow.RunProgram(
+                programPath: Gem.Instance.LocalAppData.GitExePath,
+                arguments: $@"config --local user.name ""{this.NodeContext.Repo.Metadata.UserName}""",
                 tokens: null, // There are no tokens in the above programPath/arguments
                 workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))
@@ -40,9 +38,9 @@ namespace GitEnlistmentManager.Commands
             }
 
             // Set the user email
-            if (!await mainWindow.RunProgram(
-                programPath: nodeContext.Repo.RepoCollection.Gem.LocalAppData.GitExePath,
-                arguments: $@"config --local user.email ""{nodeContext.Repo.Metadata.UserEmail}""",
+            if (!await Global.Instance.MainWindow.RunProgram(
+                programPath: Gem.Instance.LocalAppData.GitExePath,
+                arguments: $@"config --local user.email ""{this.NodeContext.Repo.Metadata.UserEmail}""",
                 tokens: null, // There are no tokens in the above programPath/arguments
                 workingDirectory: enlistmentDirectory.FullName
                 ).ConfigureAwait(false))

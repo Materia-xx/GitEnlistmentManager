@@ -1,23 +1,21 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    internal class RefreshTreeviewCommand : ICommand
+    internal class RefreshTreeviewCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Refreshes the Gem Treeview.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public RefreshTreeviewCommand()
         {
+            this.Documentation = "Refreshes the Gem Treeview.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            return await mainWindow.ReloadTreeview().ConfigureAwait(false);
+            return await Global.Instance.MainWindow.ReloadTreeview().ConfigureAwait(false);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace GitEnlistmentManager.CommandSets
                 }
             );
 
-            CommandSetDocumentation = "Makes a pull request with the selected enlistment.";
+            Documentation = "Makes a pull request with the selected enlistment.";
         }
     }
 }

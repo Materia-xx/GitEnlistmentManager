@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new ManageRemoteBranchesCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            CommandSetDocumentation = "Shows the manage remote branches window.";
+            Documentation = "Shows the manage remote branches window.";
         }
     }
 }

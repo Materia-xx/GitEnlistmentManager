@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 using System;
 using System.IO;
 using System.Threading;
@@ -27,13 +28,12 @@ namespace GitEnlistmentManager
             if (!serverAlreadyRunning)
             {
                 mainWindowFullyLoaded = false;
-                var mainWindow = new MainWindow();
 
                 // Fully loaded will wait for the main form to refresh the treeview
                 // If we didn't there is a chance that gem will be refreshing the data and any command sent won't be handled correctly
-                mainWindow.FullyLoaded += MainWindow_FullyLoaded;
-                mainWindow.Show();
-                this.gemServer = new GemServer(mainWindow.ProcessCSCommand, Gem.Instance.LocalAppData.ServerPort);
+                Global.Instance.MainWindow.FullyLoaded += MainWindow_FullyLoaded;
+                Global.Instance.MainWindow.Show();
+                this.gemServer = new GemServer(Global.Instance.MainWindow.ProcessCSCommand, Gem.Instance.LocalAppData.ServerPort);
                 this.gemServer.Start();
             }
 

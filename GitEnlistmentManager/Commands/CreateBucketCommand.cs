@@ -1,23 +1,25 @@
 ﻿using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class CreateBucketCommand : ICommand
+    public class CreateBucketCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Creates a bucket attached to a repository of choice.";
+        public CreateBucketCommand() 
+        {
+            this.Documentation = "Creates a bucket attached to a repository of choice.";
+        }
 
         public string? BucketName { get; set; }
 
         public Bucket? ResultBucket { get; private set; }
 
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public override void ParseArgs(Stack<string> arguments)
         {
             if (arguments.Count > 0)
             {
@@ -25,14 +27,14 @@ namespace GitEnlistmentManager.Commands
             }
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Repo == null)
+            if (this.NodeContext.Repo == null)
             {
                 return false;
             }
 
-            ResultBucket = new Bucket(nodeContext.Repo);
+            ResultBucket = new Bucket(this.NodeContext.Repo);
             ResultBucket.GemName = BucketName;
 
             if (string.IsNullOrEmpty(ResultBucket.GemName))
@@ -40,7 +42,7 @@ namespace GitEnlistmentManager.Commands
                 bool? result = null;
                 await Application.Current.Dispatcher.BeginInvoke(() =>
                 {
-                    var bucketSettingsEditor = new BucketSettings(ResultBucket, mainWindow);
+                    var bucketSettingsEditor = new BucketSettings(ResultBucket);
                     result = bucketSettingsEditor.ShowDialog();
                 });
                 if (!result.HasValue || !result.Value)
@@ -54,7 +56,7 @@ namespace GitEnlistmentManager.Commands
             {
                 // Run any "AfterBucketCreate" command sets 
                 var afterBucketCreateCommandSets = ResultBucket.Repo.RepoCollection.Gem.GetCommandSets(CommandSetPlacement.AfterBucketCreate, CommandSetMode.Any, ResultBucket.Repo.RepoCollection, ResultBucket.Repo, ResultBucket);
-                await mainWindow.RunCommandSets(afterBucketCreateCommandSets, GemNodeContext.GetNodeContext(bucket: ResultBucket)).ConfigureAwait(false);
+                await afterBucketCreateCommandSets.RunCommandSets(GemNodeContext.GetNodeContext(bucket: ResultBucket)).ConfigureAwait(false);
             }
             return true;
         }

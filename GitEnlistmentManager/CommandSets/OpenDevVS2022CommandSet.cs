@@ -30,7 +30,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(
                 new RunProgramCommand()
                 {
-                    Program = "wt", // TODO: if wt isn't installed this will error out
+                    Program = "wt",
                                     // Setting the starting directory and then doing CD later into the right directory isn't necessary here. I'm just keeping it around as an example of how to do the escaping for multiple commands
                     Arguments = $@"-w gem nt --title ""{{RepoName}}"" --startingDirectory ""{{ReposDirectory}}"" ""%comspec%"" /k \""\""{vsDevCmd}\""&&CD /d \""{{EnlistmentDirectory}}\""\""",
                     OpenNewWindow = true,
@@ -41,7 +41,7 @@ namespace GitEnlistmentManager.CommandSets
                 }
             );
 
-            CommandSetDocumentation = "Opens Developer Visual Studio for the selected enlistment.";
+            Documentation = "Opens Visual Studio 2022 Developer command prompt for the selected enlistment.";
         }
     }
 }

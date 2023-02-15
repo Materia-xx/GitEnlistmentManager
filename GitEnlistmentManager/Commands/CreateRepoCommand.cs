@@ -1,29 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 
 namespace GitEnlistmentManager.Commands
 {
-    internal class CreateRepoCommand : ICommand
+    internal class CreateRepoCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Creates a Repository attached to a Respository Collection, defined in your settings.";
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public CreateRepoCommand()
         {
+            this.Documentation = "Creates a Repository attached to a Repository Collection, defined in your settings.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.RepoCollection == null)
+            if (this.NodeContext.RepoCollection == null)
             {
                 return false;
             }
 
             bool? result = null;
-            await mainWindow.Dispatcher.InvokeAsync(() =>
+            await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
-                var repoSettingsEditor = new RepoSettings(new Repo(nodeContext.RepoCollection), isNew: true);
+                var repoSettingsEditor = new RepoSettings(new Repo(this.NodeContext.RepoCollection), isNew: true);
                 result = repoSettingsEditor.ShowDialog();
             });
             if (!result.HasValue || !result.Value)

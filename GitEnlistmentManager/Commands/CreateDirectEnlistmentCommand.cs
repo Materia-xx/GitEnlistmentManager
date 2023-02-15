@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Commands
 {
-    internal class CreateEnlistmentAboveCommand : Command
+    internal class CreateDirectEnlistmentCommand : Command
     {
-        public CreateEnlistmentAboveCommand()
+        public CreateDirectEnlistmentCommand()
         {
-            Documentation = "Inserts an enlistment above the selected one.";
+            Documentation = "Creates an enlistment that pushes/pulls directly from the repo's branch";
         }
 
         public override async Task<bool> Execute()
         {
-            if (this.NodeContext.Bucket == null || this.NodeContext.Enlistment == null)
+            if (this.NodeContext.Bucket == null)
             {
                 return false;
             }
@@ -37,7 +37,7 @@ namespace GitEnlistmentManager.Commands
             }
 
             // After the editor closes, create the enlistment
-            return await newEnlistment.CreateEnlistment(EnlistmentPlacement.PlaceAbove, childEnlistment: this.NodeContext.Enlistment, result.ScopeToBranch, result.GitAutoCrlf).ConfigureAwait(false);
+            return await newEnlistment.CreateEnlistment(EnlistmentPlacement.Direct, childEnlistment: null, result.ScopeToBranch, result.GitAutoCrlf).ConfigureAwait(false);
         }
     }
 }

@@ -1,31 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 
 namespace GitEnlistmentManager.Commands
 {
-    public class EditRepoSettingsCommand : ICommand
+    public class EditRepoSettingsCommand : Command
     {
-        public bool OpenNewWindow { get; set; } = false;
-
-        public string CommandDocumentation { get; set; } = "Opens the Repository settings editor.";
-
-        public void ParseArgs(GemNodeContext nodeContext, Stack<string> arguments)
+        public EditRepoSettingsCommand()
         {
+            this.Documentation = "Opens the Repository settings editor.";
         }
 
-        public async Task<bool> Execute(GemNodeContext nodeContext, MainWindow mainWindow)
+        public override async Task<bool> Execute()
         {
-            if (nodeContext.Repo == null)
+            if (this.NodeContext.Repo == null)
             {
                 return false;
             }
 
             bool? result = null;
 
-            await mainWindow.Dispatcher.InvokeAsync(() =>
+            await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
-                var repoSettingsEditor = new RepoSettings(nodeContext.Repo, isNew: false);
+                var repoSettingsEditor = new RepoSettings(this.NodeContext.Repo, isNew: false);
                 result = repoSettingsEditor.ShowDialog();
             });
             if (!result.HasValue || !result.Value)

@@ -21,12 +21,12 @@ namespace GitEnlistmentManager.CommandSets
 
         public string? RightClickText { get; set; }
 
-        public string? CommandSetDocumentation { get; set; }
+        public string? Documentation { get; set; }
 
         [JsonIgnore]
         public string? Filename { get; set; }
 
-        public List<ICommand> Commands { get; } = new();
+        public List<Command> Commands { get; } = new();
 
         public List<ICommandSetFilter> Filters { get; set; } = new();
 
