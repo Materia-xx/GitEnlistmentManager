@@ -9,7 +9,7 @@ namespace GitEnlistmentManager
     {
         private EnlistmentSettingsDialogResult dialogResult;
 
-        public EnlistmentSettings(string? bucketName, string? enlistmentName, bool bucketNameIsEnabled = false)
+        public EnlistmentSettings(string? bucketName, string? enlistmentName, bool bucketNameIsEnabled = false, bool scopeIsEnabled = true, bool scopeDefault = true, bool gitAutoCrlfDefault = false)
         {
             InitializeComponent();
             txtBucketName.IsEnabled = bucketNameIsEnabled;
@@ -17,8 +17,8 @@ namespace GitEnlistmentManager
             {
                 BucketName = bucketName,
                 EnlistmentName = enlistmentName,
-                ScopeToBranch = true,
-                GitAutoCrlf = false
+                ScopeToBranch = scopeDefault,
+                GitAutoCrlf = gitAutoCrlfDefault
             };
             this.DtoToForm();
         }

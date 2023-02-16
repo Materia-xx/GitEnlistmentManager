@@ -197,7 +197,7 @@ namespace GitEnlistmentManager
             EnlistmentSettings.EnlistmentSettingsDialogResult? result = null;
             await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
             {
-                var enlistmentSettingsEditor = new EnlistmentSettings(bucketName, enlistmentName, true);
+                var enlistmentSettingsEditor = new EnlistmentSettings(bucketName, enlistmentName, bucketNameIsEnabled: true, scopeIsEnabled: false, scopeDefault: true);
                 result = enlistmentSettingsEditor.ShowDialog();
                 if (result != null)
                 {
@@ -263,7 +263,7 @@ namespace GitEnlistmentManager
                 // Otherwise use the remote clone URL.
                 CloneUrl = bucket.Repo.Metadata.CloneUrl,
                 BranchFrom = cloneFromBranch,
-                ScopeToBranch = result.ScopeToBranch,
+                ScopeToBranch = true, // This is required when restoring a remote branch
                 GitAutoCrlf = result.GitAutoCrlf
             });
 
