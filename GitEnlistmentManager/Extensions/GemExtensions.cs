@@ -278,6 +278,7 @@ namespace GitEnlistmentManager.Extensions
                 new EditGemSettingsCommandSet(),
                 new EditRepoSettingsCommandSet(),
                 new GemStatusCommandSet(),
+                new GitPullAndMergeCommandSet(),
                 new ManageRemoteBranchesCommandSet(),
                 new OpenDevVS2022CommandSet(),
                 new OpenRootSolutionCommandSet(),
@@ -300,7 +301,7 @@ namespace GitEnlistmentManager.Extensions
             var defaultCommandSetsDirectory = gem.GetDefaultCommandSetsDirectory();
             foreach (var commandSet in defaultCommandSets)
             {
-                CommandSet.WriteCommandSet(commandSet, defaultCommandSetsDirectory.FullName, overwrite: true);
+                commandSet.WriteCommandSet(defaultCommandSetsDirectory.FullName, overwrite: true);
             }
         }
 
