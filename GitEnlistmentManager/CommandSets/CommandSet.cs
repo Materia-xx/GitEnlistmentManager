@@ -38,38 +38,6 @@ namespace GitEnlistmentManager.CommandSets
             return Filters.All(f => f.Matches(repoCollection, repo, bucket, enlistment));
         }
 
-        public static bool WriteCommandSet(CommandSet commandSet, string commandSetDirectory, bool overwrite)
-        {
-            if (string.IsNullOrWhiteSpace(commandSet?.Filename))
-            {
-                MessageBox.Show($"Command set filename not set, unable to save command {commandSet?.Verb}");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(commandSetDirectory))
-            {
-                MessageBox.Show($"Command set directory not set, unable to save command {commandSet?.Verb}");
-                return false;
-            }
-            var commandSetPath = Path.Combine(commandSetDirectory, commandSet.Filename);
-            if (File.Exists(commandSetPath) && !overwrite)
-            {
-                return true;
-            }
-
-            try
-            {
-                var commandDefinitionInfo = new FileInfo(commandSetPath);
-                var commandJson = JsonConvert.SerializeObject(commandSet, GemJsonSerializer.Settings);
-                File.WriteAllText(commandDefinitionInfo.FullName, commandJson);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error writing Command set: {ex.Message}");
-                return false;
-            }
-            return true;
-        }
-
         public static (CommandSet? CommandSet, string LoadingError) ReadCommandSet(string commandSetPath)
         {
             try

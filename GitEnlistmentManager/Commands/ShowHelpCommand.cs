@@ -34,6 +34,8 @@ namespace GitEnlistmentManager.Commands
             typeof(EditRepoSettingsCommand),
             typeof(GitCloneCommand),
             typeof(GitCreateBranchCommand),
+            typeof(GitMergeToolCommand),
+            typeof(GitPullCommand),
             typeof(GitSetPullDetailsCommand),
             typeof(GitSetPushDetailsCommand),
             typeof(GitSetUserDetailsCommand),
