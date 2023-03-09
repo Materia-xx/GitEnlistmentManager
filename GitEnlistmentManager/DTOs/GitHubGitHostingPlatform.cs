@@ -14,7 +14,6 @@ namespace GitEnlistmentManager.DTOs
             var pullRequestUrl = enlistment.Bucket.Repo.Metadata.CloneUrl;
             if (pullRequestUrl != null )
             {
-                pullRequestUrl = pullRequestUrl[..^4];
                 pullRequestUrl += "/compare/(((ParentBranch)))...(((ChildBranch)))";
 
                 // Child branch
