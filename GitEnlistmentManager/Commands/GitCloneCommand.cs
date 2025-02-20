@@ -57,7 +57,16 @@ namespace GitEnlistmentManager.Commands
             var branchFrom = string.IsNullOrWhiteSpace(BranchFrom)
                 ? this.NodeContext.Repo.Metadata.BranchFrom
                 : BranchFrom;
-            branchFrom = this.ScopeToBranch ? $"--branch {branchFrom}" : string.Empty;
+
+            // --branch should always be present when cloning. If you have a repo with master + m2 branches and they have different histories
+            // and you clone master, then switch to m2 and try to pull m2 into your (currently master branch) it won't work.
+            branchFrom = $"--branch {branchFrom}";
+
+            // If the user wants to avoid pulling all the other branches in the repo also
+            if (this.ScopeToBranch)
+            {
+                branchFrom += " --single-branch";
+            }
 
             var gitAutoCrlfOption = $"--config core.autocrlf={this.GitAutoCrlf}";
 

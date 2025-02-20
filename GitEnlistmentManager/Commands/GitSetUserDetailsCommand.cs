@@ -37,6 +37,17 @@ namespace GitEnlistmentManager.Commands
                 return false;
             }
 
+            // Set the credential.username
+            if (!await Global.Instance.MainWindow.RunProgram(
+                programPath: Gem.Instance.LocalAppData.GitExePath,
+                arguments: $@"config --local credential.username ""{this.NodeContext.Repo.Metadata.UserEmail}""",
+                tokens: null, // There are no tokens in the above programPath/arguments
+                workingDirectory: enlistmentDirectory.FullName
+                ).ConfigureAwait(false))
+            {
+                return false;
+            }
+
             // Set the user email
             if (!await Global.Instance.MainWindow.RunProgram(
                 programPath: Gem.Instance.LocalAppData.GitExePath,
