@@ -241,6 +241,12 @@ namespace GitEnlistmentManager.Extensions
             // Set the user name and email
             createEnlistmentCommandSet.Commands.Add(new GitSetUserDetailsCommand());
 
+            // If not scoping to the branch, then pull again to fetch all branches
+            if (!scopeToBranch)
+            {
+                createEnlistmentCommandSet.Commands.Add(new GitPullCommand());
+            }
+
             // Run all the commands
             if (!await createEnlistmentCommandSet.RunCommandSet(nodeContext).ConfigureAwait(false))
             {
