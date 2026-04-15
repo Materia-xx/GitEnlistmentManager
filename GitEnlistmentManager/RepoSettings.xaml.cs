@@ -100,17 +100,9 @@ namespace GitEnlistmentManager
                 .Where(bd => !string.IsNullOrWhiteSpace(bd.BranchFrom) || !string.IsNullOrWhiteSpace(bd.BranchPrefix))
                 .ToList();
 
-            // Keep legacy fields in sync with first branch for backward compat
-            if (this.repoSettings.Metadata.Branches.Count > 0)
-            {
-                this.repoSettings.Metadata.BranchFrom = this.repoSettings.Metadata.Branches[0].BranchFrom;
-                this.repoSettings.Metadata.BranchPrefix = this.repoSettings.Metadata.Branches[0].BranchPrefix;
-            }
-            else
-            {
-                this.repoSettings.Metadata.BranchFrom = null;
-                this.repoSettings.Metadata.BranchPrefix = null;
-            }
+            // Clear legacy fields — the Branches list is the source of truth now
+            this.repoSettings.Metadata.BranchFrom = string.Empty;
+            this.repoSettings.Metadata.BranchPrefix = string.Empty;
         }
 
         private void DtoToForm()

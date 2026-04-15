@@ -58,19 +58,6 @@ namespace GitEnlistmentManager.Extensions
             {
                 tokens["RepoShortName"] = repo.Metadata.ShortName;
             }
-            // Keep legacy RepoBranchFrom/RepoBranchPrefix tokens using first branch for backward compat
-            if (repo.Metadata.Branches != null && repo.Metadata.Branches.Count > 0)
-            {
-                var firstBranch = repo.Metadata.Branches[0];
-                if (firstBranch.BranchFrom != null)
-                {
-                    tokens["RepoBranchFrom"] = firstBranch.BranchFrom;
-                }
-                if (firstBranch.BranchPrefix != null)
-                {
-                    tokens["RepoBranchPrefix"] = firstBranch.BranchPrefix;
-                }
-            }
             if (repo.Metadata.CloneUrl != null)
             {
                 tokens["RepoCloneUrl"] = repo.Metadata.CloneUrl;

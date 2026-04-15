@@ -32,7 +32,7 @@ namespace GitEnlistmentManager.Commands
 
             // Set these based on if the enlistment is a child of another directory or the main repo
             string? originUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? this.NodeContext.Repo.Metadata.CloneUrl;
-            string? pullFromBranch = parentEnlistment != null ? await parentEnlistment.GetFullGitBranch().ConfigureAwait(false) : null ?? this.NodeContext.TargetBranch?.BranchDefinition.BranchFrom ?? this.NodeContext.Repo.Metadata.BranchFrom;
+            string? pullFromBranch = parentEnlistment != null ? await parentEnlistment.GetFullGitBranch().ConfigureAwait(false) : null ?? this.NodeContext.TargetBranch?.BranchDefinition.BranchFrom;
 
             if (string.IsNullOrWhiteSpace(originUrl) || string.IsNullOrWhiteSpace(pullFromBranch))
             {
