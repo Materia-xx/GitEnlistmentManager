@@ -10,10 +10,10 @@ namespace GitEnlistmentManager.Extensions
     {
         public static DirectoryInfo? GetDirectoryInfo(this Bucket bucket)
         {
-            var repoDirectory = bucket.Repo.GetDirectoryInfo();
-            if (repoDirectory == null)
+            var targetBranchDirectory = bucket.TargetBranch.GetDirectoryInfo();
+            if (targetBranchDirectory == null)
             {
-                MessageBox.Show("Unable to determine repo directory");
+                MessageBox.Show("Unable to determine target branch directory");
                 return null;
             }
 
@@ -23,7 +23,7 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            var bucketDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, bucket.GemName));
+            var bucketDirectory = new DirectoryInfo(Path.Combine(targetBranchDirectory.FullName, bucket.GemName));
             if (!bucketDirectory.Exists)
             {
                 try
@@ -42,7 +42,7 @@ namespace GitEnlistmentManager.Extensions
 
         public static Dictionary<string, string> GetTokens(this Bucket bucket)
         {
-            var tokens = bucket.Repo.GetTokens();
+            var tokens = bucket.TargetBranch.GetTokens();
 
             if (bucket.GemName != null)
             {

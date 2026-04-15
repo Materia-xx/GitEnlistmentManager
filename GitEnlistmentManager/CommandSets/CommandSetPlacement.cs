@@ -8,6 +8,7 @@
         Gem,
         RepoCollection,
         Repo,
+        TargetBranch,
         Bucket,
         Enlistment,
         AfterEnlistmentCreate,

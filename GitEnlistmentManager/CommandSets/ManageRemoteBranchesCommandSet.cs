@@ -6,7 +6,7 @@ namespace GitEnlistmentManager.CommandSets
     {
         public ManageRemoteBranchesCommandSet()
         {
-            Placement = CommandSetPlacement.Repo;
+            Placement = CommandSetPlacement.TargetBranch;
             OverrideKey = "remotebranches";
             RightClickText = "Manage Remote Branches";
             Verb = "remotebranches";

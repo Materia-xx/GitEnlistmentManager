@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\branch.png" />
     <None Remove="Images\bucket.png" />
     <None Remove="Images\enlistment.png" />
     <None Remove="Images\Repo.png" />
@@ -21,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Images\branch.png" />
     <EmbeddedResource Include="Images\bucket.png" />
     <EmbeddedResource Include="Images\enlistment.png" />
     <EmbeddedResource Include="Images\repocollection.png" />

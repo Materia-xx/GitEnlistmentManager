@@ -58,13 +58,18 @@ namespace GitEnlistmentManager.Extensions
             {
                 tokens["RepoShortName"] = repo.Metadata.ShortName;
             }
-            if (repo.Metadata.BranchFrom != null)
+            // Keep legacy RepoBranchFrom/RepoBranchPrefix tokens using first branch for backward compat
+            if (repo.Metadata.Branches != null && repo.Metadata.Branches.Count > 0)
             {
-                tokens["RepoBranchFrom"] = repo.Metadata.BranchFrom;
-            }
-            if (repo.Metadata.BranchPrefix != null)
-            {
-                tokens["RepoBranchPrefix"] = repo.Metadata.BranchPrefix;
+                var firstBranch = repo.Metadata.Branches[0];
+                if (firstBranch.BranchFrom != null)
+                {
+                    tokens["RepoBranchFrom"] = firstBranch.BranchFrom;
+                }
+                if (firstBranch.BranchPrefix != null)
+                {
+                    tokens["RepoBranchPrefix"] = firstBranch.BranchPrefix;
+                }
             }
             if (repo.Metadata.CloneUrl != null)
             {
@@ -122,6 +127,7 @@ namespace GitEnlistmentManager.Extensions
                     return false;
                 }
                 repo.Metadata = repoMetadata;
+                repo.Metadata.NormalizeBranches();
             }
             catch (Exception ex)
             {

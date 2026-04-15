@@ -11,19 +11,26 @@ namespace GitEnlistmentManager.DTOs
 
         public Repo? Repo { get; set; }
 
+        public TargetBranch? TargetBranch { get; set; }
+
         public Bucket? Bucket { get; set; }
 
         public Enlistment? Enlistment { get; set; }
 
         public string? GetWorkingDirectory()
         {
-            return Enlistment?.GetDirectoryInfo()?.FullName ?? Bucket?.GetDirectoryInfo()?.FullName ?? Repo?.GetDirectoryInfo()?.FullName ?? RepoCollection?.RepoCollectionDirectoryPath;
+            return Enlistment?.GetDirectoryInfo()?.FullName
+                ?? Bucket?.GetDirectoryInfo()?.FullName
+                ?? TargetBranch?.GetDirectoryInfo()?.FullName
+                ?? Repo?.GetDirectoryInfo()?.FullName
+                ?? RepoCollection?.RepoCollectionDirectoryPath;
         }
 
         public void SetIfNotNullFrom(GemNodeContext otherContext)
         {
             this.RepoCollection ??= otherContext.RepoCollection;
             this.Repo ??= otherContext.Repo;
+            this.TargetBranch ??= otherContext.TargetBranch;
             this.Bucket ??= otherContext.Bucket;
             this.Enlistment ??= otherContext.Enlistment;
         }
@@ -33,7 +40,8 @@ namespace GitEnlistmentManager.DTOs
             return new GemNodeContext()
             {
                 RepoCollection = this.RepoCollection,
-                Repo= this.Repo,
+                Repo = this.Repo,
+                TargetBranch = this.TargetBranch,
                 Bucket = this.Bucket,
                 Enlistment = this.Enlistment
             };
@@ -49,6 +57,11 @@ namespace GitEnlistmentManager.DTOs
             if (this.Bucket != null)
             {
                 return this.Bucket.GetTokens();
+            }
+
+            if (this.TargetBranch != null)
+            {
+                return this.TargetBranch.GetTokens();
             }
 
             if (this.Repo != null)
@@ -68,16 +81,18 @@ namespace GitEnlistmentManager.DTOs
         {
             return Enlistment != null ? CommandSetPlacement.Enlistment :
                    Bucket != null ? CommandSetPlacement.Bucket :
+                   TargetBranch != null ? CommandSetPlacement.TargetBranch :
                    Repo != null ? CommandSetPlacement.Repo :
                    CommandSetPlacement.RepoCollection;
         }
 
-        public static GemNodeContext GetNodeContext(RepoCollection? repoCollection = null, Repo? repo = null, Bucket? bucket = null, Enlistment? enlistment = null)
+        public static GemNodeContext GetNodeContext(RepoCollection? repoCollection = null, Repo? repo = null, TargetBranch? targetBranch = null, Bucket? bucket = null, Enlistment? enlistment = null)
         {
             var nodeContext = new GemNodeContext()
             {
-                RepoCollection = enlistment?.Bucket.Repo.RepoCollection ?? bucket?.Repo.RepoCollection ?? repo?.RepoCollection ?? repoCollection,
-                Repo = enlistment?.Bucket.Repo ?? bucket?.Repo ?? repo,
+                RepoCollection = enlistment?.Bucket.Repo.RepoCollection ?? bucket?.Repo.RepoCollection ?? targetBranch?.Repo.RepoCollection ?? repo?.RepoCollection ?? repoCollection,
+                Repo = enlistment?.Bucket.Repo ?? bucket?.Repo ?? targetBranch?.Repo ?? repo,
+                TargetBranch = enlistment?.Bucket.TargetBranch ?? bucket?.TargetBranch ?? targetBranch,
                 Bucket = enlistment?.Bucket ?? bucket,
                 Enlistment = enlistment
             };

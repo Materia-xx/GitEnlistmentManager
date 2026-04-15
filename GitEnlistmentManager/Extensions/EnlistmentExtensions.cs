@@ -97,7 +97,7 @@ namespace GitEnlistmentManager.Extensions
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.BranchPrefix))
+            if (string.IsNullOrWhiteSpace(enlistment.Bucket.TargetBranch.BranchDefinition.BranchPrefix))
             {
                 MessageBox.Show("Branch prefix must be set in the repo settings before creating an enlistment.");
                 return false;
@@ -213,7 +213,7 @@ namespace GitEnlistmentManager.Extensions
                 // If we know about a parent enlistment (a local repo/directory) then use that as the place we clone from.
                 // Otherwise use the remote clone URL.
                 CloneUrl = parentEnlistment?.GetDirectoryInfo()?.FullName ?? enlistment.Bucket.Repo.Metadata.CloneUrl,
-                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
+                BranchFrom = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.TargetBranch.BranchDefinition.BranchFrom,
                 ScopeToBranch = scopeToBranch,
                 GitAutoCrlf = gitAutoCrlf
             });
@@ -224,14 +224,14 @@ namespace GitEnlistmentManager.Extensions
                 // Create the branch that this enlistment will be working in
                 createEnlistmentCommandSet.Commands.Add(new GitCreateBranchCommand()
                 {
-                    Branch = $"{enlistment.Bucket.Repo.Metadata.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
+                    Branch = $"{enlistment.Bucket.TargetBranch.BranchDefinition.BranchPrefix}/{enlistment.Bucket.GemName}/{enlistment.GemName}",
                 });
             }
 
             // This sets the *branch* and *URL* that the enlistment will pull from
             createEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
             {
-                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.Repo.Metadata.BranchFrom,
+                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? enlistment.Bucket.TargetBranch.BranchDefinition.BranchFrom,
                 ScopeToBranch = scopeToBranch
             });
 
