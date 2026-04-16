@@ -7,8 +7,7 @@ namespace GitEnlistmentManager.Extensions
     public static class TargetBranchExtensions
     {
         /// <summary>
-        /// Gets the directory for this TargetBranch. If FolderName is set, returns RepoDir/FolderName.
-        /// If FolderName is not set (backward compat), returns RepoDir directly.
+        /// Gets the directory for this TargetBranch: RepoDir/FolderName.
         /// </summary>
         public static DirectoryInfo? GetDirectoryInfo(this TargetBranch targetBranch)
         {
@@ -18,12 +17,7 @@ namespace GitEnlistmentManager.Extensions
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(targetBranch.BranchDefinition.FolderName))
-            {
-                return repoDirectory;
-            }
-
-            var targetBranchDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, targetBranch.BranchDefinition.FolderName));
+            var targetBranchDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, targetBranch.BranchDefinition.FolderName!));
             if (!targetBranchDirectory.Exists)
             {
                 targetBranchDirectory.Create();

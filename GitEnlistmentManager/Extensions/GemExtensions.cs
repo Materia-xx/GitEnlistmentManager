@@ -196,7 +196,6 @@ namespace GitEnlistmentManager.Extensions
                     }
 
                     // Create TargetBranch nodes from the metadata
-                    repo.Metadata.NormalizeBranches();
                     if (repo.Metadata.Branches != null)
                     {
                         foreach (var branchDef in repo.Metadata.Branches)
@@ -204,16 +203,8 @@ namespace GitEnlistmentManager.Extensions
                             var targetBranch = new TargetBranch(repo, branchDef);
                             repo.TargetBranches.Add(targetBranch);
 
-                            // Determine the directory to scan for buckets
-                            DirectoryInfo scanDirectory;
-                            if (!string.IsNullOrWhiteSpace(branchDef.FolderName))
-                            {
-                                scanDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, branchDef.FolderName));
-                            }
-                            else
-                            {
-                                scanDirectory = repoDirectory;
-                            }
+                            // Scan the FolderName subdirectory for buckets
+                            var scanDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, branchDef.FolderName!));
 
                             if (!scanDirectory.Exists)
                             {
@@ -231,26 +222,6 @@ namespace GitEnlistmentManager.Extensions
                                 if (bucketDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
                                 {
                                     continue;
-                                }
-
-                                // When scanning without a FolderName, skip directories that match
-                                // other TargetBranch FolderNames (those belong to that other TargetBranch)
-                                if (string.IsNullOrWhiteSpace(branchDef.FolderName) && repo.Metadata.Branches != null)
-                                {
-                                    bool isFolderNameOfAnotherBranch = false;
-                                    foreach (var otherBranch in repo.Metadata.Branches)
-                                    {
-                                        if (!string.IsNullOrWhiteSpace(otherBranch.FolderName) &&
-                                            bucketDirectory.Name.Equals(otherBranch.FolderName, StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            isFolderNameOfAnotherBranch = true;
-                                            break;
-                                        }
-                                    }
-                                    if (isFolderNameOfAnotherBranch)
-                                    {
-                                        continue;
-                                    }
                                 }
 
                                 var bucket = new Bucket(targetBranch)

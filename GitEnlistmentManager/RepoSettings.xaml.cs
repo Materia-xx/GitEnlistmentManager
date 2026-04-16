@@ -54,7 +54,6 @@ namespace GitEnlistmentManager
             }
 
             // Initialize the branches collection
-            repo.Metadata.NormalizeBranches();
             branchDefinitions = new ObservableCollection<BranchDefinition>(
                 repo.Metadata.Branches ?? new List<BranchDefinition>());
 
@@ -76,6 +75,27 @@ namespace GitEnlistmentManager
                 return;
             }
 
+            // Validate that each branch definition has all 3 fields filled in
+            foreach (var bd in branchDefinitions)
+            {
+                bool hasBranchFrom = !string.IsNullOrWhiteSpace(bd.BranchFrom);
+                bool hasBranchPrefix = !string.IsNullOrWhiteSpace(bd.BranchPrefix);
+                bool hasFolderName = !string.IsNullOrWhiteSpace(bd.FolderName);
+
+                // Skip fully blank rows (empty DataGrid rows)
+                if (!hasBranchFrom && !hasBranchPrefix && !hasFolderName)
+                {
+                    continue;
+                }
+
+                // Reject partially filled rows
+                if (!hasBranchFrom || !hasBranchPrefix || !hasFolderName)
+                {
+                    MessageBox.Show("Each target branch must have all three fields filled in: Branch From, Branch Prefix, and Folder Name.");
+                    return;
+                }
+            }
+
             // Transfer data from form to DTO
             FormToDto();
             this.DialogResult = true;
@@ -95,14 +115,10 @@ namespace GitEnlistmentManager
             this.repoSettings.Metadata.UserEmail = this.txtUserEmail.Text;
             this.repoSettings.Metadata.GitHostingPlatformName = this.cboGitHostingPlatformName.SelectedValue.ToString();
 
-            // Save the branches list from the DataGrid
+            // Save the branches list from the DataGrid (skip fully blank rows)
             this.repoSettings.Metadata.Branches = branchDefinitions
-                .Where(bd => !string.IsNullOrWhiteSpace(bd.BranchFrom) || !string.IsNullOrWhiteSpace(bd.BranchPrefix))
+                .Where(bd => !string.IsNullOrWhiteSpace(bd.BranchFrom) || !string.IsNullOrWhiteSpace(bd.BranchPrefix) || !string.IsNullOrWhiteSpace(bd.FolderName))
                 .ToList();
-
-            // Clear legacy fields — the Branches list is the source of truth now
-            this.repoSettings.Metadata.BranchFrom = string.Empty;
-            this.repoSettings.Metadata.BranchPrefix = string.Empty;
         }
 
         private void DtoToForm()

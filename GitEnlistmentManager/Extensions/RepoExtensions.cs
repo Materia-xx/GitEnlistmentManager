@@ -114,7 +114,6 @@ namespace GitEnlistmentManager.Extensions
                     return false;
                 }
                 repo.Metadata = repoMetadata;
-                repo.Metadata.NormalizeBranches();
             }
             catch (Exception ex)
             {

@@ -137,36 +137,18 @@ namespace GitEnlistmentManager
                     }
                     if (repo != null && workingDirParts.Length > 2 && !string.IsNullOrWhiteSpace(workingDirParts[2]))
                     {
-                        // Check if this path segment matches a TargetBranch FolderName
                         targetBranch = repo.TargetBranches.FirstOrDefault(tb =>
-                            !string.IsNullOrWhiteSpace(tb.BranchDefinition.FolderName) &&
+                            tb.BranchDefinition.FolderName != null &&
                             tb.BranchDefinition.FolderName.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
-
-                        if (targetBranch != null)
-                        {
-                            // FolderName matched, so the next segment is the bucket
-                            if (workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
-                            {
-                                bucket = targetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
-                            }
-                            if (bucket != null && workingDirParts.Length > 4 && !string.IsNullOrWhiteSpace(workingDirParts[4]))
-                            {
-                                enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[4], StringComparison.OrdinalIgnoreCase));
-                            }
-                        }
-                        else
-                        {
-                            // No FolderName match, find the TargetBranch with no FolderName and treat this segment as bucket
-                            targetBranch = repo.TargetBranches.FirstOrDefault(tb => string.IsNullOrWhiteSpace(tb.BranchDefinition.FolderName));
-                            if (targetBranch != null)
-                            {
-                                bucket = targetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
-                            }
-                            if (bucket != null && workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
-                            {
-                                enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
-                            }
-                        }
+                    }
+                    // Path: [0]=RepoCollection, [1]=Repo, [2]=FolderName, [3]=Bucket, [4]=Enlistment
+                    if (targetBranch != null && workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
+                    {
+                        bucket = targetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (bucket != null && workingDirParts.Length > 4 && !string.IsNullOrWhiteSpace(workingDirParts[4]))
+                    {
+                        enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[4], StringComparison.OrdinalIgnoreCase));
                     }
 
                     var nodeContext = new GemNodeContext()
