@@ -31,10 +31,10 @@ namespace GitEnlistmentManager.Mcp.Tools
                     ["type"] = "string",
                     ["description"] = "Name of the repo (use the display name, not the short name)"
                 },
-                ["folderName"] = new JObject
+                ["branchName"] = new JObject
                 {
                     ["type"] = "string",
-                    ["description"] = "FolderName of the target branch to create the bucket under"
+                    ["description"] = "The target branch name (e.g. 'master', 'main') to create the bucket under"
                 },
                 ["bucketName"] = new JObject
                 {
@@ -42,7 +42,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                     ["description"] = "Name for the new bucket"
                 }
             },
-            ["required"] = new JArray("repoCollectionName", "repoName", "folderName", "bucketName")
+            ["required"] = new JArray("repoCollectionName", "repoName", "branchName", "bucketName")
         };
 
         public override async Task<McpToolResult> Execute(JObject? arguments)
@@ -54,13 +54,13 @@ namespace GitEnlistmentManager.Mcp.Tools
 
             var repoCollectionName = arguments["repoCollectionName"]?.ToString();
             var repoName = arguments["repoName"]?.ToString();
-            var folderName = arguments["folderName"]?.ToString();
+            var branchName = arguments["branchName"]?.ToString();
             var bucketName = arguments["bucketName"]?.ToString();
 
             if (string.IsNullOrWhiteSpace(repoCollectionName) || string.IsNullOrWhiteSpace(repoName) ||
-                string.IsNullOrWhiteSpace(folderName) || string.IsNullOrWhiteSpace(bucketName))
+                string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(bucketName))
             {
-                return McpToolResult.Error("All parameters are required: repoCollectionName, repoName, folderName, bucketName");
+                return McpToolResult.Error("All parameters are required: repoCollectionName, repoName, branchName, bucketName");
             }
 
             // Find the repo collection
@@ -81,11 +81,11 @@ namespace GitEnlistmentManager.Mcp.Tools
 
             // Find the target branch
             var targetBranch = repo.TargetBranches.FirstOrDefault(
-                tb => tb.BranchDefinition.FolderName != null &&
-                      tb.BranchDefinition.FolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase));
+                tb => tb.BranchDefinition.BranchFrom != null &&
+                      tb.BranchDefinition.BranchFrom.Equals(branchName, StringComparison.OrdinalIgnoreCase));
             if (targetBranch == null)
             {
-                return McpToolResult.Error($"Target branch with folder '{folderName}' not found in repo '{repoName}'");
+                return McpToolResult.Error($"Target branch '{branchName}' not found in repo '{repoName}'");
             }
 
             // Check if bucket already exists

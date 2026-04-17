@@ -30,10 +30,10 @@ namespace GitEnlistmentManager.Mcp.Tools
                     ["type"] = "string",
                     ["description"] = "Name of the repo"
                 },
-                ["folderName"] = new JObject
+                ["branchName"] = new JObject
                 {
                     ["type"] = "string",
-                    ["description"] = "FolderName of the target branch"
+                    ["description"] = "The target branch name (e.g. 'master', 'main')"
                 },
                 ["bucketName"] = new JObject
                 {
@@ -44,19 +44,9 @@ namespace GitEnlistmentManager.Mcp.Tools
                 {
                     ["type"] = "string",
                     ["description"] = "Name for the new enlistment"
-                },
-                ["scopeToBranch"] = new JObject
-                {
-                    ["type"] = "boolean",
-                    ["description"] = "Whether to scope the clone to a single branch (default: true)"
-                },
-                ["gitAutoCrlf"] = new JObject
-                {
-                    ["type"] = "boolean",
-                    ["description"] = "Whether to set git core.autocrlf to true (default: false)"
                 }
             },
-            ["required"] = new JArray("repoCollectionName", "repoName", "folderName", "bucketName", "enlistmentName")
+            ["required"] = new JArray("repoCollectionName", "repoName", "branchName", "bucketName", "enlistmentName")
         };
 
         public override async Task<McpToolResult> Execute(JObject? arguments)
@@ -68,14 +58,12 @@ namespace GitEnlistmentManager.Mcp.Tools
 
             var repoCollectionName = arguments["repoCollectionName"]?.ToString();
             var repoName = arguments["repoName"]?.ToString();
-            var folderName = arguments["folderName"]?.ToString();
+            var branchName = arguments["branchName"]?.ToString();
             var bucketName = arguments["bucketName"]?.ToString();
             var enlistmentName = arguments["enlistmentName"]?.ToString();
-            var scopeToBranch = arguments["scopeToBranch"]?.Value<bool>() ?? true;
-            var gitAutoCrlf = arguments["gitAutoCrlf"]?.Value<bool>() ?? false;
 
             if (string.IsNullOrWhiteSpace(repoCollectionName) || string.IsNullOrWhiteSpace(repoName) ||
-                string.IsNullOrWhiteSpace(folderName) || string.IsNullOrWhiteSpace(bucketName) ||
+                string.IsNullOrWhiteSpace(branchName) || string.IsNullOrWhiteSpace(bucketName) ||
                 string.IsNullOrWhiteSpace(enlistmentName))
             {
                 return McpToolResult.Error("All required parameters must be provided");
@@ -97,11 +85,11 @@ namespace GitEnlistmentManager.Mcp.Tools
             }
 
             var targetBranch = repo.TargetBranches.FirstOrDefault(
-                tb => tb.BranchDefinition.FolderName != null &&
-                      tb.BranchDefinition.FolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase));
+                tb => tb.BranchDefinition.BranchFrom != null &&
+                      tb.BranchDefinition.BranchFrom.Equals(branchName, StringComparison.OrdinalIgnoreCase));
             if (targetBranch == null)
             {
-                return McpToolResult.Error($"Target branch with folder '{folderName}' not found");
+                return McpToolResult.Error($"Target branch '{branchName}' not found");
             }
 
             var bucket = targetBranch.Buckets.FirstOrDefault(
@@ -119,8 +107,8 @@ namespace GitEnlistmentManager.Mcp.Tools
                 var success = await enlistment.CreateEnlistment(
                     enlistmentPlacement: EnlistmentPlacement.PlaceAtEnd,
                     childEnlistment: null,
-                    scopeToBranch: scopeToBranch,
-                    gitAutoCrlf: gitAutoCrlf).ConfigureAwait(false);
+                    scopeToBranch: true,
+                    gitAutoCrlf: false).ConfigureAwait(false);
 
                 if (!success)
                 {

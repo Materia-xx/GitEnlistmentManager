@@ -53,8 +53,6 @@ namespace GitEnlistmentManager.Mcp.Tools
                         targetBranches.Add(new
                         {
                             branchFrom = tb.BranchDefinition.BranchFrom,
-                            branchPrefix = tb.BranchDefinition.BranchPrefix,
-                            folderName = tb.BranchDefinition.FolderName,
                             buckets
                         });
                     }
@@ -62,8 +60,6 @@ namespace GitEnlistmentManager.Mcp.Tools
                     repos.Add(new
                     {
                         name = repo.GemName,
-                        shortName = repo.Metadata.ShortName,
-                        cloneUrl = repo.Metadata.CloneUrl,
                         targetBranches
                     });
                 }
