@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -44,11 +45,11 @@ namespace GitEnlistmentManager.Mcp.Tools
             ["required"] = new JArray("repoCollectionName", "repoName", "folderName", "bucketName")
         };
 
-        public override Task<McpToolResult> Execute(JObject? arguments)
+        public override async Task<McpToolResult> Execute(JObject? arguments)
         {
             if (arguments == null)
             {
-                return Task.FromResult(McpToolResult.Error("Arguments are required"));
+                return McpToolResult.Error("Arguments are required");
             }
 
             var repoCollectionName = arguments["repoCollectionName"]?.ToString();
@@ -59,7 +60,7 @@ namespace GitEnlistmentManager.Mcp.Tools
             if (string.IsNullOrWhiteSpace(repoCollectionName) || string.IsNullOrWhiteSpace(repoName) ||
                 string.IsNullOrWhiteSpace(folderName) || string.IsNullOrWhiteSpace(bucketName))
             {
-                return Task.FromResult(McpToolResult.Error("All parameters are required: repoCollectionName, repoName, folderName, bucketName"));
+                return McpToolResult.Error("All parameters are required: repoCollectionName, repoName, folderName, bucketName");
             }
 
             // Find the repo collection
@@ -67,7 +68,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                 rc => rc.GemName != null && rc.GemName.Equals(repoCollectionName, StringComparison.OrdinalIgnoreCase));
             if (repoCollection == null)
             {
-                return Task.FromResult(McpToolResult.Error($"Repo collection '{repoCollectionName}' not found"));
+                return McpToolResult.Error($"Repo collection '{repoCollectionName}' not found");
             }
 
             // Find the repo
@@ -75,7 +76,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                 r => r.GemName != null && r.GemName.Equals(repoName, StringComparison.OrdinalIgnoreCase));
             if (repo == null)
             {
-                return Task.FromResult(McpToolResult.Error($"Repo '{repoName}' not found in collection '{repoCollectionName}'"));
+                return McpToolResult.Error($"Repo '{repoName}' not found in collection '{repoCollectionName}'");
             }
 
             // Find the target branch
@@ -84,7 +85,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                       tb.BranchDefinition.FolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase));
             if (targetBranch == null)
             {
-                return Task.FromResult(McpToolResult.Error($"Target branch with folder '{folderName}' not found in repo '{repoName}'"));
+                return McpToolResult.Error($"Target branch with folder '{folderName}' not found in repo '{repoName}'");
             }
 
             // Check if bucket already exists
@@ -92,7 +93,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                 b => b.GemName != null && b.GemName.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
             if (existingBucket != null)
             {
-                return Task.FromResult(McpToolResult.Error($"Bucket '{bucketName}' already exists"));
+                return McpToolResult.Error($"Bucket '{bucketName}' already exists");
             }
 
             // Create the bucket
@@ -102,7 +103,7 @@ namespace GitEnlistmentManager.Mcp.Tools
             var targetBranchDir = targetBranch.GetDirectoryInfo();
             if (targetBranchDir == null)
             {
-                return Task.FromResult(McpToolResult.Error("Unable to determine target branch directory"));
+                return McpToolResult.Error("Unable to determine target branch directory");
             }
 
             try
@@ -115,16 +116,19 @@ namespace GitEnlistmentManager.Mcp.Tools
 
                 targetBranch.Buckets.Add(bucket);
 
+                // Refresh the UI tree to show the new bucket
+                await Global.Instance.MainWindow.ReloadTreeview().ConfigureAwait(false);
+
                 var result = new
                 {
                     message = $"Bucket '{bucketName}' created successfully",
                     path = bucketDir.FullName
                 };
-                return Task.FromResult(McpToolResult.Success(JsonConvert.SerializeObject(result, Formatting.Indented)));
+                return McpToolResult.Success(JsonConvert.SerializeObject(result, Formatting.Indented));
             }
             catch (Exception ex)
             {
-                return Task.FromResult(McpToolResult.Error($"Failed to create bucket directory: {ex.Message}"));
+                return McpToolResult.Error($"Failed to create bucket directory: {ex.Message}");
             }
         }
     }

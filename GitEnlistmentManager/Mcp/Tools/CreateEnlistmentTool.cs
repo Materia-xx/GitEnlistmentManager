@@ -1,5 +1,6 @@
 ﻿using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -132,6 +133,10 @@ namespace GitEnlistmentManager.Mcp.Tools
                     message = $"Enlistment '{enlistmentName}' created successfully",
                     path = enlistmentDir?.FullName
                 };
+
+                // Refresh the UI tree to show the new enlistment
+                await Global.Instance.MainWindow.ReloadTreeview().ConfigureAwait(false);
+
                 return McpToolResult.Success(JsonConvert.SerializeObject(result, Formatting.Indented));
             }
             catch (Exception ex)
