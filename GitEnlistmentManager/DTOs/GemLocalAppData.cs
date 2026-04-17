@@ -18,6 +18,10 @@ namespace GitEnlistmentManager.DTOs
 
         public int ServerPort { get; set; } = 8397;
 
+        public int McpPort { get; set; } = 8398;
+
+        public bool McpEnabled { get; set; } = false;
+
         public string? CompareProgram { get; set; }
 
         public string? CompareArguments { get; set; }

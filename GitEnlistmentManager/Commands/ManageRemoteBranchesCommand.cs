@@ -14,11 +14,11 @@ namespace GitEnlistmentManager.Commands
 
         public override async Task<bool> Execute()
         {
-            if (this.NodeContext.Repo != null)
+            if (this.NodeContext.TargetBranch != null)
             {
                 await Global.Instance.MainWindow.Dispatcher.InvokeAsync(() =>
                 {
-                    var remoteBranches = new RemoteBranches(this.NodeContext.Repo);
+                    var remoteBranches = new RemoteBranches(this.NodeContext.TargetBranch);
                     remoteBranches.ShowDialog();
                 });
             }

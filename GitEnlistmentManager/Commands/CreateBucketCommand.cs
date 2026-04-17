@@ -29,12 +29,12 @@ namespace GitEnlistmentManager.Commands
 
         public override async Task<bool> Execute()
         {
-            if (this.NodeContext.Repo == null)
+            if (this.NodeContext.TargetBranch == null)
             {
                 return false;
             }
 
-            ResultBucket = new Bucket(this.NodeContext.Repo);
+            ResultBucket = new Bucket(this.NodeContext.TargetBranch);
             ResultBucket.GemName = BucketName;
 
             if (string.IsNullOrEmpty(ResultBucket.GemName))

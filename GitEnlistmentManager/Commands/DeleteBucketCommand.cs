@@ -28,7 +28,7 @@ namespace GitEnlistmentManager.Commands
 
         public override async Task<bool> Execute()
         {
-            if (this.NodeContext.Repo == null)
+            if (this.NodeContext.TargetBranch == null)
             {
                 return false;
             }
@@ -36,7 +36,7 @@ namespace GitEnlistmentManager.Commands
             // If bucket wasn't passed in on the node context then try to parse it from properties
             if (this.NodeContext.Bucket == null && !string.IsNullOrWhiteSpace(BucketNameToDelete))
             {
-                this.NodeContext.Bucket = this.NodeContext.Repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
+                this.NodeContext.Bucket = this.NodeContext.TargetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(BucketNameToDelete, StringComparison.OrdinalIgnoreCase));
             }
 
             // If bucket still isn't set then we don't know what bucket to delete

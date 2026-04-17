@@ -55,7 +55,7 @@ namespace GitEnlistmentManager.Commands
             var gitShallowOption = CloneUrl == this.NodeContext.Repo.Metadata.CloneUrl ? "--depth 1" : string.Empty;
 
             var branchFrom = string.IsNullOrWhiteSpace(BranchFrom)
-                ? this.NodeContext.Repo.Metadata.BranchFrom
+                ? this.NodeContext.TargetBranch?.BranchDefinition.BranchFrom
                 : BranchFrom;
 
             // --branch should always be present when cloning. If you have a repo with master + m2 branches and they have different histories

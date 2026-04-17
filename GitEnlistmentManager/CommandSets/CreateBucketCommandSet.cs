@@ -6,7 +6,7 @@ namespace GitEnlistmentManager.CommandSets
     {
         public CreateBucketCommandSet()
         {
-            Placement = CommandSetPlacement.Repo;
+            Placement = CommandSetPlacement.TargetBranch;
             OverrideKey = "createbucket";
             RightClickText = "Create Bucket";
             Verb = "createbucket";
