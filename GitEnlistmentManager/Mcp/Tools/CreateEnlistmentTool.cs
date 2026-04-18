@@ -43,7 +43,7 @@ namespace GitEnlistmentManager.Mcp.Tools
                 ["enlistmentName"] = new JObject
                 {
                     ["type"] = "string",
-                    ["description"] = "Name for the new enlistment"
+                    ["description"] = "Name for the new enlistment. Note that the program automatically prepends numbers to ensure uniqueness. Enlistment names passed in here should be simple strings like 'w1' or 'ref', not something like '10000.w1'"
                 }
             },
             ["required"] = new JArray("repoCollectionName", "repoName", "branchName", "bucketName", "enlistmentName")

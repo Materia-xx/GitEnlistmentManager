@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace GitEnlistmentManager
 {
@@ -88,6 +89,16 @@ namespace GitEnlistmentManager
 
             this.gem.LocalAppData.McpEnabled = this.chkMcpEnabled.IsChecked == true;
 
+            // Save disabled MCP tools from checkboxes
+            this.gem.LocalAppData.DisabledMcpTools.Clear();
+            foreach (var child in this.mcpToolCheckboxes.Children)
+            {
+                if (child is CheckBox checkBox && checkBox.Tag is string toolName && checkBox.IsChecked != true)
+                {
+                    this.gem.LocalAppData.DisabledMcpTools.Add(toolName);
+                }
+            }
+
             var repoCollectionDefinitionDirectories = this.txtRepoCollectionDefinitionDirectories.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             this.gem.LocalAppData.RepoCollectionDefinitionDirectories.Clear();
             foreach (var repoCollectionDefinitionDirectory in repoCollectionDefinitionDirectories)
@@ -133,6 +144,24 @@ namespace GitEnlistmentManager
 
             this.txtCompareProgram.Text = this.gem.LocalAppData.CompareProgram;
             this.txtCompareArguments.Text = this.gem.LocalAppData.CompareArguments;
+
+            // Populate MCP tool checkboxes
+            this.mcpToolCheckboxes.Children.Clear();
+            var mcpServer = Global.Instance.McpServer;
+            if (mcpServer != null)
+            {
+                foreach (var toolName in mcpServer.GetToolNames())
+                {
+                    var checkBox = new CheckBox
+                    {
+                        Content = toolName,
+                        Tag = toolName,
+                        IsChecked = !this.gem.LocalAppData.DisabledMcpTools.Contains(toolName),
+                        Margin = new Thickness(5, 2, 5, 2)
+                    };
+                    this.mcpToolCheckboxes.Children.Add(checkBox);
+                }
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

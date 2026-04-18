@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GitEnlistmentManager.Mcp;
+using System;
 
 namespace GitEnlistmentManager.Globals
 {
@@ -18,5 +19,7 @@ namespace GitEnlistmentManager.Globals
         }
 
         public MainWindow MainWindow { get; set; }
+
+        public McpServer? McpServer { get; set; }
     }
 }

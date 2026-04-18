@@ -48,6 +48,7 @@ namespace GitEnlistmentManager
                     this.mcpServer.RegisterTool(new CreateEnlistmentTool());
                     this.mcpServer.RegisterTool(new CreatePullRequestTool());
                     this.mcpServer.Start();
+                    Global.Instance.McpServer = this.mcpServer;
                 }
             }
 
