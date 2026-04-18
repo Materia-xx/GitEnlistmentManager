@@ -45,6 +45,14 @@ namespace GitEnlistmentManager.Commands
                 return false;
             }
 
+            // Refuse to delete buckets that still have enlistments
+            if (this.NodeContext.Bucket.Enlistments.Count > 0)
+            {
+                var enlistmentNames = string.Join(", ", this.NodeContext.Bucket.Enlistments.Select(e => e.GemName));
+                MessageBox.Show($"Bucket still has {this.NodeContext.Bucket.Enlistments.Count} enlistment(s): {enlistmentNames}. Archive or remove them first.");
+                return false;
+            }
+
             var bucketDirectory = this.NodeContext.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {

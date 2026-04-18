@@ -36,6 +36,16 @@ namespace GitEnlistmentManager.Mcp
             return this.tools.Keys;
         }
 
+        public string? GetToolDescription(string toolName)
+        {
+            if (this.tools.TryGetValue(toolName, out var tool))
+            {
+                return tool.Description;
+            }
+
+            return null;
+        }
+
         public void Start()
         {
             this.listener.Start();

@@ -2,6 +2,7 @@
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,14 +151,51 @@ namespace GitEnlistmentManager
             var mcpServer = Global.Instance.McpServer;
             if (mcpServer != null)
             {
+                // Add checkboxes for registered MCP tools
                 foreach (var toolName in mcpServer.GetToolNames())
                 {
+                    // Skip run_command itself — individual verbs are shown instead
+                    if (toolName == "run_command")
+                    {
+                        continue;
+                    }
+
                     var checkBox = new CheckBox
                     {
                         Content = toolName,
                         Tag = toolName,
                         IsChecked = !this.gem.LocalAppData.DisabledMcpTools.Contains(toolName),
-                        Margin = new Thickness(5, 2, 5, 2)
+                        Margin = new Thickness(5, 2, 5, 2),
+                        ToolTip = mcpServer.GetToolDescription(toolName)
+                    };
+                    this.mcpToolCheckboxes.Children.Add(checkBox);
+                }
+
+                // Add checkboxes for each command verb available through run_command
+                var seenVerbs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var commandSet in this.gem.CommandSets)
+                {
+                    if (string.IsNullOrWhiteSpace(commandSet.Verb))
+                    {
+                        continue;
+                    }
+
+                    if (!seenVerbs.Add(commandSet.Verb))
+                    {
+                        continue;
+                    }
+
+                    var tagValue = $"run_command:{commandSet.Verb}";
+                    var tooltip = !string.IsNullOrWhiteSpace(commandSet.Documentation)
+                        ? commandSet.Documentation
+                        : commandSet.Verb;
+                    var checkBox = new CheckBox
+                    {
+                        Content = $"cmd: {commandSet.Verb}",
+                        Tag = tagValue,
+                        IsChecked = !this.gem.LocalAppData.DisabledMcpTools.Contains(tagValue),
+                        Margin = new Thickness(5, 2, 5, 2),
+                        ToolTip = tooltip
                     };
                     this.mcpToolCheckboxes.Children.Add(checkBox);
                 }

@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GitEnlistmentManager"
         mc:Ignorable="d"
-        Title="GemSettings" Height="320" Width="600" Loaded="Window_Loaded">
+        Title="GemSettings" Height="450" Width="600" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <TabControl x:Name="GemTabs" Grid.Row="0">
@@ -145,7 +145,6 @@
                         <RowDefinition Height="5"/>
                         <RowDefinition Height="25"/>
                         <RowDefinition Height="10"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -155,13 +154,15 @@
                     <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtMcpPort"/>
 
                     <GroupBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Header="Enabled Tools">
-                        <WrapPanel x:Name="mcpToolCheckboxes" Orientation="Vertical" ItemHeight="25" ItemWidth="200"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <WrapPanel x:Name="mcpToolCheckboxes" Orientation="Horizontal" ItemHeight="25" ItemWidth="200"/>
+                        </ScrollViewer>
                     </GroupBox>
                  </Grid>
             </TabItem>
 
 
         </TabControl>
-        <Button Grid.Row="1" Width="55" Content="Save" HorizontalAlignment="Right" Click="ButtonSave_Click" />
+        <Button Grid.Row="1" Width="55" Content="Save" HorizontalAlignment="Right" Margin="0,5,10,5" Click="ButtonSave_Click" />
     </Grid>
 </Window>
