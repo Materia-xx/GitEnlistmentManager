@@ -14,8 +14,10 @@ namespace GitEnlistmentManager.CommandSets
             Verb = "dev2026";
             Filename = "gemdev2026.cmdjson";
 
+            // Check a couple different places for the vsDevCmd.bat take the first one found. There is always the option to override the command set too.
+            // Though we still write a non-existing cmd if it doesn't exist. It won't work, but there will be an example in the default command sets directory to work with.
             var vsSkus = new List<string>() { "Community", "Enterprise" };
-            var vsDevCmd = string.Empty;
+            var vsDevCmd = @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\Tools\VsDevCmd.bat";
             foreach (var vsSku in vsSkus)
             {
                 var potentialVsDevCmd = @$"C:\Program Files\Microsoft Visual Studio\18\{vsSku}\Common7\Tools\VsDevCmd.bat";
