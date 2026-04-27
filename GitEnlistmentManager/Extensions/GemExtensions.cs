@@ -466,7 +466,13 @@ namespace GitEnlistmentManager.Extensions
                     break;
             }
 
-            return allCommandSets.ToList().RemoveTheOverriddenDefaultCommandSets();
+            var resultCommandSets = allCommandSets.ToList().RemoveTheOverriddenDefaultCommandSets();
+            // Sort by right click text so menus in the UI have an order to them
+            resultCommandSets = resultCommandSets
+                .OrderBy(cs => cs.RightClickText, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return resultCommandSets;
         }
     }
 }
