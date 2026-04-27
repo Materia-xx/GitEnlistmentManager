@@ -41,24 +41,34 @@ namespace GitEnlistmentManager.Extensions
                         IsSelected = rBase.IsSelected
                     };
                     rcClone.Repos.Add(rClone);
-                    foreach (var bBase in rBase.Buckets)
+                    foreach (var tbBase in rBase.TargetBranches)
                     {
-                        var bClone = new Bucket(rClone)
+                        var tbClone = new TargetBranch(rClone, tbBase.BranchDefinition)
                         {
-                            GemName = bBase.GemName,
-                            IsExpanded = bBase.IsExpanded,
-                            IsSelected = bBase.IsSelected
+                            GemName = tbBase.GemName,
+                            IsExpanded = tbBase.IsExpanded,
+                            IsSelected = tbBase.IsSelected
                         };
-                        rClone.Buckets.Add(bClone);
-                        foreach (var eBase in bBase.Enlistments)
+                        rClone.TargetBranches.Add(tbClone);
+                        foreach (var bBase in tbBase.Buckets)
                         {
-                            var eClone = new Enlistment(bClone)
+                            var bClone = new Bucket(tbClone)
                             {
-                                GemName = eBase.GemName,
-                                IsExpanded = eBase.IsExpanded,
-                                IsSelected = eBase.IsSelected
+                                GemName = bBase.GemName,
+                                IsExpanded = bBase.IsExpanded,
+                                IsSelected = bBase.IsSelected
                             };
-                            bClone.Enlistments.Add(eClone);
+                            tbClone.Buckets.Add(bClone);
+                            foreach (var eBase in bBase.Enlistments)
+                            {
+                                var eClone = new Enlistment(bClone)
+                                {
+                                    GemName = eBase.GemName,
+                                    IsExpanded = eBase.IsExpanded,
+                                    IsSelected = eBase.IsSelected
+                                };
+                                bClone.Enlistments.Add(eClone);
+                            }
                         }
                     }
                 }
@@ -88,25 +98,36 @@ namespace GitEnlistmentManager.Extensions
                     rBase.IsExpanded = rClone.IsExpanded;
                     rBase.IsSelected = rClone.IsSelected;
 
-                    foreach (var bBase in rBase.Buckets)
+                    foreach (var tbBase in rBase.TargetBranches)
                     {
-                        var bClone = rClone.Buckets.FirstOrDefault(bClone => bClone.GemName == bBase.GemName);
-                        if (bClone == null)
+                        var tbClone = rClone.TargetBranches.FirstOrDefault(tbClone => tbClone.GemName == tbBase.GemName);
+                        if (tbClone == null)
                         {
                             continue;
                         }
-                        bBase.IsExpanded = bClone.IsExpanded;
-                        bBase.IsSelected = bClone.IsSelected;
+                        tbBase.IsExpanded = tbClone.IsExpanded;
+                        tbBase.IsSelected = tbClone.IsSelected;
 
-                        foreach (var eBase in bBase.Enlistments)
+                        foreach (var bBase in tbBase.Buckets)
                         {
-                            var eClone = bClone.Enlistments.FirstOrDefault(eClone => eClone.GemName == eBase.GemName);
-                            if (eClone == null)
+                            var bClone = tbClone.Buckets.FirstOrDefault(bClone => bClone.GemName == bBase.GemName);
+                            if (bClone == null)
                             {
                                 continue;
                             }
-                            eBase.IsExpanded = eClone.IsExpanded;
-                            eBase.IsSelected = eClone.IsSelected;
+                            bBase.IsExpanded = bClone.IsExpanded;
+                            bBase.IsSelected = bClone.IsSelected;
+
+                            foreach (var eBase in bBase.Enlistments)
+                            {
+                                var eClone = bClone.Enlistments.FirstOrDefault(eClone => eClone.GemName == eBase.GemName);
+                                if (eClone == null)
+                                {
+                                    continue;
+                                }
+                                eBase.IsExpanded = eClone.IsExpanded;
+                                eBase.IsSelected = eClone.IsSelected;
+                            }
                         }
                     }
                 }
@@ -174,38 +195,56 @@ namespace GitEnlistmentManager.Extensions
                         continue;
                     }
 
-                    foreach (var bucketDirectory in repoDirectory.GetDirectories())
+                    // Create TargetBranch nodes from the metadata
+                    if (repo.Metadata.Branches != null)
                     {
-                        // Don't show the archive directory in the UI
-                        if (bucketDirectory.Name.Equals("archive", StringComparison.OrdinalIgnoreCase))
+                        foreach (var branchDef in repo.Metadata.Branches)
                         {
-                            continue;
-                        }
-                        // Don't show .vs directories made by Visual Studio
-                        if (bucketDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
+                            var targetBranch = new TargetBranch(repo, branchDef);
+                            repo.TargetBranches.Add(targetBranch);
 
-                        var bucket = new Bucket(repo)
-                        {
-                            GemName = bucketDirectory.Name
-                        };
-                        repo.Buckets.Add(bucket);
+                            // Scan the FolderName subdirectory for buckets
+                            var scanDirectory = new DirectoryInfo(Path.Combine(repoDirectory.FullName, branchDef.FolderName!));
 
-                        foreach (var enlistmentDirectory in bucketDirectory.GetDirectories())
-                        {
-                            // Don't show .vs directory made by Visual Studio
-                            if (enlistmentDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                            if (!scanDirectory.Exists)
                             {
                                 continue;
                             }
 
-                            var enlistment = new Enlistment(bucket)
+                            foreach (var bucketDirectory in scanDirectory.GetDirectories())
                             {
-                                GemName = enlistmentDirectory.Name
-                            };
-                            bucket.Enlistments.Add(enlistment);
+                                // Don't show the archive directory in the UI
+                                if (bucketDirectory.Name.Equals("archive", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+                                // Don't show .vs directories made by Visual Studio
+                                if (bucketDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+
+                                var bucket = new Bucket(targetBranch)
+                                {
+                                    GemName = bucketDirectory.Name
+                                };
+                                targetBranch.Buckets.Add(bucket);
+
+                                foreach (var enlistmentDirectory in bucketDirectory.GetDirectories())
+                                {
+                                    // Don't show .vs directory made by Visual Studio
+                                    if (enlistmentDirectory.Name.Equals(".vs", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        continue;
+                                    }
+
+                                    var enlistment = new Enlistment(bucket)
+                                    {
+                                        GemName = enlistmentDirectory.Name
+                                    };
+                                    bucket.Enlistments.Add(enlistment);
+                                }
+                            }
                         }
                     }
                 }
@@ -291,6 +330,7 @@ namespace GitEnlistmentManager.Extensions
             {
                 CommandSetPlacement.Enlistment,
                 CommandSetPlacement.Bucket,
+                CommandSetPlacement.TargetBranch,
                 CommandSetPlacement.Repo,
                 CommandSetPlacement.RepoCollection
             })

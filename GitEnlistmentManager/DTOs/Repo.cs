@@ -7,7 +7,7 @@ namespace GitEnlistmentManager.DTOs
     {
         public RepoCollection RepoCollection { get; }
         public RepoMetadata Metadata { get; set; } = new RepoMetadata();
-        public List<Bucket> Buckets { get; } = new List<Bucket>();
+        public List<TargetBranch> TargetBranches { get; } = new List<TargetBranch>();
 
         public Repo(RepoCollection repoCollection)
         {

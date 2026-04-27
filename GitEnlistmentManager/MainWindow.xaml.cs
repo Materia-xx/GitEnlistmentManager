@@ -123,6 +123,7 @@ namespace GitEnlistmentManager
 
                     RepoCollection? repoCollection = null;
                     Repo? repo = null;
+                    TargetBranch? targetBranch = null;
                     Bucket? bucket = null;
                     Enlistment? enlistment = null;
 
@@ -136,17 +137,25 @@ namespace GitEnlistmentManager
                     }
                     if (repo != null && workingDirParts.Length > 2 && !string.IsNullOrWhiteSpace(workingDirParts[2]))
                     {
-                        bucket = repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
+                        targetBranch = repo.TargetBranches.FirstOrDefault(tb =>
+                            tb.BranchDefinition.FolderName != null &&
+                            tb.BranchDefinition.FolderName.Equals(workingDirParts[2], StringComparison.OrdinalIgnoreCase));
                     }
-                    if (bucket != null && workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
+                    // Path: [0]=RepoCollection, [1]=Repo, [2]=FolderName, [3]=Bucket, [4]=Enlistment
+                    if (targetBranch != null && workingDirParts.Length > 3 && !string.IsNullOrWhiteSpace(workingDirParts[3]))
                     {
-                        enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
+                        bucket = targetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(workingDirParts[3], StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (bucket != null && workingDirParts.Length > 4 && !string.IsNullOrWhiteSpace(workingDirParts[4]))
+                    {
+                        enlistment = bucket.Enlistments.FirstOrDefault(e => e.GemName != null && e.GemName.Equals(workingDirParts[4], StringComparison.OrdinalIgnoreCase));
                     }
 
                     var nodeContext = new GemNodeContext()
                     {
                         RepoCollection = repoCollection,
                         Repo = repo,
+                        TargetBranch = targetBranch,
                         Bucket = bucket,
                         Enlistment = enlistment
                     };
@@ -270,6 +279,11 @@ namespace GitEnlistmentManager
                 {
                     commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.Repo, CommandSetMode.UserInterface, repo.RepoCollection, repo);
                     nodeContext = GemNodeContext.GetNodeContext(repo: repo);
+                }
+                else if (selectedItem is TargetBranch targetBranch)
+                {
+                    commandSets = Gem.Instance.GetCommandSets(CommandSetPlacement.TargetBranch, CommandSetMode.UserInterface, targetBranch.Repo.RepoCollection, targetBranch.Repo);
+                    nodeContext = GemNodeContext.GetNodeContext(targetBranch: targetBranch);
                 }
                 else if (selectedItem is Bucket bucket)
                 {

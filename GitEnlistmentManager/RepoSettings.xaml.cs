@@ -2,6 +2,7 @@
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ namespace GitEnlistmentManager
     public partial class RepoSettings : Window
     {
         private readonly Repo repoSettings;
+        private ObservableCollection<BranchDefinition> branchDefinitions;
 
         public RepoSettings(Repo repo, bool isNew)
         {
@@ -51,6 +53,10 @@ namespace GitEnlistmentManager
                 cboChooseDefaultsFrom.Items.Add(otherRepoName);
             }
 
+            // Initialize the branches collection
+            branchDefinitions = new ObservableCollection<BranchDefinition>(
+                repo.Metadata.Branches ?? new List<BranchDefinition>());
+
             this.DtoToForm();
             this.txtName.IsEnabled = isNew;
         }
@@ -69,6 +75,27 @@ namespace GitEnlistmentManager
                 return;
             }
 
+            // Validate that each branch definition has all 3 fields filled in
+            foreach (var bd in branchDefinitions)
+            {
+                bool hasBranchFrom = !string.IsNullOrWhiteSpace(bd.BranchFrom);
+                bool hasBranchPrefix = !string.IsNullOrWhiteSpace(bd.BranchPrefix);
+                bool hasFolderName = !string.IsNullOrWhiteSpace(bd.FolderName);
+
+                // Skip fully blank rows (empty DataGrid rows)
+                if (!hasBranchFrom && !hasBranchPrefix && !hasFolderName)
+                {
+                    continue;
+                }
+
+                // Reject partially filled rows
+                if (!hasBranchFrom || !hasBranchPrefix || !hasFolderName)
+                {
+                    MessageBox.Show("Each target branch must have all three fields filled in: Branch From, Branch Prefix, and Folder Name.");
+                    return;
+                }
+            }
+
             // Transfer data from form to DTO
             FormToDto();
             this.DialogResult = true;
@@ -84,11 +111,14 @@ namespace GitEnlistmentManager
             this.repoSettings.GemName = this.txtName.Text;
             this.repoSettings.Metadata.ShortName = this.txtShortName.Text;
             this.repoSettings.Metadata.CloneUrl = this.txtCloneUrl.Text;
-            this.repoSettings.Metadata.BranchFrom = this.txtBranchFrom.Text;
-            this.repoSettings.Metadata.BranchPrefix = this.txtBranchPrefix.Text;
             this.repoSettings.Metadata.UserName = this.txtUserName.Text;
             this.repoSettings.Metadata.UserEmail = this.txtUserEmail.Text;
             this.repoSettings.Metadata.GitHostingPlatformName = this.cboGitHostingPlatformName.SelectedValue.ToString();
+
+            // Save the branches list from the DataGrid (skip fully blank rows)
+            this.repoSettings.Metadata.Branches = branchDefinitions
+                .Where(bd => !string.IsNullOrWhiteSpace(bd.BranchFrom) || !string.IsNullOrWhiteSpace(bd.BranchPrefix) || !string.IsNullOrWhiteSpace(bd.FolderName))
+                .ToList();
         }
 
         private void DtoToForm()
@@ -96,11 +126,11 @@ namespace GitEnlistmentManager
             this.txtName.Text = this.repoSettings.GemName;
             this.txtShortName.Text = this.repoSettings.Metadata.ShortName;
             this.txtCloneUrl.Text = this.repoSettings.Metadata.CloneUrl;
-            this.txtBranchFrom.Text = this.repoSettings.Metadata.BranchFrom;
-            this.txtBranchPrefix.Text = this.repoSettings.Metadata.BranchPrefix;
             this.txtUserName.Text = this.repoSettings.Metadata.UserName;
             this.txtUserEmail.Text = this.repoSettings.Metadata.UserEmail;
             this.cboGitHostingPlatformName.SelectedValue = this.repoSettings.Metadata.GitHostingPlatformName;
+
+            dgBranches.ItemsSource = branchDefinitions;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -141,7 +171,6 @@ namespace GitEnlistmentManager
                 return;
             }
 
-            this.txtBranchPrefix.Text = chooseFromRepo.Metadata.BranchPrefix;
             this.txtUserName.Text = chooseFromRepo.Metadata.UserName;
             this.txtUserEmail.Text = chooseFromRepo.Metadata.UserEmail;
         }

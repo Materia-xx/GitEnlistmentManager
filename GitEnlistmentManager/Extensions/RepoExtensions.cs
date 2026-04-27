@@ -58,14 +58,6 @@ namespace GitEnlistmentManager.Extensions
             {
                 tokens["RepoShortName"] = repo.Metadata.ShortName;
             }
-            if (repo.Metadata.BranchFrom != null)
-            {
-                tokens["RepoBranchFrom"] = repo.Metadata.BranchFrom;
-            }
-            if (repo.Metadata.BranchPrefix != null)
-            {
-                tokens["RepoBranchPrefix"] = repo.Metadata.BranchPrefix;
-            }
             if (repo.Metadata.CloneUrl != null)
             {
                 tokens["RepoCloneUrl"] = repo.Metadata.CloneUrl;

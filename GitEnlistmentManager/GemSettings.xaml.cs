@@ -76,6 +76,18 @@ namespace GitEnlistmentManager
                 return false;
             }
 
+            if (int.TryParse(this.txtMcpPort.Text, out int resultMcpPort))
+            {
+                this.gem.LocalAppData.McpPort = resultMcpPort;
+            }
+            else
+            {
+                MessageBox.Show("Unable to convert the MCP port into a number!");
+                return false;
+            }
+
+            this.gem.LocalAppData.McpEnabled = this.chkMcpEnabled.IsChecked == true;
+
             var repoCollectionDefinitionDirectories = this.txtRepoCollectionDefinitionDirectories.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             this.gem.LocalAppData.RepoCollectionDefinitionDirectories.Clear();
             foreach (var repoCollectionDefinitionDirectory in repoCollectionDefinitionDirectories)
@@ -113,6 +125,8 @@ namespace GitEnlistmentManager
             this.txtArchiveSlots.Text = this.gem.LocalAppData.ArchiveSlots.ToString();
             this.txtEnlistmentIncrement.Text = this.gem.LocalAppData.EnlistmentIncrement.ToString();
             this.txtServerPort.Text = this.gem.LocalAppData.ServerPort.ToString();
+            this.chkMcpEnabled.IsChecked = this.gem.LocalAppData.McpEnabled;
+            this.txtMcpPort.Text = this.gem.LocalAppData.McpPort.ToString();
 
             this.txtRepoCollectionDefinitionDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.RepoCollectionDefinitionDirectories);
             this.txtCommandSetDirectories.Text = string.Join(Environment.NewLine, this.gem.LocalAppData.CommandSetDirectories);

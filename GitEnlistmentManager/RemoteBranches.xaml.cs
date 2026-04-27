@@ -21,16 +21,18 @@ namespace GitEnlistmentManager
     {
         private static readonly string refsHeads = "refs/heads/";
 
+        private TargetBranch targetBranch;
         private Repo repo;
         private DirectoryInfo? trackingRepoDirectory;
 
-        public RemoteBranches(Repo repo)
+        public RemoteBranches(TargetBranch targetBranch)
         {
             InitializeComponent();
-            this.repo = repo;
+            this.targetBranch = targetBranch;
+            this.repo = targetBranch.Repo;
 
             // The default remote branch filter
-            txtBranchPrefixFilter.Text = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
+            txtBranchPrefixFilter.Text = $"{refsHeads}{this.targetBranch.BranchDefinition.BranchPrefix}";
         }
 
         private async Task<bool> RefreshTrackingRepo()
@@ -88,7 +90,7 @@ namespace GitEnlistmentManager
 
             if (string.IsNullOrWhiteSpace(branchFilter))
             {
-                branchFilter = $"{refsHeads}{this.repo.Metadata.BranchPrefix}";
+                branchFilter = $"{refsHeads}{this.targetBranch.BranchDefinition.BranchPrefix}";
             }
             if (!branchFilter.StartsWith(refsHeads))
             {
@@ -219,12 +221,12 @@ namespace GitEnlistmentManager
             await Global.Instance.MainWindow.AppendCommandLine($"Re-creating branch '{dto.BranchName}'", Brushes.White).ConfigureAwait(false);
 
             // Look for an existing bucket with this name
-            var bucket = this.repo.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
+            var bucket = this.targetBranch.Buckets.FirstOrDefault(b => b.GemName != null && b.GemName.Equals(bucketName, StringComparison.OrdinalIgnoreCase));
 
             // If the bucket doesn't exist yet, then create it
             if (bucket == null)
             {
-                var thisRepoNodeContext = GemNodeContext.GetNodeContext(repo: this.repo);
+                var thisTargetBranchNodeContext = GemNodeContext.GetNodeContext(targetBranch: this.targetBranch);
                 var createBucketCommandSet = new CommandSet();
 
                 var createBucketCommand = new CreateBucketCommand()
@@ -233,7 +235,7 @@ namespace GitEnlistmentManager
                 };
                 createBucketCommandSet.Commands.Add(createBucketCommand);
                 await Global.Instance.MainWindow.AppendCommandLine($"Re-creating bucket '{bucketName}'", Brushes.White).ConfigureAwait(false);
-                await createBucketCommandSet.RunCommandSet(thisRepoNodeContext).ConfigureAwait(false);
+                await createBucketCommandSet.RunCommandSet(thisTargetBranchNodeContext).ConfigureAwait(false);
 
                 if (createBucketCommand.ResultBucket == null)
                 {
@@ -241,7 +243,7 @@ namespace GitEnlistmentManager
                     return;
                 }
                 bucket = createBucketCommand.ResultBucket;
-                this.repo.Buckets.Add(createBucketCommand.ResultBucket);
+                this.targetBranch.Buckets.Add(createBucketCommand.ResultBucket);
             }
 
             var parentEnlistment = bucket.Enlistments.LastOrDefault();
@@ -270,7 +272,7 @@ namespace GitEnlistmentManager
             // This sets the *branch* and *URL* that the enlistment will pull from
             recreateEnlistmentCommandSet.Commands.Add(new GitSetPullDetailsCommand()
             {
-                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? bucket.Repo.Metadata.BranchFrom,
+                FetchFilterBranch = (parentEnlistment == null ? null : await parentEnlistment.GetFullGitBranch().ConfigureAwait(false)) ?? this.targetBranch.BranchDefinition.BranchFrom,
                 ScopeToBranch = result.ScopeToBranch
             });
 

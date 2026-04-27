@@ -1,6 +1,8 @@
 ﻿using GitEnlistmentManager.ClientServer;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Globals;
+using GitEnlistmentManager.Mcp;
+using GitEnlistmentManager.Mcp.Tools;
 using System;
 using System.IO;
 using System.Threading;
@@ -17,6 +19,7 @@ namespace GitEnlistmentManager
         // The mutex helps us make sure that only 1 copy of the app is running.
         static readonly Mutex mutex = new(true, "{DF828E54-BCCA-485B-8B49-633F7A9B794A}");
         private GemServer? gemServer;
+        private McpServer? mcpServer;
         private bool mainWindowFullyLoaded = true;
 
         protected override async void OnStartup(StartupEventArgs e)
@@ -35,6 +38,17 @@ namespace GitEnlistmentManager
                 Global.Instance.MainWindow.Show();
                 this.gemServer = new GemServer(Global.Instance.MainWindow.ProcessCSCommand, Gem.Instance.LocalAppData.ServerPort);
                 this.gemServer.Start();
+
+                // Start MCP server for AI tool integration (if enabled)
+                if (Gem.Instance.LocalAppData.McpEnabled)
+                {
+                    this.mcpServer = new McpServer(Gem.Instance.LocalAppData.McpPort);
+                    this.mcpServer.RegisterTool(new ListReposTool());
+                    this.mcpServer.RegisterTool(new CreateBucketTool());
+                    this.mcpServer.RegisterTool(new CreateEnlistmentTool());
+                    this.mcpServer.RegisterTool(new CreatePullRequestTool());
+                    this.mcpServer.Start();
+                }
             }
 
             if (e.Args.Length > 0)
@@ -68,6 +82,7 @@ namespace GitEnlistmentManager
         protected override void OnExit(ExitEventArgs e)
         {
             this.gemServer?.Stop();
+            this.mcpServer?.Stop();
         }
     }
 }

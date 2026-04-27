@@ -29,7 +29,13 @@
                         <TextBlock Text="{Binding GemName}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding Buckets}">
+                <HierarchicalDataTemplate DataType="{x:Type dtos:Repo}" ItemsSource="{Binding TargetBranches}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+                        <TextBlock Text="{Binding GemName}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type dtos:TargetBranch}" ItemsSource="{Binding Buckets}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="ImageIcon" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,3,0" />
                         <TextBlock Text="{Binding GemName}" />
