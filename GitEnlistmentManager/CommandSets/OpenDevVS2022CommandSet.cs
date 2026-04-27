@@ -10,7 +10,7 @@ namespace GitEnlistmentManager.CommandSets
         {
             Placement = CommandSetPlacement.Enlistment;
             OverrideKey = "dev2022";
-            RightClickText = "Open with 2022 Developer Prompt";
+            RightClickText = "VS 2022 CMD";
             Verb = "dev2022";
             Filename = "gemdev2022.cmdjson";
 
@@ -31,7 +31,7 @@ namespace GitEnlistmentManager.CommandSets
                 new RunProgramCommand()
                 {
                     Program = "wt",
-                                    // Setting the starting directory and then doing CD later into the right directory isn't necessary here. I'm just keeping it around as an example of how to do the escaping for multiple commands
+                    // Setting the starting directory and then doing CD later into the right directory isn't necessary here. I'm just keeping it around as an example of how to do the escaping for multiple commands
                     Arguments = $@"-w gem nt --title ""{{RepoName}}"" --startingDirectory ""{{ReposDirectory}}"" ""%comspec%"" /k \""\""{vsDevCmd}\""&&CD /d \""{{EnlistmentDirectory}}\""\""",
                     OpenNewWindow = true,
                     // This actually starts with a working directory of the ReposDirectory and later on changes directory to the desired directory

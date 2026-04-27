@@ -320,6 +320,8 @@ namespace GitEnlistmentManager.Extensions
                 new GitPullAndMergeCommandSet(),
                 new ManageRemoteBranchesCommandSet(),
                 new OpenDevVS2022CommandSet(),
+                new OpenDevVS2026CommandSet(),
+                new OpenVSCodeVS2026CommandSet(),
                 new OpenRootSolutionCommandSet(),
                 new PRCommandSet(),
                 new RefreshTreeviewCommandSet(),
