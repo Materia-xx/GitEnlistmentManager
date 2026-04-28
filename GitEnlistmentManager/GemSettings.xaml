@@ -132,11 +132,6 @@
 
                     <TextBlock Grid.Row="1" Grid.Column="1">Port</TextBlock>
                     <TextBox Grid.Row="1" Grid.Column="2" x:Name="txtServerPort"/>
-
-                    <CheckBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" x:Name="chkMcpEnabled" Content="Enable MCP Server"/>
-
-                    <TextBlock Grid.Row="5" Grid.Column="1">MCP Port</TextBlock>
-                    <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtMcpPort"/>
                  </Grid>
             </TabItem>
 
