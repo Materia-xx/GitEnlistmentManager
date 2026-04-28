@@ -46,8 +46,49 @@ namespace GitEnlistmentManager
                     this.mcpServer.RegisterTool(new ListReposTool());
                     this.mcpServer.RegisterTool(new ListCommandsTool());
                     this.mcpServer.RegisterTool(new RunCommandTool());
-                    this.mcpServer.Start();
-                    Global.Instance.McpServer = this.mcpServer;
+
+                    try
+                    {
+                        this.mcpServer.Start();
+                        Global.Instance.McpServer = this.mcpServer;
+                    }
+                    catch (System.Net.HttpListenerException ex)
+                    {
+                        string errorDetails = $"Error Code: {ex.ErrorCode} (0x{ex.ErrorCode:X})\n" +
+                                            $"Native Error Code: {ex.NativeErrorCode}\n" +
+                                            $"Message: {ex.Message}";
+
+                        string userMessage;
+                        // Error code 5 = Access Denied, needs admin or URL ACL
+                        if (ex.ErrorCode == 5 || ex.NativeErrorCode == 5)
+                        {
+                            userMessage = $"Failed to start MCP server on port {Gem.Instance.LocalAppData.McpPort}.\n\n" +
+                                        "Access denied. HttpListener requires administrator privileges or a URL ACL reservation.\n\n" +
+                                        errorDetails;
+                        }
+                        // Error code 32 or 183 = Port/Address already in use
+                        else if (ex.ErrorCode == 32 || ex.ErrorCode == 183 || ex.NativeErrorCode == 32 || ex.NativeErrorCode == 183)
+                        {
+                            userMessage = $"Failed to start MCP server on port {Gem.Instance.LocalAppData.McpPort}.\n\n" +
+                                        "The port is already in use.\n\n";
+
+                            if (Gem.Instance.LocalAppData.ServerPort == Gem.Instance.LocalAppData.McpPort)
+                            {
+                                userMessage += $"ServerPort and McpPort are both set to {Gem.Instance.LocalAppData.McpPort}. " +
+                                            "These must be different. Update one of them in GEM Settings.\n\n";
+                            }
+
+                            userMessage += errorDetails;
+                        }
+                        else
+                        {
+                            userMessage = $"Failed to start MCP server on port {Gem.Instance.LocalAppData.McpPort}.\n\n{errorDetails}";
+                        }
+
+                        System.Windows.MessageBox.Show(userMessage, "MCP Server Error",
+                            System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                        this.mcpServer = null;
+                    }
                 }
             }
 
