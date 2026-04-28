@@ -22,6 +22,8 @@ namespace GitEnlistmentManager.DTOs
 
         public bool McpEnabled { get; set; } = false;
 
+        public List<string> DisabledMcpTools { get; set; } = new List<string>();
+
         public string? CompareProgram { get; set; }
 
         public string? CompareArguments { get; set; }

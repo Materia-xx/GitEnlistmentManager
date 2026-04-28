@@ -44,10 +44,10 @@ namespace GitEnlistmentManager
                 {
                     this.mcpServer = new McpServer(Gem.Instance.LocalAppData.McpPort);
                     this.mcpServer.RegisterTool(new ListReposTool());
-                    this.mcpServer.RegisterTool(new CreateBucketTool());
-                    this.mcpServer.RegisterTool(new CreateEnlistmentTool());
-                    this.mcpServer.RegisterTool(new CreatePullRequestTool());
+                    this.mcpServer.RegisterTool(new ListCommandsTool());
+                    this.mcpServer.RegisterTool(new RunCommandTool());
                     this.mcpServer.Start();
+                    Global.Instance.McpServer = this.mcpServer;
                 }
             }
 

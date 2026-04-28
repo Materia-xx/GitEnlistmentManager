@@ -2,10 +2,12 @@
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace GitEnlistmentManager
 {
@@ -88,6 +90,16 @@ namespace GitEnlistmentManager
 
             this.gem.LocalAppData.McpEnabled = this.chkMcpEnabled.IsChecked == true;
 
+            // Save disabled MCP tools from checkboxes
+            this.gem.LocalAppData.DisabledMcpTools.Clear();
+            foreach (var child in this.mcpToolCheckboxes.Children)
+            {
+                if (child is CheckBox checkBox && checkBox.Tag is string toolName && checkBox.IsChecked != true)
+                {
+                    this.gem.LocalAppData.DisabledMcpTools.Add(toolName);
+                }
+            }
+
             var repoCollectionDefinitionDirectories = this.txtRepoCollectionDefinitionDirectories.Text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             this.gem.LocalAppData.RepoCollectionDefinitionDirectories.Clear();
             foreach (var repoCollectionDefinitionDirectory in repoCollectionDefinitionDirectories)
@@ -133,6 +145,61 @@ namespace GitEnlistmentManager
 
             this.txtCompareProgram.Text = this.gem.LocalAppData.CompareProgram;
             this.txtCompareArguments.Text = this.gem.LocalAppData.CompareArguments;
+
+            // Populate MCP tool checkboxes
+            this.mcpToolCheckboxes.Children.Clear();
+            var mcpServer = Global.Instance.McpServer;
+            if (mcpServer != null)
+            {
+                // Add checkboxes for registered MCP tools
+                foreach (var toolName in mcpServer.GetToolNames())
+                {
+                    // Skip run_command itself — individual verbs are shown instead
+                    if (toolName == "run_command")
+                    {
+                        continue;
+                    }
+
+                    var checkBox = new CheckBox
+                    {
+                        Content = toolName,
+                        Tag = toolName,
+                        IsChecked = !this.gem.LocalAppData.DisabledMcpTools.Contains(toolName),
+                        Margin = new Thickness(5, 2, 5, 2),
+                        ToolTip = mcpServer.GetToolDescription(toolName)
+                    };
+                    this.mcpToolCheckboxes.Children.Add(checkBox);
+                }
+
+                // Add checkboxes for each command verb available through run_command
+                var seenVerbs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var commandSet in this.gem.CommandSets)
+                {
+                    if (string.IsNullOrWhiteSpace(commandSet.Verb))
+                    {
+                        continue;
+                    }
+
+                    if (!seenVerbs.Add(commandSet.Verb))
+                    {
+                        continue;
+                    }
+
+                    var tagValue = $"run_command:{commandSet.Verb}";
+                    var tooltip = !string.IsNullOrWhiteSpace(commandSet.Documentation)
+                        ? commandSet.Documentation
+                        : commandSet.Verb;
+                    var checkBox = new CheckBox
+                    {
+                        Content = $"cmd: {commandSet.Verb}",
+                        Tag = tagValue,
+                        IsChecked = !this.gem.LocalAppData.DisabledMcpTools.Contains(tagValue),
+                        Margin = new Thickness(5, 2, 5, 2),
+                        ToolTip = tooltip
+                    };
+                    this.mcpToolCheckboxes.Children.Add(checkBox);
+                }
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

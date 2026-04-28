@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GitEnlistmentManager.DTOs;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,21 @@ namespace GitEnlistmentManager.Mcp
         public void RegisterTool(McpTool tool)
         {
             this.tools[tool.Name] = tool;
+        }
+
+        public IEnumerable<string> GetToolNames()
+        {
+            return this.tools.Keys;
+        }
+
+        public string? GetToolDescription(string toolName)
+        {
+            if (this.tools.TryGetValue(toolName, out var tool))
+            {
+                return tool.Description;
+            }
+
+            return null;
         }
 
         public void Start()
@@ -262,6 +278,12 @@ namespace GitEnlistmentManager.Mcp
                 return JsonRpcResponse.ErrorResponse(
                     request.Id, JsonRpcErrorCodes.InvalidParams,
                     $"Unknown tool: {toolName}");
+            }
+
+            if (Gem.Instance.LocalAppData.DisabledMcpTools.Contains(toolName))
+            {
+                return JsonRpcResponse.Success(request.Id,
+                    McpToolResult.Error($"Tool '{toolName}' is currently disabled in GEM settings.").ToJson());
             }
 
             var arguments = request.Params?["arguments"] as JObject;
