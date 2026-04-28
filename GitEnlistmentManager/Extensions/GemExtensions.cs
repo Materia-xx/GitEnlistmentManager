@@ -320,6 +320,8 @@ namespace GitEnlistmentManager.Extensions
                 new GitPullAndMergeCommandSet(),
                 new ManageRemoteBranchesCommandSet(),
                 new OpenDevVS2022CommandSet(),
+                new OpenDevVS2026CommandSet(),
+                new OpenVSCodeVS2026CommandSet(),
                 new OpenRootSolutionCommandSet(),
                 new PRCommandSet(),
                 new RefreshTreeviewCommandSet(),
@@ -466,7 +468,13 @@ namespace GitEnlistmentManager.Extensions
                     break;
             }
 
-            return allCommandSets.ToList().RemoveTheOverriddenDefaultCommandSets();
+            var resultCommandSets = allCommandSets.ToList().RemoveTheOverriddenDefaultCommandSets();
+            // Sort by right click text so menus in the UI have an order to them
+            resultCommandSets = resultCommandSets
+                .OrderBy(cs => cs.RightClickText, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return resultCommandSets;
         }
     }
 }

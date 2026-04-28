@@ -14,6 +14,12 @@ namespace GitEnlistmentManager.DTOs
             var pullRequestUrl = enlistment.Bucket.Repo.Metadata.CloneUrl;
             if (pullRequestUrl != null )
             {
+                // GitHub no longer accepts the .git suffix in the compare URL
+                if (pullRequestUrl.EndsWith(".git"))
+                {
+                    pullRequestUrl = pullRequestUrl.Substring(0, pullRequestUrl.Length - ".git".Length);
+                }
+
                 pullRequestUrl += "/compare/(((ParentBranch)))...(((ChildBranch)))";
 
                 // Child branch
