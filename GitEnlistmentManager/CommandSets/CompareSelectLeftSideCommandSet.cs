@@ -12,6 +12,7 @@ namespace GitEnlistmentManager.CommandSets
             RightClickText = "Compare: Select Left";
             Verb = "compareselectleft";
             Filename = "gemcompareselectleft.cmdjson";
+            ExposeToMcp = false;
 
             Commands.Add(
                 new CompareSelectLeftSideCommand()
