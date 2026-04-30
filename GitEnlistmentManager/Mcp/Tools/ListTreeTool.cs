@@ -23,6 +23,7 @@ namespace GitEnlistmentManager.Mcp.Tools
         public override Task<McpToolResult> Execute(JObject? arguments)
         {
             var collections = new List<object>();
+            var reposDirectory = Gem.Instance.LocalAppData.ReposDirectory;
 
             foreach (var rc in Gem.Instance.RepoCollections)
             {
@@ -74,7 +75,9 @@ namespace GitEnlistmentManager.Mcp.Tools
                 collections.Add(new
                 {
                     name = rc.GemName,
-                    path = rc.RepoCollectionDirectoryPath,
+                    path = string.IsNullOrWhiteSpace(reposDirectory)
+                        ? rc.RepoCollectionDirectoryPath
+                        : System.IO.Path.Combine(reposDirectory, rc.GemName),
                     repos
                 });
             }
