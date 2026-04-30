@@ -33,11 +33,12 @@ namespace GitEnlistmentManager.CommandSets
                     Program = "wt",
                     Arguments = $@"-w gem nt --title ""{{RepoName}}"" --startingDirectory ""{{ReposDirectory}}"" ""%comspec%"" /c \""\""{vsDevCmd}\""&&CD /d \""{{EnlistmentDirectory}}\""\""&&code .",
                     OpenNewWindow = true,
-                    WorkingDirectory = @"{ReposDirectory}"
+                    WorkingDirectory = @"{ReposDirectory}",
+                    FireAndForget = true
                 }
             );
 
-            Documentation = "Opens VSCode under a Visual Studio 2026 Developer command prompt for the selected enlistment.";
+            Documentation = "Launches a VS 2026 Developer command prompt scoped to the enlistment and opens VS Code inside that environment. Path must resolve to an enlistment. Side effect: spawns a console window and a VS Code instance for the user. Returns immediately after launching; MCP success means the launcher process started, not that VS Code finished loading.";
         }
     }
 }

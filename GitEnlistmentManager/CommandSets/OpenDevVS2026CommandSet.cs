@@ -33,11 +33,12 @@ namespace GitEnlistmentManager.CommandSets
                     Program = "wt",
                     Arguments = $@"-w gem nt --title ""{{RepoName}}"" --startingDirectory ""{{ReposDirectory}}"" ""%comspec%"" /k \""\""{vsDevCmd}\""&&CD /d \""{{EnlistmentDirectory}}\""\""",
                     OpenNewWindow = true,
-                    WorkingDirectory = @"{ReposDirectory}"
+                    WorkingDirectory = @"{ReposDirectory}",
+                    FireAndForget = true
                 }
             );
 
-            Documentation = "Opens Visual Studio 2026 Developer command prompt for the selected enlistment.";
+            Documentation = "Launches an interactive Visual Studio 2026 Developer command prompt window scoped to the enlistment directory. Path must resolve to an enlistment. Side effect: opens a new console window for the user. The console is interactive — output is NOT captured back through MCP. Returns immediately after launching the console; MCP success only indicates that the launcher process started. Use only when the user wants a dev prompt; not useful for programmatic operations.";
         }
     }
 }

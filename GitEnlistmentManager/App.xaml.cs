@@ -43,7 +43,7 @@ namespace GitEnlistmentManager
                 if (Gem.Instance.LocalAppData.McpEnabled)
                 {
                     this.mcpServer = new McpServer(Gem.Instance.LocalAppData.McpPort);
-                    this.mcpServer.RegisterTool(new ListReposTool());
+                    this.mcpServer.RegisterTool(new ListTreeTool());
                     this.mcpServer.RegisterTool(new ListCommandsTool());
                     this.mcpServer.RegisterTool(new RunCommandTool());
 

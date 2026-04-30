@@ -15,7 +15,7 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new CreateRepoCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            Documentation = "Creates a repository attached to the selected repository collection.";
+            Documentation = "Registers a new repo definition in the selected repo collection and creates its on-disk metadata. Path must resolve to a repo collection. Does NOT clone anything — the repo's clone URL, branch prefix, target branches, etc. must still be configured before any enlistment can be created.";
         }
     }
 }

@@ -15,7 +15,8 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new EditRepoSettingsCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            Documentation = "Opens the menu to edit Repo Settings.";
+            Documentation = "Opens the modal Repo Settings dialog for the repo at the path. Path must resolve to a repo. INTERACTIVE — intended for UI use; from MCP this opens a dialog the user must complete or cancel.";
+            ExposeToMcp = false;
         }
     }
 }

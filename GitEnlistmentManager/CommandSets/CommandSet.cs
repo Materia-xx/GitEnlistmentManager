@@ -33,6 +33,16 @@ namespace GitEnlistmentManager.CommandSets
 
         public List<ICommandSetFilter> Filters { get; set; } = new();
 
+        /// <summary>
+        /// When false, this command set is hidden from MCP: it is not advertised by the
+        /// list_commands tool, it is filtered out of the GEM Settings MCP tool list, and
+        /// run_command refuses to dispatch its verb. Use this for command sets that only
+        /// make sense in the GUI (modal dialog openers, GEM-internal helpers, etc.) so an
+        /// AI caller cannot pick them. Defaults to true so existing command sets remain
+        /// exposed unless explicitly hidden.
+        /// </summary>
+        public bool ExposeToMcp { get; set; } = true;
+
         public bool Matches(RepoCollection? repoCollection, Repo? repo, Bucket? bucket, Enlistment? enlistment)
         {
             return Filters.All(f => f.Matches(repoCollection, repo, bucket, enlistment));

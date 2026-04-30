@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -60,7 +60,14 @@ namespace GitEnlistmentManager.Globals
             Func<string, Task>? outputHandler = null,
             Func<string, Task>? errorHandler = null,
             // Exit code 0 is success. This works for git, but won't work for things like RoboCopy.
-            int successfulExitCode = 0
+            int successfulExitCode = 0,
+            // When true, the spawned process is launched and this method returns immediately
+            // without awaiting WaitForExitAsync. Useful for long-lived UI launchers (devenv,
+            // dev command prompts, diff GUIs, browser-launched URLs) so MCP callers don't
+            // block until the user closes the launched program. Stdout/stderr are NOT
+            // redirected when fire-and-forget is in effect (the process inherits handles or
+            // discards them depending on shell-execute), so live capture is unavailable.
+            bool fireAndForget = false
             )
         {
             metaOutputHandler ??= async (s) => { await Task.Delay(0).ConfigureAwait(false); };
@@ -77,6 +84,8 @@ namespace GitEnlistmentManager.Globals
             }
             await metaOutputHandler($"\"{programPath}\" {arguments}").ConfigureAwait(false);
 
+            var redirectStreams = !useShellExecute && !fireAndForget;
+
             using Process process = new();
             process.StartInfo = new()
             {
@@ -84,13 +93,13 @@ namespace GitEnlistmentManager.Globals
                 Arguments = arguments,
                 UseShellExecute = useShellExecute,
                 WindowStyle = openNewWindow ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = !useShellExecute,
-                RedirectStandardError = !useShellExecute,
+                RedirectStandardOutput = redirectStreams,
+                RedirectStandardError = redirectStreams,
                 CreateNoWindow = !openNewWindow,
                 WorkingDirectory = workingDirectory
             };
 
-            if (!useShellExecute)
+            if (redirectStreams)
             {
                 process.OutputDataReceived += new DataReceivedEventHandler(async (s,e) =>
                 {
@@ -106,7 +115,10 @@ namespace GitEnlistmentManager.Globals
                         await errorHandler(e.Data).ConfigureAwait(false);
                     }
                 });
+            }
 
+            if (!useShellExecute)
+            {
                 // UseShellExecute must be false in order to use environment variables
                 // Inject the path to where GEM is running from into the environment path so it's callable from the commandline.
                 // A commandset that opens the VS command prompt could make use of this so gem is callable from that commandline
@@ -126,11 +138,20 @@ namespace GitEnlistmentManager.Globals
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                UiMessages.ShowError(ex.ToString());
                 return false;
             }
 
-            if (!useShellExecute)
+            if (fireAndForget)
+            {
+                int? pid = null;
+                try { pid = process.Id; } catch { }
+                UiMessages.ShowInfo($"Launched '{programPath}' (pid {pid?.ToString() ?? "?"}). Process not awaited; success only indicates the launcher process started.");
+                await metaOutputHandler(string.Empty).ConfigureAwait(false);
+                return true;
+            }
+
+            if (redirectStreams)
             {
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();

@@ -30,6 +30,12 @@ namespace GitEnlistmentManager.Mcp.Tools
                     continue;
                 }
 
+                // Hidden from MCP entirely (e.g. dialog openers, GEM-internal helpers).
+                if (!commandSet.ExposeToMcp)
+                {
+                    continue;
+                }
+
                 // Skip verbs that are disabled in settings
                 if (Gem.Instance.LocalAppData.DisabledMcpTools.Contains($"run_command:{commandSet.Verb}"))
                 {

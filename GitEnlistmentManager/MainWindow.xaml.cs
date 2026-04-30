@@ -69,15 +69,102 @@ namespace GitEnlistmentManager
             return true;
         }
 
-        public async Task ProcessCSCommand(GemCSCommand command)
+        /// <summary>
+        /// Expands the tree view to the resolved nodes for the given working directory.
+        /// Sets IsExpanded=true on each ancestor node from RepoCollection down to whatever
+        /// level the path resolves to. Marshals to the UI dispatcher; safe to call from any
+        /// thread. Silently no-ops if the path can't be resolved.
+        /// </summary>
+        public async Task ExpandToWorkingDirectory(string? workingDirectory)
         {
+            if (string.IsNullOrWhiteSpace(workingDirectory) || Gem.Instance.LocalAppData.ReposDirectory == null)
+            {
+                return;
+            }
+            if (!workingDirectory.StartsWith(Gem.Instance.LocalAppData.ReposDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var relative = workingDirectory.Substring(Gem.Instance.LocalAppData.ReposDirectory.Length).Trim('\\');
+            var parts = relative.Split('\\');
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
+                {
+                    return;
+                }
+
+                var rc = Gem.Instance.RepoCollections.FirstOrDefault(c =>
+                    c.GemName != null && c.GemName.Equals(parts[0], StringComparison.OrdinalIgnoreCase));
+                if (rc == null)
+                {
+                    return;
+                }
+                rc.IsExpanded = true;
+
+                if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    return;
+                }
+                var repo = rc.Repos.FirstOrDefault(r =>
+                    r.Metadata.ShortName != null && r.Metadata.ShortName.Equals(parts[1], StringComparison.OrdinalIgnoreCase));
+                if (repo == null)
+                {
+                    return;
+                }
+                repo.IsExpanded = true;
+
+                if (parts.Length < 3 || string.IsNullOrWhiteSpace(parts[2]))
+                {
+                    return;
+                }
+                var tb = repo.TargetBranches.FirstOrDefault(t =>
+                    t.BranchDefinition.FolderName != null && t.BranchDefinition.FolderName.Equals(parts[2], StringComparison.OrdinalIgnoreCase));
+                if (tb == null)
+                {
+                    return;
+                }
+                tb.IsExpanded = true;
+
+                if (parts.Length < 4 || string.IsNullOrWhiteSpace(parts[3]))
+                {
+                    return;
+                }
+                var bucket = tb.Buckets.FirstOrDefault(b =>
+                    b.GemName != null && b.GemName.Equals(parts[3], StringComparison.OrdinalIgnoreCase));
+                if (bucket == null)
+                {
+                    return;
+                }
+                bucket.IsExpanded = true;
+
+                if (parts.Length < 5 || string.IsNullOrWhiteSpace(parts[4]))
+                {
+                    return;
+                }
+                var enlistment = bucket.Enlistments.FirstOrDefault(e =>
+                    e.GemName != null && e.GemName.Equals(parts[4], StringComparison.OrdinalIgnoreCase));
+                if (enlistment == null)
+                {
+                    return;
+                }
+                enlistment.IsExpanded = true;
+            });
+        }
+
+        public async Task<CommandDispatchResult> ProcessCSCommand(GemCSCommand command)
+        {
+            var result = new CommandDispatchResult();
             switch (command.CommandType)
             {
                 case GemCSCommandType.InterpretCommandLine:
                     // There has to be at least 1 argument coming in
                     if (command.CommandArgs == null || command.CommandArgs.Length == 0)
                     {
-                        return;
+                        result.AddError("No command verb was provided.");
+                        return result;
                     }
 
                     var remainingArgsStack = new Stack<string>();
@@ -93,18 +180,18 @@ namespace GitEnlistmentManager
                     // Working directory is required and must be under the one specified in the settings
                     if (string.IsNullOrWhiteSpace(command.WorkingDirectory))
                     {
-                        MessageBox.Show("Working directory is required for running a client/server command");
-                        return;
+                        result.AddError("Working directory is required for running a client/server command");
+                        return result;
                     }
                     if (Gem.Instance.LocalAppData.ReposDirectory == null)
                     {
-                        MessageBox.Show("The LocalAppData ReposDirectory is not loaded or set properly.");
-                        return;
+                        result.AddError("The LocalAppData ReposDirectory is not loaded or set properly.");
+                        return result;
                     }
                     if (!command.WorkingDirectory.StartsWith(Gem.Instance.LocalAppData.ReposDirectory, StringComparison.OrdinalIgnoreCase))
                     {
-                        MessageBox.Show("The directory Gem starts in should be within the ReposDirectory.");
-                        return;
+                        result.AddError("The directory Gem starts in should be within the ReposDirectory.");
+                        return result;
                     }
 
                     // The first parameter has to be the verb of the command set to run
@@ -163,8 +250,8 @@ namespace GitEnlistmentManager
                     // We always have to have a repo collection
                     if (repoCollection == null)
                     {
-                        MessageBox.Show("RepoCollection was not set properly");
-                        return;
+                        result.AddError("RepoCollection was not set properly");
+                        return result;
                     }
 
                     // All command sets that are available for this placement
@@ -177,7 +264,7 @@ namespace GitEnlistmentManager
                     if (commandSet == null)
                     {
                         var message = $"No command sets with verb '{verb}' were found.";
-                        MessageBox.Show(message);
+                        result.AddError(message);
                         await this.AppendCommandLine(message, Brushes.LightSalmon).ConfigureAwait(false);
                     }
                     else
@@ -187,8 +274,20 @@ namespace GitEnlistmentManager
                         (commandSet, var loadingErrors) = CommandSet.ReadCommandSet(commandSet?.LoadedFromPath ?? string.Empty);
                         if (commandSet == null)
                         {
-                            MessageBox.Show(loadingErrors);
-                            return;
+                            result.AddError(loadingErrors);
+                            return result;
+                        }
+
+                        // Defense-in-depth: if this dispatch originated from MCP and the
+                        // command set resolved at this placement is hidden from MCP, refuse
+                        // to run it. RunCommandTool's pre-flight only confirms that some
+                        // command set with the verb is exposed; placement-based resolution
+                        // here could in principle land on a hidden variant if a verb is
+                        // shared across placements with mixed ExposeToMcp values.
+                        if (command.AutoExpandTreeView && !commandSet.ExposeToMcp)
+                        {
+                            result.AddError($"Command '{verb}' resolved to a command set that is not exposed to MCP at the current placement.");
+                            return result;
                         }
 
                         foreach (var commandSetCommand in commandSet.Commands)
@@ -199,12 +298,52 @@ namespace GitEnlistmentManager
                             // If args don't set context, then fall back to the current node context
                             commandSetCommand.NodeContext.SetIfNotNullFrom(nodeContext);
                         }
-                        await commandSet.RunCommandSet(
-                            nodeContext: nodeContext
-                            ).ConfigureAwait(false);
+
+                        // Auto-expand BEFORE running so the user sees where the AI is operating
+                        // even for long-running commands. The after-pass below re-expands in
+                        // case the command set wiped the tree via ReloadTreeview.
+                        if (command.AutoExpandTreeView)
+                        {
+                            await ExpandToWorkingDirectory(command.WorkingDirectory).ConfigureAwait(false);
+                        }
+
+                        // Capture any UiMessages.ShowError calls raised by commands or the
+                        // extension methods they invoke, so MCP callers receive them in the
+                        // dispatch result instead of seeing modal dialogs popped on the GUI.
+                        // CLI flows running concurrently install their own sink and are
+                        // unaffected. Info messages flow only into the MCP response (they
+                        // are no-ops when no sink is installed).
+                        bool ranOk;
+                        using (UiMessages.CaptureErrors(result.Errors))
+                        using (UiMessages.CaptureInfo(result.InfoMessages))
+                        {
+                            ranOk = await commandSet.RunCommandSet(
+                                nodeContext: nodeContext
+                                ).ConfigureAwait(false);
+                        }
+
+                        // RunCommandSet returns false when a Command.Execute() returns false.
+                        // Some commands return false silently (without calling
+                        // UiMessages.ShowError); surface a generic dispatch-level error so
+                        // MCP callers don't see Success when the command actually failed.
+                        if (!ranOk && result.Errors.Count == 0)
+                        {
+                            result.AddError($"Command set '{verb}' reported failure but did not surface a specific error message.");
+                        }
+
+                        // After-pass: if the command set ended with ReloadTreeview the data
+                        // objects were rebuilt from disk and IsExpanded was reset to false on
+                        // every node. Re-expand to the working directory so the newly-created
+                        // child nodes (createbucket, createenlistment, etc.) are visible.
+                        if (command.AutoExpandTreeView)
+                        {
+                            await ExpandToWorkingDirectory(command.WorkingDirectory).ConfigureAwait(false);
+                        }
                     }
                     break;
             }
+
+            return result;
         }
 
         private static TreeViewItem? VisualUpwardSearch(DependencyObject? source)
