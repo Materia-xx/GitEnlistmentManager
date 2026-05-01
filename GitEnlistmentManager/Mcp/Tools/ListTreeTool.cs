@@ -11,7 +11,7 @@ namespace GitEnlistmentManager.Mcp.Tools
     {
         public override string Name => "list_tree";
 
-        public override string Description => "List the entire GEM tree: repo collections, repos, target branches, buckets, and enlistments. Each node includes its full directory path so callers can pass that path to other tools (e.g. run_command) for context resolution.";
+        public override string Description => "List the entire GEM tree: repo collections, repos, target branches, buckets, and enlistments.";
 
         public override JObject InputSchema => new JObject
         {
