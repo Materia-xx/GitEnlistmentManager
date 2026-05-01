@@ -26,7 +26,8 @@ namespace GitEnlistmentManager.CommandSets
                     SearchFor = "GitEnlistmentManager"
                 }
             );
-            Documentation = "Checks the status of the enlistment compared to the main branch.";
+            Documentation = "Runs `git status` in the enlistment. Restricted to GEM's own development repo (only available when the repo's clone URL contains 'GitEnlistmentManager'); not a general-purpose git-status command. Path must resolve to an enlistment. Output goes to the GEM command panel and is NOT captured back through MCP.";
+            ExposeToMcp = false;
         }
     }
 }

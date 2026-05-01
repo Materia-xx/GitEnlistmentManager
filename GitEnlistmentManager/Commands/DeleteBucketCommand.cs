@@ -1,5 +1,6 @@
-﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
+using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,7 +50,7 @@ namespace GitEnlistmentManager.Commands
             if (this.NodeContext.Bucket.Enlistments.Count > 0)
             {
                 var enlistmentNames = string.Join(", ", this.NodeContext.Bucket.Enlistments.Select(e => e.GemName));
-                MessageBox.Show($"Bucket still has {this.NodeContext.Bucket.Enlistments.Count} enlistment(s): {enlistmentNames}. Archive or remove them first.");
+                UiMessages.ShowError($"Bucket still has {this.NodeContext.Bucket.Enlistments.Count} enlistment(s): {enlistmentNames}. Archive or remove them first.");
                 return false;
             }
 
@@ -62,7 +63,7 @@ namespace GitEnlistmentManager.Commands
             if (bucketDirectory.GetFiles("*", SearchOption.TopDirectoryOnly).Length
                 + bucketDirectory.GetDirectories("*", SearchOption.TopDirectoryOnly).Length > 0)
             {
-                MessageBox.Show("Files or directories still exist in this bucket. Clean those up first and try again.");
+                UiMessages.ShowError("Files or directories still exist in this bucket. Clean those up first and try again.");
                 return false;
             }
 
@@ -72,7 +73,7 @@ namespace GitEnlistmentManager.Commands
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                UiMessages.ShowError(ex.Message);
                 return false;
             }
 

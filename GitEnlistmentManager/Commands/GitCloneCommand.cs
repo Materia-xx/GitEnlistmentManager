@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System.Threading.Tasks;
@@ -38,14 +38,14 @@ namespace GitEnlistmentManager.Commands
             var enlistmentDirectory = this.NodeContext.Enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
-                MessageBox.Show("Encountered an error getting the enlistment directory.");
+                UiMessages.ShowError("Encountered an error getting the enlistment directory.");
                 return false;
             }
 
             var bucketDirectory = this.NodeContext.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {
-                MessageBox.Show("Encountered an error getting the bucket directory.");
+                UiMessages.ShowError("Encountered an error getting the bucket directory.");
                 return false;
             }
 

@@ -15,7 +15,8 @@ namespace GitEnlistmentManager.CommandSets
             Commands.Add(new ManageRemoteBranchesCommand());
             Commands.Add(new RefreshTreeviewCommand());
 
-            Documentation = "Shows the manage remote branches window.";
+            Documentation = "Opens the modal Manage Remote Branches dialog for the target branch at the path. Path must resolve to a target branch. INTERACTIVE — intended for UI use; not useful from MCP.";
+            ExposeToMcp = false;
         }
     }
 }

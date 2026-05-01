@@ -12,6 +12,7 @@ namespace GitEnlistmentManager.CommandSets
             RightClickText = "Compare: Select Left";
             Verb = "compareselectleft";
             Filename = "gemcompareselectleft.cmdjson";
+            ExposeToMcp = false;
 
             Commands.Add(
                 new CompareSelectLeftSideCommand()
@@ -19,7 +20,7 @@ namespace GitEnlistmentManager.CommandSets
 
             Filters.Add(new CommandSetFilterGemCompareOptionSet());
 
-            Documentation = "Selects the first enlistment to compare to another one that will be selected next.";
+            Documentation = "Step 1 of a 2-step diff: stores the enlistment path as the 'left' side for a later compare. Path must resolve to an enlistment. Stateful — must be followed by `comparetoleft` on a different enlistment. Has no observable effect on its own; primarily intended for interactive UI use.";
         }
     }
 }

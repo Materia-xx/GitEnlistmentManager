@@ -18,7 +18,7 @@ namespace GitEnlistmentManager.DTOs
                 var enlistmentDirectory = this.GetDirectoryInfo()?.FullName;
                 if (enlistmentDirectory == null)
                 {
-                    MessageBox.Show("Unable to get enlistment directory information");
+                    UiMessages.ShowError("Unable to get enlistment directory information");
                     return null;
                 }
 

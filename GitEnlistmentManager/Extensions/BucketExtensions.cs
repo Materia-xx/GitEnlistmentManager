@@ -1,4 +1,5 @@
-﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Globals;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,13 +14,13 @@ namespace GitEnlistmentManager.Extensions
             var targetBranchDirectory = bucket.TargetBranch.GetDirectoryInfo();
             if (targetBranchDirectory == null)
             {
-                MessageBox.Show("Unable to determine target branch directory");
+                UiMessages.ShowError("Unable to determine target branch directory");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(bucket.GemName))
             {
-                MessageBox.Show("Bucket name must be set.");
+                UiMessages.ShowError("Bucket name must be set.");
                 return null;
             }
 
@@ -32,7 +33,7 @@ namespace GitEnlistmentManager.Extensions
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating bucket directory: {ex.Message}");
+                    UiMessages.ShowError($"Error creating bucket directory: {ex.Message}");
                     return null;
                 }
             }

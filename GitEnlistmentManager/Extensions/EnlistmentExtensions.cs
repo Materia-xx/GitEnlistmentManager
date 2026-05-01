@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.Commands;
+using GitEnlistmentManager.Commands;
 using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Globals;
@@ -20,13 +20,13 @@ namespace GitEnlistmentManager.Extensions
             var bucketDirectory = enlistment.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {
-                MessageBox.Show("Unable to determine bucket directory");
+                UiMessages.ShowError("Unable to determine bucket directory");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
-                MessageBox.Show("Enlistment name must be set.");
+                UiMessages.ShowError("Enlistment name must be set.");
                 return null;
             }
 
@@ -39,7 +39,7 @@ namespace GitEnlistmentManager.Extensions
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating enlistment directory: {ex.Message}");
+                    UiMessages.ShowError($"Error creating enlistment directory: {ex.Message}");
                     return null;
                 }
             }
@@ -93,33 +93,33 @@ namespace GitEnlistmentManager.Extensions
         {
             if (string.IsNullOrWhiteSpace(enlistment.GemName))
             {
-                MessageBox.Show("Enlistment name must be set.");
+                UiMessages.ShowError("Enlistment name must be set.");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(enlistment.Bucket.TargetBranch.BranchDefinition.BranchPrefix))
             {
-                MessageBox.Show("Branch prefix must be set in the repo settings before creating an enlistment.");
+                UiMessages.ShowError("Branch prefix must be set in the repo settings before creating an enlistment.");
                 return false;
             }
 
             var bucketDirectory = enlistment.Bucket.GetDirectoryInfo();
             if (bucketDirectory == null)
             {
-                MessageBox.Show("Unable to determine bucket directory");
+                UiMessages.ShowError("Unable to determine bucket directory");
                 return false;
             }
 
             // If PlaceAbove is set, then childEnlistment should be set to the enlistment that we're placing a new enlistment above.
             if (enlistmentPlacement == EnlistmentPlacement.PlaceAbove && childEnlistment == null)
             {
-                MessageBox.Show("Child enlistment must be specified when using PlaceAbove mode");
+                UiMessages.ShowError("Child enlistment must be specified when using PlaceAbove mode");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.UserName) || string.IsNullOrWhiteSpace(enlistment.Bucket.Repo.Metadata.UserEmail))
             {
-                MessageBox.Show("User name and email must be set in the repo settings before creating an enlistment.");
+                UiMessages.ShowError("User name and email must be set in the repo settings before creating an enlistment.");
                 return false;
             }
 
@@ -162,7 +162,7 @@ namespace GitEnlistmentManager.Extensions
                         // If there wasn't any space left between the first 2 numbers e.g. grandparent was 015555 and child was 015554
                         if (parentEnlistmentNumberPrefix == newNumberPrefix || childEnlimentNumberPrefix == newNumberPrefix)
                         {
-                            MessageBox.Show("Unable to determine an appropriate numbering prefix for the new enlistment.");
+                            UiMessages.ShowError("Unable to determine an appropriate numbering prefix for the new enlistment.");
                             return false;
                         }
 
@@ -174,7 +174,7 @@ namespace GitEnlistmentManager.Extensions
                 case EnlistmentPlacement.Direct:
                     break;
                 default:
-                    MessageBox.Show("Enlistment placement mode not handled");
+                    UiMessages.ShowError("Enlistment placement mode not handled");
                     return false;
             }
 
@@ -187,7 +187,7 @@ namespace GitEnlistmentManager.Extensions
             // We pad numbers with 0s so they sort correctly in file explorer, numbers over 999999 won't work
             if (newNumberPrefix > 999999)
             {
-                MessageBox.Show("The program does not support enlistments with a prefix number over 999999.");
+                UiMessages.ShowError("The program does not support enlistments with a prefix number over 999999.");
                 return false;
             }
 
@@ -200,7 +200,7 @@ namespace GitEnlistmentManager.Extensions
             var enlistmentDirectory = enlistment.GetDirectoryInfo();
             if (enlistmentDirectory == null)
             {
-                MessageBox.Show("Encountered an error getting the enlistment directory.");
+                UiMessages.ShowError("Encountered an error getting the enlistment directory.");
                 return false;
             }
 

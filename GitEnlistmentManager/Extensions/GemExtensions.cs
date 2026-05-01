@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.Commands;
+using GitEnlistmentManager.Commands;
 using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Globals;
@@ -292,7 +292,7 @@ namespace GitEnlistmentManager.Extensions
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading Command Sets: {ex.Message}");
+                UiMessages.ShowError($"Error loading Command Sets: {ex.Message}");
             }
 
             return Gem.LoadingErrors.Count == 0;
@@ -326,6 +326,7 @@ namespace GitEnlistmentManager.Extensions
                 new PRCommandSet(),
                 new RefreshTreeviewCommandSet(),
                 new ShowHelpCommandSet(),
+                new SpawnCompareCommandSet(),
             };
 
             foreach (var placement in new List<CommandSetPlacement>()
@@ -385,7 +386,7 @@ namespace GitEnlistmentManager.Extensions
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error writing Gem local application data: {ex.Message}");
+                UiMessages.ShowError($"Error writing Gem local application data: {ex.Message}");
                 return false;
             }
             return true;
@@ -409,7 +410,7 @@ namespace GitEnlistmentManager.Extensions
                     var gemLocalAppData = JsonConvert.DeserializeObject<GemLocalAppData>(gemLocalAppDataJson, GemJsonSerializer.Settings);
                     if (gemLocalAppData == null)
                     {
-                        MessageBox.Show($"Unable to deserialize Gem local application data from {gemLocalAppDataFile.FullName}");
+                        UiMessages.ShowError($"Unable to deserialize Gem local application data from {gemLocalAppDataFile.FullName}");
                         return false;
                     }
                     gem.LocalAppData = gemLocalAppData;
@@ -417,7 +418,7 @@ namespace GitEnlistmentManager.Extensions
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading Gem local application data: {ex.Message}");
+                UiMessages.ShowError($"Error reading Gem local application data: {ex.Message}");
                 return false;
             }
             return true;

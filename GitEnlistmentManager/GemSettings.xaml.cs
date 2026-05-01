@@ -180,6 +180,12 @@ namespace GitEnlistmentManager
                         continue;
                     }
 
+                    // Hidden from MCP — don't surface it as a toggleable tool either.
+                    if (!commandSet.ExposeToMcp)
+                    {
+                        continue;
+                    }
+
                     if (!seenVerbs.Add(commandSet.Verb))
                     {
                         continue;

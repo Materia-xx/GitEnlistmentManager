@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ namespace GitEnlistmentManager.Commands
             }
             if (string.IsNullOrWhiteSpace(devenvExe))
             {
-                MessageBox.Show("Unable to find VS 2022 Community or Enterprise installed");
+                UiMessages.ShowError("Unable to find VS 2022 Community or Enterprise installed");
                 return false;
             }
 
@@ -56,7 +56,7 @@ namespace GitEnlistmentManager.Commands
             var slnFiles = Directory.GetFiles(enlistmentDirectory.FullName, "*.sln");
             if (slnFiles.Length == 0)
             {
-                MessageBox.Show("No sln files were found in the root of the enlistment");
+                UiMessages.ShowError("No sln files were found in the root of the enlistment");
                 return false;
             }
 
@@ -67,7 +67,8 @@ namespace GitEnlistmentManager.Commands
                 tokens: null, // There are no tokens in the above programPath/arguments
                 useShellExecute: false,
                 openNewWindow: true,
-                workingDirectory: repoDirectory.FullName
+                workingDirectory: repoDirectory.FullName,
+                fireAndForget: true
                 ).ConfigureAwait(false))
             {
                 return false;

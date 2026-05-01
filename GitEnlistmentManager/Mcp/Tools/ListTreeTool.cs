@@ -1,4 +1,5 @@
 ﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -6,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace GitEnlistmentManager.Mcp.Tools
 {
-    public class ListReposTool : McpTool
+    public class ListTreeTool : McpTool
     {
-        public override string Name => "list_repos";
+        public override string Name => "list_tree";
 
-        public override string Description => "List all repo collections, repos, target branches, buckets, and enlistments in the GEM tree";
+        public override string Description => "List the entire GEM tree: repo collections, repos, target branches, buckets, and enlistments.";
 
         public override JObject InputSchema => new JObject
         {
@@ -22,6 +23,7 @@ namespace GitEnlistmentManager.Mcp.Tools
         public override Task<McpToolResult> Execute(JObject? arguments)
         {
             var collections = new List<object>();
+            var reposDirectory = Gem.Instance.LocalAppData.ReposDirectory;
 
             foreach (var rc in Gem.Instance.RepoCollections)
             {
@@ -39,13 +41,15 @@ namespace GitEnlistmentManager.Mcp.Tools
                             {
                                 enlistments.Add(new
                                 {
-                                    name = enlistment.GemName
+                                    name = enlistment.GemName,
+                                    path = enlistment.GetDirectoryInfo()?.FullName
                                 });
                             }
 
                             buckets.Add(new
                             {
                                 name = bucket.GemName,
+                                path = bucket.GetDirectoryInfo()?.FullName,
                                 enlistments
                             });
                         }
@@ -53,6 +57,8 @@ namespace GitEnlistmentManager.Mcp.Tools
                         targetBranches.Add(new
                         {
                             branchFrom = tb.BranchDefinition.BranchFrom,
+                            folderName = tb.BranchDefinition.FolderName,
+                            path = tb.GetDirectoryInfo()?.FullName,
                             buckets
                         });
                     }
@@ -60,6 +66,8 @@ namespace GitEnlistmentManager.Mcp.Tools
                     repos.Add(new
                     {
                         name = repo.GemName,
+                        shortName = repo.Metadata.ShortName,
+                        path = repo.GetDirectoryInfo()?.FullName,
                         targetBranches
                     });
                 }
@@ -67,6 +75,9 @@ namespace GitEnlistmentManager.Mcp.Tools
                 collections.Add(new
                 {
                     name = rc.GemName,
+                    path = string.IsNullOrWhiteSpace(reposDirectory)
+                        ? rc.RepoCollectionDirectoryPath
+                        : System.IO.Path.Combine(reposDirectory, rc.GemName),
                     repos
                 });
             }

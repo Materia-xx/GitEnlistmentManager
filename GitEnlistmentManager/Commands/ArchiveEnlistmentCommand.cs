@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Extensions;
 using GitEnlistmentManager.Globals;
@@ -88,7 +88,7 @@ namespace GitEnlistmentManager.Commands
 
             if (archiveSlotDirectoryInfo == null)
             {
-                MessageBox.Show("Unable to find a free archive slot");
+                UiMessages.ShowError("Unable to find a free archive slot");
                 return false;
             }
 
@@ -124,7 +124,7 @@ namespace GitEnlistmentManager.Commands
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Encountered an error archiving the enlistment: {ex}");
+                UiMessages.ShowError($"Encountered an error archiving the enlistment: {ex}");
                 return false;
             }
 

@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.DTOs;
+using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
 using System;
@@ -14,19 +14,19 @@ namespace GitEnlistmentManager.Extensions
         {
             if (string.IsNullOrWhiteSpace(repo.Metadata.ShortName))
             {
-                MessageBox.Show("Repo must have a short name");
+                UiMessages.ShowError("Repo must have a short name");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(repo.RepoCollection.GemName))
             {
-                MessageBox.Show("Metadata directory must have a name");
+                UiMessages.ShowError("Metadata directory must have a name");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(repo.RepoCollection.Gem.LocalAppData.ReposDirectory))
             {
-                MessageBox.Show("Gem metadata does not have the ReposDirectory set correctly");
+                UiMessages.ShowError("Gem metadata does not have the ReposDirectory set correctly");
                 return null;
             }
 
@@ -40,7 +40,7 @@ namespace GitEnlistmentManager.Extensions
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error creating repo directory: {ex.Message}");
+                    UiMessages.ShowError($"Error creating repo directory: {ex.Message}");
                     return null;
                 }
             }
@@ -96,7 +96,7 @@ namespace GitEnlistmentManager.Extensions
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error writing repo metadata: {ex.Message}");
+                UiMessages.ShowError($"Error writing repo metadata: {ex.Message}");
                 return false;
             }
             return true;
@@ -110,14 +110,14 @@ namespace GitEnlistmentManager.Extensions
                 var repoMetadata = JsonConvert.DeserializeObject<RepoMetadata>(repoMetadataJson, GemJsonSerializer.Settings);
                 if (repoMetadata == null)
                 {
-                    MessageBox.Show($"Unable to deserialize Repo metadata from {metadataFilePath}");
+                    UiMessages.ShowError($"Unable to deserialize Repo metadata from {metadataFilePath}");
                     return false;
                 }
                 repo.Metadata = repoMetadata;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading repo metadata: {ex.Message}");
+                UiMessages.ShowError($"Error reading repo metadata: {ex.Message}");
                 return false;
             }
             return true;

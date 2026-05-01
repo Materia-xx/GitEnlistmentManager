@@ -15,12 +15,12 @@ namespace GitEnlistmentManager.ClientServer
     {
         private static readonly IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         private TcpListener Listener { get; }
-        private Func<GemCSCommand, Task>? CommandProcessor { get; set; }
+        private Func<GemCSCommand, Task<CommandDispatchResult>>? CommandProcessor { get; set; }
 
         // Keep track of the threads and create CancellationTokenSource for each
         private Dictionary<Thread, CancellationTokenSource> m_ThreadDictionary = new Dictionary<Thread, CancellationTokenSource>();
 
-        public GemServer(Func<GemCSCommand, Task> commandProcessor, int port)
+        public GemServer(Func<GemCSCommand, Task<CommandDispatchResult>> commandProcessor, int port)
         {
             Listener = new TcpListener(ipAddress, port);
             this.CommandProcessor = commandProcessor;
@@ -120,7 +120,27 @@ namespace GitEnlistmentManager.ClientServer
                 return;
             }
 
-            await this.CommandProcessor(cmd).ConfigureAwait(false);
+            var result = await this.CommandProcessor(cmd).ConfigureAwait(false);
+
+            // CLI invocations come through this server. Surface dispatch-level errors as a
+            // MessageBox so the user running `gem <verb>` from a prompt sees the failure.
+            // MCP callers bypass this server and handle the result themselves in their tool.
+            if (result != null && !result.Success)
+            {
+                var message = result.ErrorMessage;
+                try
+                {
+                    var app = System.Windows.Application.Current;
+                    if (app != null)
+                    {
+                        await app.Dispatcher.InvokeAsync(() => System.Windows.MessageBox.Show(message));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Failed to show dispatch error MessageBox: {0}", ex);
+                }
+            }
         }
     }
 }

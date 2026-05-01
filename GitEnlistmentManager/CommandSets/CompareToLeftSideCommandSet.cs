@@ -12,6 +12,7 @@ namespace GitEnlistmentManager.CommandSets
             RightClickText = "Compare: To Left";
             Verb = "comparetoleft";
             Filename = "gemcomparetoleft.cmdjson";
+            ExposeToMcp = false;
 
             Commands.Add(
                 new CompareToLeftSideCommand()
@@ -28,7 +29,7 @@ namespace GitEnlistmentManager.CommandSets
                 }
             );
 
-            Documentation = "Selects the other enlistment to be compared with the first previously selected enlistment";
+            Documentation = "Step 2 of a 2-step diff: opens the user's configured diff tool comparing the previously selected 'left' enlistment (set via `compareselectleft`) against this enlistment. Path must resolve to an enlistment. Errors if no left side has been selected. Side effect: launches an external diff GUI. Returns immediately after launching; MCP success only indicates the diff tool started.";
         }
     }
 }

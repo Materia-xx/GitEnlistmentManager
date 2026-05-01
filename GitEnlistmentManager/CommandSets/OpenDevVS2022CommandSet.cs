@@ -37,11 +37,12 @@ namespace GitEnlistmentManager.CommandSets
                     // This actually starts with a working directory of the ReposDirectory and later on changes directory to the desired directory
                     // This directory ends up being locked by the terminal no matter what directory you CD to, which then would prevent enlistments from
                     // being archived correctly from the command prompt if we let it default to the enlistment directory
-                    WorkingDirectory = @"{ReposDirectory}"
+                    WorkingDirectory = @"{ReposDirectory}",
+                    FireAndForget = true
                 }
             );
 
-            Documentation = "Opens Visual Studio 2022 Developer command prompt for the selected enlistment.";
+            Documentation = "Launches an interactive Visual Studio 2022 Developer command prompt window scoped to the enlistment directory. Path must resolve to an enlistment. Side effect: opens a new console window for the user. The console is interactive — output is NOT captured back through MCP. Returns immediately after launching the console; MCP success only indicates that the launcher process started. Use only when the user wants a dev prompt; not useful for programmatic operations.";
         }
     }
 }

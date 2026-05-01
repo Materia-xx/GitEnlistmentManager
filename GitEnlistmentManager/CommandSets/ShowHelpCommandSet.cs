@@ -14,7 +14,8 @@ namespace GitEnlistmentManager.CommandSets
 
             Commands.Add(new ShowHelpCommand());
 
-            Documentation = "Shows help.";
+            Documentation = "Lists all available verbs along with their right-click text and documentation. Path level does not matter. Output goes to the GEM command panel and is NOT captured back through MCP — prefer the `list_commands` MCP tool when calling from an AI.";
+            ExposeToMcp = false;
         }
     }
 }

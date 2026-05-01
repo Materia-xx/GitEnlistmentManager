@@ -1,4 +1,4 @@
-﻿using GitEnlistmentManager.CommandSets;
+using GitEnlistmentManager.CommandSets;
 using GitEnlistmentManager.DTOs;
 using GitEnlistmentManager.Globals;
 using Newtonsoft.Json;
@@ -17,12 +17,12 @@ namespace GitEnlistmentManager.Extensions
         {
             if (string.IsNullOrWhiteSpace(commandSet?.Filename))
             {
-                MessageBox.Show($"Command set filename not set, unable to save command {commandSet?.Verb}");
+                UiMessages.ShowError($"Command set filename not set, unable to save command {commandSet?.Verb}");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(commandSetDirectory))
             {
-                MessageBox.Show($"Command set directory not set, unable to save command {commandSet?.Verb}");
+                UiMessages.ShowError($"Command set directory not set, unable to save command {commandSet?.Verb}");
                 return false;
             }
             var commandSetPath = Path.Combine(commandSetDirectory, commandSet.Filename);
@@ -39,7 +39,7 @@ namespace GitEnlistmentManager.Extensions
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error writing Command set: {ex.Message}");
+                UiMessages.ShowError($"Error writing Command set: {ex.Message}");
                 return false;
             }
             return true;
@@ -55,7 +55,7 @@ namespace GitEnlistmentManager.Extensions
                 // A command set that doesn't have a override key isn't valid
                 if (acs.OverrideKey == null)
                 {
-                    MessageBox.Show($"Command set {acs.Filename} is missing an override key and is being skipped.");
+                    UiMessages.ShowError($"Command set {acs.Filename} is missing an override key and is being skipped.");
                     continue;
                 }
                 if (!commandSets.Any(cs => cs.OverrideKey != null && cs.OverrideKey.Equals(acs.OverrideKey, StringComparison.OrdinalIgnoreCase)))
@@ -88,7 +88,7 @@ namespace GitEnlistmentManager.Extensions
                 // Commands are intended to run only 1 time because they are stateful.
                 if (command.Executed)
                 {
-                    MessageBox.Show("Commands in a command set can only be run 1 time. This most likely represents a coding error in the program that needs to be fixed.");
+                    UiMessages.ShowError("Commands in a command set can only be run 1 time. This most likely represents a coding error in the program that needs to be fixed.");
                     return false;
                 }
                 command.MarkAsExecuted();

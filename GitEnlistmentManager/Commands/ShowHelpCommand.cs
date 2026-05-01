@@ -44,7 +44,8 @@ namespace GitEnlistmentManager.Commands
             typeof(OpenRootSolutionCommand),
             typeof(RefreshTreeviewCommand),
             typeof(RunProgramCommand),
-            typeof(ShowHelpCommand)
+            typeof(ShowHelpCommand),
+            typeof(SpawnCompareCommand)
         };
 
         private List<Type> AllCommandSetFilterTypes = new List<Type>()
